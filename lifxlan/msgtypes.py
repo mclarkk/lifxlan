@@ -10,15 +10,15 @@ import struct
 ##### DEVICE MESSAGES #####
 
 class GetService(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		target_addr = BROADCAST_MAC
 		super(GetService, self).__init__(MSG_IDS[GetService], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateService(Message):
-	def __init__(self, target_addr, source_id, seq_num, service, port, ack_requested=False, response_requested=False):
-		self.service = service 
-		self.port = port
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.service = payload["service"] 
+		self.port = payload["port"]
 		super(StateService, self).__init__(MSG_IDS[StateService], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -31,16 +31,16 @@ class StateService(Message):
 
 
 class GetHostInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetHostInfo, self).__init__(MSG_IDS[GetHostInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateHostInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, signal, tx, rx, reserved1, ack_requested=False, response_requested=False):
-		self.signal = signal 
-		self.tx = tx
-		self.rx = rx
-		self.reserved1 = reserved1
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.signal = payload["signal"]
+		self.tx = payload["tx"]
+		self.rx = payload["rx"]
+		self.reserved1 = rpayload["reserved1"]
 		super(StateHostInfo, self).__init__(MSG_IDS[StateHostInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -57,15 +57,15 @@ class StateHostInfo(Message):
 
 
 class GetHostFirmware(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetHostFirmware, self).__init__(MSG_IDS[GetHostFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateHostFirmware(Message):
-	def __init__(self, target_addr, source_id, seq_num, build, reserved1, version, ack_requested=False, response_requested=False):
-		self.build = build 
-		self.reserved1 = reserved1
-		self.version = version
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.build = payload["build"] 
+		self.reserved1 = payload["reserved1"]
+		self.version = payload["version"]
 		super(StateHostFirmware, self).__init__(MSG_IDS[StateHostFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -80,16 +80,16 @@ class StateHostFirmware(Message):
 
 
 class GetWifiInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetWifiInfo, self).__init__(MSG_IDS[GetWifiInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateWifiInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, signal, tx, rx, reserved1, ack_requested=False, response_requested=False):
-		self.signal = signal 
-		self.tx = tx
-		self.rx = rx
-		self.reserved1 = reserved1
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.signal = payload["signal"] 
+		self.tx = payload["tx"]
+		self.rx = payload["rx"]
+		self.reserved1 = payload["reserved1"]
 		super(StateWifiInfo, self).__init__(MSG_IDS[StateWifiInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -106,15 +106,15 @@ class StateWifiInfo(Message):
 
 
 class GetWifiFirmware(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetWifiFirmware, self).__init__(MSG_IDS[GetWifiFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateWifiFirmware(Message):
-	def __init__(self, target_addr, source_id, seq_num, build, reserved1, version, ack_requested=False, response_requested=False):
-		self.build = build 
-		self.reserved1 = reserved1
-		self.version = version
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.build = payload["build"] 
+		self.reserved1 = payload["reserved1"]
+		self.version = payload["version"]
 		super(StateWifiFirmware, self).__init__(MSG_IDS[StateWifiFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -129,13 +129,13 @@ class StateWifiFirmware(Message):
 
 
 class GetPower(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetPower, self).__init__(MSG_IDS[GetPower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class SetPower(Message):
-	def __init__(self, target_addr, source_id, seq_num, power_level, ack_requested=False, response_requested=False):
-		self.power_level = power_level
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.power_level = payload["power_level"]
 		super(SetPower, self).__init__(MSG_IDS[SetPower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -146,8 +146,8 @@ class SetPower(Message):
 
 
 class StatePower(Message):
-	def __init__(self, target_addr, source_id, seq_num, power_level, ack_requested=False, response_requested=False):
-		self.power_level = power_level
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.power_level = payload["power_level"]
 		super(StatePower, self).__init__(MSG_IDS[StatePower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -158,13 +158,13 @@ class StatePower(Message):
 
 
 class GetLabel(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetLabel, self).__init__(MSG_IDS[GetLabel], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class SetLabel(Message):
-	def __init__(self, target_addr, source_id, seq_num, label, ack_requested=False, response_requested=False):
-		self.label = label
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.label = payload["label"]
 		super(SetLabel, self).__init__(MSG_IDS[SetLabel], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -177,8 +177,8 @@ class SetLabel(Message):
 
 
 class StateLabel(Message):
-	def __init__(self, target_addr, source_id, seq_num, label, ack_requested=False, response_requested=False):
-		self.label = label
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.label = payload["label"]
 		super(StateLabel, self).__init__(MSG_IDS[StateLabel], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -191,15 +191,15 @@ class StateLabel(Message):
 
 
 class GetVersion(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetVersion, self).__init__(MSG_IDS[GetVersion], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateVersion(Message):
-	def __init__(self, target_addr, source_id, seq_num, vendor, product, version, ack_requested=False, response_requested=False):
-		self.vendor = vendor 
-		self.product = product
-		self.version = version
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.vendor = payload["vendor"] 
+		self.product = payload["product"]
+		self.version = payload["version"]
 		super(StateVersion, self).__init__(MSG_IDS[StateVersion], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -214,15 +214,15 @@ class StateVersion(Message):
 
 
 class GetInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(GetInfo, self).__init__(MSG_IDS[GetInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class StateInfo(Message):
-	def __init__(self, target_addr, source_id, seq_num, time, uptime, downtime, ack_requested=False, response_requested=False):
-		self.time = time 
-		self.uptime = uptime
-		self.downtime = downtime
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.time = payload["time"] 
+		self.uptime = payload["uptime"]
+		self.downtime = payload["downtime"]
 		super(StateInfo, self).__init__(MSG_IDS[StateInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -237,13 +237,13 @@ class StateInfo(Message):
 
 
 class Acknowledgement(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(Acknowledgement, self).__init__(MSG_IDS[Acknowledgement], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class EchoRequest(Message):
-	def __init__(self, target_addr, source_id, seq_num, byte_array, ack_requested=False, response_requested=False):
-		self.byte_array = byte_array
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.byte_array = payload["byte_array"]
 		super(EchoRequest, self).__init__(MSG_IDS[EchoRequest], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -260,8 +260,8 @@ class EchoRequest(Message):
 
 
 class EchoResponse(Message):
-	def __init__(self, target_addr, source_id, seq_num, byte_array, ack_requested=False, response_requested=False):
-		self.byte_array = byte_array
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.byte_array = payload["byte_array"]
 		super(EchoResponse, self).__init__(MSG_IDS[EchoResponse], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -275,14 +275,14 @@ class EchoResponse(Message):
 
 
 class LightGet(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(LightGet, self).__init__(MSG_IDS[LightGet], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class LightSetColor(Message):
-	def __init__(self, target_addr, source_id, seq_num, color, duration, ack_requested=False, response_requested=False):
-		self.color = color
-		self.duration = duration
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.color = payload["color"]
+		self.duration = payload["duration"]
 		super(LightSetColor, self).__init__(MSG_IDS[LightSetColor], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -294,12 +294,12 @@ class LightSetColor(Message):
 
 
 class LightState(Message):
-	def __init__(self, target_addr, source_id, seq_num, color, reserved1, power_level, label, reserved2, ack_requested=False, response_requested=False):
-		self.color = color
-		self.reserved1 = reserved1
-		self.power_level = power_level
-		self.label = label
-		self.reserved2 = reserved2
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.color = payload["color"]
+		self.reserved1 = payload["reserved1"]
+		self.power_level = payload["power_level"]
+		self.label = payload["label"]
+		self.reserved2 = payload["reserved2"]
 		super(LightState, self).__init__(MSG_IDS[LightState], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -320,14 +320,14 @@ class LightState(Message):
 
 
 class LightGetPower(Message):
-	def __init__(self, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
+	def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
 		super(LightGetPower, self).__init__(MSG_IDS[LightGetPower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 
 class LightSetPower(Message):
-	def __init__(self, target_addr, source_id, seq_num, power_level, duration, ack_requested=False, response_requested=False):
-		self.power_level = power_level
-		self.duration = duration
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.power_level = payload["power_level"]
+		self.duration = payload["duration"]
 		super(LightSetPower, self).__init__(MSG_IDS[LightSetPower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
@@ -338,8 +338,8 @@ class LightSetPower(Message):
 
 
 class LightStatePower(Message):
-	def __init__(self, target_addr, source_id, seq_num, power_level, ack_requested=False, response_requested=False):
-		self.power_level = power_level
+	def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+		self.power_level = payload["power_level"]
 		super(LightStatePower, self).__init__(MSG_IDS[LightStatePower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
