@@ -4,7 +4,7 @@
 
 ## How to Install
 
-* TO DO
+`sudo python setup.py install`
 
 ## Overview
 
