@@ -10,10 +10,10 @@ def main():
 		num_lights = int(sys.argv[1])
 
 	# instantiate LifxLAN client
+	print("Discovering lights...")
 	lifx = LifxLAN(num_lights)
 
 	# get devices
-	print("Discovering lights...")
 	devices = lifx.get_lights()
 	bulb = devices[0]
 	print("Selected {}".format(bulb.get_label()))
