@@ -383,3 +383,6 @@ SERVICE_IDS = {	1: "UDP",
 				2: "reserved",
 				3: "reserved",
 				4: "reserved"}
+
+STR_MAP = {	65535: "On",
+			0: "Off"}
