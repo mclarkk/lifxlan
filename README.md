@@ -38,7 +38,7 @@ TL;DR: Theoretically, you can use this library to write proxy programs that let 
 ```
 # power can be "on"/"off", True/False, 0/1, or 0/65535
 # color is a list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration is the transition time in seconds
+# duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 # arguments in [square brackets] are optional
 
@@ -95,7 +95,7 @@ The Light API provides everything in the Device API, as well as:
 ```
 # power can be "on"/"off", True/False, 0/1, or 0/65535
 # color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration is the transition time in seconds
+# duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 # arguments in [square brackets] are optional
 
