@@ -1,3 +1,6 @@
+# light.py
+# Author: Meghan Clark
+
 from device import Device, WorkflowException
 from msgtypes import *
 

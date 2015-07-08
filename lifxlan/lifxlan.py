@@ -1,3 +1,6 @@
+# lifxlan.py
+# Author: Meghan Clark
+
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
 from message import BROADCAST_MAC, BROADCAST_SOURCE_ID
 from device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS

@@ -1,3 +1,6 @@
+# unpack.py
+# Author: Meghan Clark
+
 from msgtypes import *
 
 # Creates a LIFX Message out of packed binary data

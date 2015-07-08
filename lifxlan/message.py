@@ -1,3 +1,6 @@
+# message.py
+# Author: Meghan Clark
+
 import struct
 import bitstring
 import binascii
