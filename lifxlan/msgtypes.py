@@ -314,7 +314,7 @@ class LightState(Message):
 		label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
 		label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
 		label += label_padding
-		reserved2 = little_endian(bitstring.pack("16", self.reserved1))
+		reserved2 = little_endian(bitstring.pack("64", self.reserved1))
 		payload = color + reserved1 + power_level + label + reserved2
 		return payload
 
