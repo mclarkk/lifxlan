@@ -16,8 +16,8 @@ def unpack_lifx_message(packed_message):
 	source_id = struct.unpack("I", header_str[4:8])[0]
 	target_addr = ":".join([('%02x' % b) for b in struct.unpack("B"*6, header_str[8:14])])
 	response_flags = struct.unpack("B", header_str[22:23])[0]
-	ack_requested = (response_flags >> 9) & 1
-	response_requested = (response_flags >> 8) & 1
+	ack_requested = response_flags & 2
+	response_requested = response_flags & 1
 	seq_num = struct.unpack("B", header_str[23:24])[0]
 	message_type = struct.unpack("H", header_str[32:34])[0]
 
@@ -156,8 +156,8 @@ def unpack_lifx_message(packed_message):
 		message = LightGetPower(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
 
 	elif message_type == MSG_IDS[LightSetPower]:
-		power_level = struct.unpack("H", payload_str[0:2])
-		duration = struct.unpack("I", payload_str[2:6])
+		power_level = struct.unpack("H", payload_str[0:2])[0]
+		duration = struct.unpack("I", payload_str[2:6])[0]
 		payload = {"power_level": power_level, "duration": duration}
 		message = LightSetPower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
