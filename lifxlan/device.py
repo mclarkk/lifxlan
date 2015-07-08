@@ -1,8 +1,19 @@
-# Import note: Every time you use a get_whatever() method, you are sending
-# packets to the device. If you want to access the last known (cached) value of an attribute
+# device.py
+# Author: Meghan Clark
+# This file contains a Device object that exposes a high-level API for interacting
+# with a LIFX device, and which caches some of the more persistent state attributes
+# so that you don't always need to spam the light with packets.
+#
+# The Device object also provides the low-level workflow functions for sending 
+# LIFX unicast packets to the specific device. LIFX unicast packets are sent
+# via UDP broadcast, but by including the device's MAC other LIFX devices will 
+# ignore the packet.
+#
+# Import note: Every time you call a `get` method you are sending packets to the 
+# real device. If you want to access the last known (cached) value of an attribute
 # just access the attribute directly, e.g., mydevice.label instead of mydevice.get_label()
-
-# Currently service and port are set during initialization and bever changed.
+#
+# Currently service and port are set during initialization and never updated.
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 
@@ -15,8 +26,14 @@ from datetime import datetime
 UDP_BROADCAST_IP = "255.255.255.255"
 UDP_BROADCAST_PORT = 56700
 
+VERBOSE = False
+
 class Device(object):
-	def __init__(self, mac_addr, service, port, source_id):
+	# mac_addr is a string, with the ":" and everything.
+	# service is an integer that maps to a service type. See SERVICE_IDS in msgtypes.py
+	# source_id is a number unique to this client, will appear in responses to this client
+	def __init__(self, mac_addr, service, port, source_id, verbose=False):
+		self.verbose = verbose
 		self.mac_addr = mac_addr
 		self.port = port
 		self.service = service
@@ -26,6 +43,7 @@ class Device(object):
 		# takes time so it is not done by default during initialization.
 		# However, refresh() will be called each time __str__ is called.
 		# Printing the device is therefore accurate but expensive.
+
 		self.label = None
 		self.power_level = None
 		self.host_firmware_build_timestamp = None
@@ -48,26 +66,30 @@ class Device(object):
 		# uptime
 		# downtime
 
-	# update the relatively persistent attributes
+
+	############################################################################
+	#                                                                          #
+	#                            Device API Methods                            #
+	#                                                                          #
+	############################################################################
+
+	# update the device's (relatively) persistent attributes
 	def refresh(self):
 		self.label = self.get_label()
 		self.power_level = self.get_power()
-		# for efficiency, initialize host, wifi, and version attributes all at once
-		self.host_firmware_build_timestamp, self.host_firmware_version = self._get_host_firmware()
-		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware()
-		self.vendor, self.product, self.version = self._get_version()
+		self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
+		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
+		self.vendor, self.product, self.version = self.get_version_tuple()
 
 	def get_mac_addr(self):
 		return self.mac_addr
 
-	# GetService - service, port
 	def get_service(self):
 		return self.service
 
 	def get_port(self):
 		return self.port
 
-	#GetLabel - label
 	def get_label(self):
 		try:
 			response = self.req_with_resp(GetLabel, StateLabel)
@@ -81,7 +103,6 @@ class Device(object):
 			label = label[:32]
 		self.req_with_ack(SetLabel, {"label": label})
 
-	# GetPower - power level
 	def get_power(self):
 		try:
 			response = self.req_with_resp(GetPower, StatePower)
@@ -98,8 +119,7 @@ class Device(object):
 		elif power in off:
 			success = self.req_with_ack(SetPower, {"power_level": 0})
 
-	#GetHostFirmware - build, version
-	def _get_host_firmware(self):
+	def get_host_firmware_tuple(self):
 		build = None
 		version = None
 		try:
@@ -111,15 +131,14 @@ class Device(object):
 		return build, version
 
 	def get_host_firmware_build_timestamp(self):
-		self.host_firmware_build_timestamp, self.host_firmware_version = self._get_host_firmware()
+		self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
 		return self.host_firmware_build_timestamp
 
 	def get_host_firmware_version(self):
-		self.host_firmware_build_timestamp, self.host_firmware_version = self._get_host_firmware()
+		self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
 		return self.host_firmware_version
 
-	#GetWifiInfo - signal, tx, rx
-	def _get_wifi_info(self):
+	def get_wifi_info_tuple(self):
 		signal = None
 		tx = None
 		rx = None
@@ -133,19 +152,18 @@ class Device(object):
 		return signal, tx, rx
 
 	def get_wifi_signal_mw(self):
-		signal, tx, rx = self._get_wifi_info()
+		signal, tx, rx = self.get_wifi_info_tuple()
 		return signal
 
 	def get_wifi_tx_bytes(self):
-		signal, tx, rx = self._get_wifi_info()
+		signal, tx, rx = self.get_wifi_info_tuple()
 		return tx
 
 	def get_wifi_rx_bytes(self):
-		signal, tx, rx = self._get_wifi_info()
+		signal, tx, rx = self.get_wifi_info_tuple()
 		return rx
 
-	#GetWifiFirmware - build, version
-	def _get_wifi_firmware(self):
+	def get_wifi_firmware_tuple(self):
 		build = None
 		version = None
 		try:
@@ -157,15 +175,14 @@ class Device(object):
 		return build, version
 
 	def get_wifi_firmware_build_timestamp(self):
-		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware()
+		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
 		return self.wifi_firmware_build_timestamp
 
 	def get_wifi_firmware_version(self):
-		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware()
+		self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
 		return self.wifi_firmware_version
 
-	#GetVersion - vendor product version 
-	def _get_version(self):
+	def get_version_tuple(self):
 		vendor = None
 		product = None
 		version = None
@@ -179,19 +196,18 @@ class Device(object):
 		return vendor, product, version
 
 	def get_vendor(self):
-		self.vendor, self.product, self.version = self._get_version()
+		self.vendor, self.product, self.version = self.get_version_tuple()
 		return self.vendor
 
 	def get_product(self):
-		self.vendor, self.product, self.version = self._get_version()
+		self.vendor, self.product, self.version = self.get_version_tuple()
 		return self.product
 
 	def get_version(self):
-		self.vendor, self.product, self.version = self._get_version()
+		self.vendor, self.product, self.version = self.get_version_tuple()
 		return self.version
 
-	#GetInfo - time uptime downtime
-	def _get_info(self):
+	def get_info_tuple(self):
 		time = None
 		uptime = None
 		downtime = None
@@ -205,16 +221,22 @@ class Device(object):
 		return time, uptime, downtime
 
 	def get_time(self):
-		time, uptime, downtime = self._get_info()
+		time, uptime, downtime = self.get_info_tuple()
 		return time
 
 	def get_uptime(self):
-		time, uptime, downtime = self._get_info()
+		time, uptime, downtime = self.get_info_tuple()
 		return uptime
 
 	def get_downtime(self):
-		time, uptime, downtime = self._get_info()
+		time, uptime, downtime = self.get_info_tuple()
 		return downtime
+
+	############################################################################
+	#                                                                          #
+	#                            String Formatting                             #
+	#                                                                          #
+	############################################################################
 
 	def device_characteristics_str(self, indent):
 		s = "{}\n".format(self.label)
@@ -265,25 +287,36 @@ class Device(object):
 		s += indent + self.device_radio_str(indent)
 		return s
 
+	############################################################################
+	#                                                                          #
+	#                            Workflow Methods                              #     
+	#                                                                          #
+	############################################################################
 
-	#### Send functions
-
-	def fire_and_forget(self, msgtype, payload={}, timeout_secs=0.5, num_repeats=5):
+	# Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
+	def fire_and_forget(self, msg_type, payload={}, timeout_secs=0.5, num_repeats=5):
 		self.initialize_socket(timeout_secs)
-		msg = msgtype(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
+		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
 		sent_msg_count = 0
 		sleep_interval = 0.05 if num_repeats > 20 else 0
 		while(sent_msg_count < num_repeats):
 			self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
+			if self.verbose:
+						print("SEND: " + str(msg))
 			sent_msg_count += 1
 			sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
 		self.close_socket()
 
 	# Usually used for Set messages
-	def req_with_ack(self, msgtype, payload, timeout_secs=0.5, max_attempts=5):
+	def req_with_ack(self, msg_type, payload, timeout_secs=0.5, max_attempts=5):
+		self.req_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
+
+	# Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
+	def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=0.5, max_attempts=5):
 		success = False
+		device_response = None
 		self.initialize_socket(timeout_secs)
-		msg = msgtype(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)	
+		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)	
 		response_seen = False
 		attempts = 0
 		while not response_seen and attempts < max_attempts:
@@ -294,12 +327,17 @@ class Device(object):
 				if not sent:
 					self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
 					sent = True
-				try:
+					if self.verbose:
+						print("SEND: " + str(msg))
+				try: 
 					data = self.sock.recv(1024)
 					response = unpack_lifx_message(data)
-					if type(response) == Acknowledgement:
+					if self.verbose:
+						print("RECV: " + str(response))
+					if type(response) == response_type:
 						if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
 							response_seen = True
+							device_response = response
 							success = True
 				except timeout:
 					pass
@@ -307,43 +345,19 @@ class Device(object):
 				timedout = True if elapsed_time > timeout_secs else False
 			attempts += 1
 		if not success:
-			raise NoAckException("Problem sending " + str(msgtype))
-		self.close_socket()
-
-	# Usually used for Get messages, optionally for state confirmation after Set (hence the optional payload)
-	def req_with_resp(self, msgtype, response_type, payload={}, timeout_secs=0.5, max_attempts=5):
-		device_response = None
-		self.initialize_socket(timeout_secs)
-		msg = msgtype(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)	
-		response_seen = False
-		attempts = 0
-		while not response_seen and attempts < max_attempts:
-			sent = False
-			start_time = time()
-			timedout = False
-			while not response_seen and not timedout:
-				if not sent:
-					self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
-					sent = True
-				try: 
-					data = self.sock.recv(1024)
-					response = unpack_lifx_message(data)
-					if type(response) == response_type:
-						if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
-							response_seen = True
-							device_response = response
-				except timeout:
-					pass
-				elapsed_time = time() - start_time
-				timedout = True if elapsed_time > timeout_secs else False
-			attempts += 1
-		if device_response == None:
-			raise NoResponseException("Problem sending " + str(msgtype))
+			raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
 		self.close_socket()
 		return device_response
 
-	def req_with_ack_resp(self, msgtype, response_type, payload, timeout_secs=0.5, max_attempts=5):
+	# Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
+	def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=0.5, max_attempts=5):
 		pass
+
+	############################################################################
+	#                                                                          #
+	#                              Socket Methods                              #
+	#                                                                          #
+	############################################################################
 
 	def initialize_socket(self, timeout):
 		self.sock = socket(AF_INET, SOCK_DGRAM)
@@ -356,14 +370,22 @@ class Device(object):
 	def close_socket(self):
 		self.sock.close()
 
+
+################################################################################
+#                                                                              #
+#                              Custom Exceptions                               #
+#                                                                              #
+################################################################################
+
 class WorkflowException(Exception):
 	pass
 
-class NoResponseException(WorkflowException):
-    pass
 
-class NoAckException(WorkflowException):
-	pass
+################################################################################
+#                                                                              #
+#                             Formatting Functions                             #
+#                                                                              #
+################################################################################
 
 def nanosec_to_hours(ns):
 	return ns/(1000000000.0*60*60)
