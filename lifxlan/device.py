@@ -355,7 +355,7 @@ class Device(object):
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if not success:
-            raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
         self.close_socket()
         return device_response
 
