@@ -22,6 +22,10 @@ class Device(object):
 		self.service = service
 		self.source_id = source_id
 
+		# The following attributes can be set by calling refresh(), but that 
+		# takes time so it is not done by default during initialization.
+		# However, refresh() will be called each time __str__ is called.
+		# Printing the device is therefore accurate but expensive.
 		self.label = None
 		self.power_level = None
 		self.host_firmware_build_timestamp = None
@@ -32,8 +36,11 @@ class Device(object):
 		self.product = None
 		self.version = None
 
-		# State attributes of the device that don't make sense to cache here, 
-		# though they can be accessed directly from the device with the methods below:
+		# For completeness, the following are state attributes of the device 
+		# that become stale too fast to bother caching in the device object, 
+		# though they can be accessed directly from the real device using the 
+		# methods below:
+
 		# wifi signal mw
 		# wifi tx bytes
 		# wifi rx bytes
@@ -41,6 +48,7 @@ class Device(object):
 		# uptime
 		# downtime
 
+	# update the relatively persistent attributes
 	def refresh(self):
 		self.label = self.get_label()
 		self.power_level = self.get_power()
@@ -217,9 +225,13 @@ class Device(object):
 		return s
 
 	def device_firmware_str(self, indent):
-		s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(self.host_firmware_build_timestamp, datetime.utcfromtimestamp(self.host_firmware_build_timestamp/1000000000))
+		host_build_ns = self.host_firmware_build_timestamp
+		host_build_s = host_build_ns/1000000000
+		wifi_build_ns = self.wifi_firmware_build_timestamp
+		wifi_build_s = wifi_build_ns/1000000000
+		s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, datetime.utcfromtimestamp(host_build_s))
 		s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
-		s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(self.wifi_firmware_build_timestamp, datetime.utcfromtimestamp(self.wifi_firmware_build_timestamp/1000000000))
+		s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, datetime.utcfromtimestamp(wifi_build_s))
 		s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_version)
 		return s
 
