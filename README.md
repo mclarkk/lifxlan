@@ -6,7 +6,7 @@
 
 `sudo pip install lifxlan`
 
-However, to get the most recent features and fixes you can `git clone` and install from source with:
+However, to get the most recent features and fixes you can install from source with:
 
 `sudo python setup.py install`
 
