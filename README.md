@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It is based on the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs).
+**lifxlan** is a Python module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification.
 
 ## How to Install
 
@@ -18,7 +18,7 @@ See the `examples` folder for example scripts that use **lifxlan**.
 
 You can do several things with this library:
 
-* Control LIFX devices using the high-level API (see the `examples` folder).
+* Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
 * Build your own high-level API on top of the low-level networking messages.
 * Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, Wemo, etc).
 
@@ -102,9 +102,9 @@ get_color()								# returns color (HSBK list)
 ```
 
 
-#### LIFX LAN Protocol:
+#### LIFX LAN Protocol Implementation:
 
-The LIFX LAN protocol is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (Ssee `examples/verbose_lan.py`.)
+The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (Ssee `examples/verbose_lan.py`.)
 
 The files that deal with LIFX packet construction and representation are:
 
