@@ -91,13 +91,26 @@ class LifxLAN:
 		self.close_socket()
 		return responses
 
-	def broadcast_fire_and_forget(self):
-		pass
+	def broadcast_fire_and_forget(self, msg_type, payload={}, timeout_secs=0.5, num_repeats=5):
+		self.initialize_socket(timeout_secs)
+		msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
+		sent_msg_count = 0
+		sleep_interval = 0.05 if num_repeats > 20 else 0
+		while(sent_msg_count < num_repeats):
+			self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
+			if self.verbose:
+						print("SEND: " + str(msg))
+			sent_msg_count += 1
+			sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
+		self.close_socket()
 
 	def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=3, max_attempts=5):
 		success = False
 		self.initialize_socket(timeout_secs)
-		msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)	
+		if response_type == Acknowledgement:
+			msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)	
+		else:
+			msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
 		responses = []
 		addr_seen = []
 		num_devices_seen = 0
