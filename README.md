@@ -36,16 +36,16 @@ TL;DR: Theoretically, you can use this library to write proxy programs that let 
 ##### LifxLAN API
 
 ```
-# power = "on"/"off", True/False, 0/1, or 0/65535
-# color = list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration = transition time in seconds
-# rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# power can be "on"/"off", True/False, 0/1, or 0/65535
+# color is a list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
+# duration is the transition time in seconds
+# rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 
-get_lights()											# returns list of Light objects
-set_power_all_lights(power, [duration], [rapid])		# set power for all lights on LAN
-set_color_all_lights_color(color, [duration], [rapid])	# set color for all lights on LAN
-get_power_all_lights()									# returns dict of Light, power pairs
-get_color_all_lights()									# returns dict of Light, color pairs
+get_lights()                                            # returns list of Light objects
+set_power_all_lights(power, [duration], [rapid])        # set power for all lights on LAN
+set_color_all_lights_color(color, [duration], [rapid])  # set color for all lights on LAN
+get_power_all_lights()                                  # returns dict of Light, power pairs
+get_color_all_lights()                                  # returns dict of Light, color pairs
 
 ```
 
@@ -54,32 +54,32 @@ get_color_all_lights()									# returns dict of Light, color pairs
 ##### Device API
 
 ```
-# label = string, 32 char max
-# power = "on"/"off", True/False, 0/1, or 0/65535
-# rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# label is a string, 32 char max
+# power can be "on"/"off", True/False, 0/1, or 0/65535
+# rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 
-set_label(label)			
-set_power(power, [rapid])			 
+set_label(label)            
+set_power(power, [rapid])            
 get_mac_addr()
-get_service()						# returns int, 1 = UDP
-get_port()							
-get_label()			
-get_power()							# returns 0 for off, 65535 for on
-get_host_firmware_tuple()			# returns (build_timestamp (in nanoseconds), version)
+get_service()                       # returns int, 1 = UDP
+get_port()                          
+get_label()         
+get_power()                         # returns 0 for off, 65535 for on
+get_host_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
 get_host_firmware_build_timestamp()
 get_host_firmware_version()
-get_wifi_info_tuple()				# returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
+get_wifi_info_tuple()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
 get_wifi_signal_mw()
 get_wifi_tx_bytes()
-get_wifi_rx_bytes()			
-get_wifi_firmware_tuple()			# returns (build_timestamp (in nanoseconds), version)
-get_wifi_firmware_build_timestamp()	
+get_wifi_rx_bytes()         
+get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
+get_wifi_firmware_build_timestamp() 
 get_wifi_firmware_version()
-get_version_tuple()					# returns (vendor, product, version)
+get_version_tuple()                 # returns (vendor, product, version)
 get_vendor()
 get_product()
 get_version()
-get_info_tuple()					# returns (time (current timestamp in ns), uptime (in ns), downtime (in ns, +/- 5 seconds))
+get_info_tuple()                    # returns (time (current timestamp in ns), uptime (in ns), downtime (in ns, +/- 5 seconds))
 get_time()
 get_uptime()
 get_downtime()
@@ -90,15 +90,15 @@ get_downtime()
 The Light API provides everything in the Device API, as well as:
 
 ```
-# power = power = "on"/"off", True/False, 0/1, or 0/65535
-# color = HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration = transition time in seconds
-# rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# power can be "on"/"off", True/False, 0/1, or 0/65535
+# color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
+# duration is the transition time in seconds
+# rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 
-set_power(power, [duration], [rapid])	
-set_color(color, [duration], [rapid])									
-get_power()								# returns 0 or 65535
-get_color()								# returns color (HSBK list)
+set_power(power, [duration], [rapid])   
+set_color(color, [duration], [rapid])                                   
+get_power()                             # returns 0 or 65535
+get_color()                             # returns color (HSBK list)
 ```
 
 
