@@ -15,9 +15,15 @@ WARM_WHITE = [58275, 0, 65535, 3200]
 GOLD = [58275, 0, 65535, 2500]
 
 class Light(Device):
-	def __init__(self, mac_addr, service, port, source_id):
-		super(Light, self).__init__(mac_addr, service, port, source_id)
+	def __init__(self, mac_addr, service, port, source_id, verbose=False):
+		super(Light, self).__init__(mac_addr, service, port, source_id, verbose)
 		self.color = None
+
+	############################################################################
+	#                                                                          #
+	#                            Light API Methods                             #
+	#                                                                          #
+	############################################################################
 
 	# GetPower - power level
 	def get_power(self):
@@ -66,6 +72,12 @@ class Light(Device):
 		except WorkflowException as e:
 			print(e)
 		return self.color
+
+	############################################################################
+	#                                                                          #
+	#                            String Formatting                             #
+	#                                                                          #
+	############################################################################
 
 	def __str__(self):
 		self.refresh()
