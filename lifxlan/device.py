@@ -94,6 +94,9 @@ class Device(object):
     def get_port(self):
         return self.port
 
+    def get_ip_addr(self):
+        return self.ip_addr
+
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
