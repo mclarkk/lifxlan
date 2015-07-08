@@ -300,7 +300,7 @@ class Device(object):
 	# Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
 	def fire_and_forget(self, msg_type, payload={}, timeout_secs=0.5, num_repeats=5):
 		self.initialize_socket(timeout_secs)
-		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
+		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
 		sent_msg_count = 0
 		sleep_interval = 0.05 if num_repeats > 20 else 0
 		while(sent_msg_count < num_repeats):
@@ -320,7 +320,10 @@ class Device(object):
 		success = False
 		device_response = None
 		self.initialize_socket(timeout_secs)
-		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)	
+		if response_type == Acknowledgement:
+			msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)	
+		else:
+			msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)	
 		response_seen = False
 		attempts = 0
 		while not response_seen and attempts < max_attempts:
