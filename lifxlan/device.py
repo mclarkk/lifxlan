@@ -111,13 +111,17 @@ class Device(object):
 			pass
 		return self.power_level
 
-	def set_power(self, power):
+	def set_power(self, power, rapid=False):
 		on = [True, 1, "on"]
 		off = [False, 0, "off"]
-		if power in on:
+		if power in on and not rapid:
 			success = self.req_with_ack(SetPower, {"power_level": 65535})
-		elif power in off:
+		elif power in off and not rapid:
 			success = self.req_with_ack(SetPower, {"power_level": 0})
+		elif power in on and rapid:
+			success = self.fire_and_forget(SetPower, {"power_level": 65535})
+		elif power in off and rapid:
+			success = self.fire_and_forget(SetPower, {"power_level": 0})
 
 	def get_host_firmware_tuple(self):
 		build = None
