@@ -63,6 +63,7 @@ Note: These have only been tested on one bulb so far. If you test the above call
 set_label(label)            
 set_power(power, [rapid])            
 get_mac_addr()
+get_ip_addr()
 get_service()                       # returns int, 1 = UDP
 get_port()                          
 get_label()         
