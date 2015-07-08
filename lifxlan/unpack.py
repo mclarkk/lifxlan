@@ -167,7 +167,7 @@ def unpack_lifx_message(packed_message):
 		message = LightStatePower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
 	else:
-		message = Message(message_type, target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+		message = Message(message_type, target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	message.size = size
 	message.origin = origin
