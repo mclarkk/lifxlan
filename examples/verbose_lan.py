@@ -23,7 +23,7 @@ def main():
         labels.append(device.get_label())
     print("Found Bulbs:")
     for label in labels:
-        print("  " + label)
+        print("  " + str(label))
 
 if __name__ == "__main__":
     main()
