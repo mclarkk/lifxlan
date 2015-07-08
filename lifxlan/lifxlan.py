@@ -49,7 +49,7 @@ class LifxLAN:
                 responses = self.discover()
             else:
                 responses = self.broadcast_with_resp(GetService, StateService)
-            for r in enumerate(responses):
+            for r in responses:
                 light = Light(r.target_addr, r.service, r.port, self.source_id, r.ip_addr, self.verbose)
                 self.lights.append(light)
                 self.devices.append(light)
@@ -138,7 +138,7 @@ class LifxLAN:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
                             num_devices_seen += 1
-                            responses.append((response, ip_addr))
+                            responses.append(response)
                 except timeout:
                     pass
                 elapsed_time = time() - start_time
