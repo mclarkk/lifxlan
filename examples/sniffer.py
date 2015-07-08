@@ -1,7 +1,7 @@
 # sniffer.py
 # Author: Meghan Clark
 # Listens to broadcast UDP messages. If you are using the LIFX app to control a bulb,
-# the sniffer will usually only see some discovery packets.
+# you might see some things.
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
 from lifxlan import *
