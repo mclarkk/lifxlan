@@ -58,7 +58,6 @@ get_color_all_lights()									# returns dict of Light, color pairs
 
 set_label(label)			
 set_power(power, [rapid])			 
-
 get_mac_addr()
 get_service()						# returns int, 1 = UDP
 get_port()							
@@ -95,8 +94,7 @@ The Light API provides everything in the Device API, as well as:
 # rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 
 set_power(power, [duration], [rapid])	
-set_color(color, [duration], [rapid])	
-										
+set_color(color, [duration], [rapid])									
 get_power()								# returns 0 or 65535
 get_color()								# returns color (HSBK list)
 ```
