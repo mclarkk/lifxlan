@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python module for locally controlling LIFX devices (such as lightbulbs) over a LAN. 
+**lifxlan** is a Python module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It is based on the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs).
 
 ## How to Install
 
