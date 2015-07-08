@@ -40,7 +40,7 @@ class StateHostInfo(Message):
 		self.signal = payload["signal"]
 		self.tx = payload["tx"]
 		self.rx = payload["rx"]
-		self.reserved1 = rpayload["reserved1"]
+		self.reserved1 = payload["reserved1"]
 		super(StateHostInfo, self).__init__(MSG_IDS[StateHostInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
 
 	def get_payload(self):
