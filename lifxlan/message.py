@@ -116,10 +116,15 @@ class Message(object):
 		s += "\n"
 		s += indent + "Bytes:\n"
 		s += indent*2 + str([hex(b) for b in struct.unpack("B"*(len(self.packed_message)),self.packed_message)])
+		s += "\n"
 		return s
 
+# reverses bytes for little endian, then converts to int
 def convert_MAC_to_int(addr):
-	return int(addr.replace(':', ''), 16)	
+	reverse_bytes_str = addr.split(':')
+	reverse_bytes_str.reverse()
+	addr_str = "".join(reverse_bytes_str)
+	return int(addr_str, 16)	
 
 def little_endian(bs):
 	shifts = [i*8 for i in range(len(bs)/8)]
