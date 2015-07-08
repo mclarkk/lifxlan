@@ -44,6 +44,9 @@ set_all_color(color, [duration], [rapid])
 ##### Device API
 
 ```
+set_label(label)
+set_power(power)
+
 get_mac_addr()
 get_service()
 get_port()
@@ -67,21 +70,18 @@ get_info_tuple()
 get_time()
 get_uptime()
 get_downtime()
-
-set_label(label)
-set_power(power)
 ```
 
 ##### Light API
 
-The Light API provides all of the call in the Device API, as well as:
+The Light API provides everything in the Device API, as well as:
 
 ```
-get_power()
-get_color()
+set_power(power, [duration], [rapid])	# power = "on"/"off", True/False, 0/1, or 0/65535. duration = transition time in seconds.
+set_color(color, [duration], [rapid])	# rapid = True/False, True means don't wait for the light to respond.
 
-set_power(power, [duration], [rapid]):
-set_color(color, [duration], [rapid]):
+get_power()								# returns 0 or 65535
+get_color()								# returns HSBK list of values: [hue, saturation, brightness, Kelvin].
 ```
 
 
