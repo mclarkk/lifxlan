@@ -18,9 +18,9 @@ There are several things you can do with this library:
 * Build your own high-level API on top of the low-level networking messages.
 * Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, Wemo, etc).
 
-I find the last option particularly exciting. You can use the low-level networking library to create messages that LIFX devices send to clients, effectively simulating a LIFX device in software. What that means is that you can write a software program that looks and acts like a LIFX device, but is really, say, converting SetColor and/or SetPower messages into API calls for other systems, like Philips Hue bulbs and Wemos.
+That's right, you can also use the low-level networking library to create messages that LIFX *devices* send to *clients*, effectively simulating a LIFX device in software. What that means is that you can write a software program that looks and acts like a LIFX device, but is really converting SetColor and/or SetPower messages into API calls for other RGB lightbulbs or on/off devices, like Philips Hue bulbs and Wemos.
 
-Long story short, you can use this library to build a program that makes your other RGB lightbulbs and on/off devices show up in your LIFX app. Control your Philips Hue bulbs and Wemos through the LIFX app! Whoa!
+TL;DR: You can use this library to write programs that let you view and control your Hue lights and Wemos through the LIFX app! Whoa!
 
 #### High-Level API:
 
