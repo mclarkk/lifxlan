@@ -49,6 +49,8 @@ get_color_all_lights()									# returns dict of Light, color pairs
 
 ```
 
+(Note: These have only been tested on one bulb so far. If you test the above calls on a setup with multiple bulbs, let me know how it goes!)
+
 ##### Device API
 
 ```
