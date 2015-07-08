@@ -35,12 +35,13 @@ class Device(object):
     # mac_addr is a string, with the ":" and everything.
     # service is an integer that maps to a service type. See SERVICE_IDS in msgtypes.py
     # source_id is a number unique to this client, will appear in responses to this client
-    def __init__(self, mac_addr, service, port, source_id, verbose=False):
+    def __init__(self, mac_addr, service, port, source_id, ip_addr, verbose=False):
         self.verbose = verbose
         self.mac_addr = mac_addr
         self.port = port
         self.service = service
         self.source_id = source_id
+        self.ip_addr = ip_addr # IP addresses can change, though...
 
         # The following attributes can be set by calling refresh(), but that 
         # takes time so it is not done by default during initialization.
@@ -248,6 +249,7 @@ class Device(object):
     def device_characteristics_str(self, indent):
         s = "{}\n".format(self.label)
         s += indent + "MAC Address: {}\n".format(self.mac_addr)
+        s += indent + "IP Address: {}\n".format(self.ip_addr)
         s += indent + "Port: {}\n".format(self.port)
         s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
         s += indent + "Power: {}\n".format(STR_MAP[self.power_level])
@@ -340,7 +342,7 @@ class Device(object):
                     if self.verbose:
                         print("SEND: " + str(msg))
                 try: 
-                    data = self.sock.recv(1024)
+                    data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
                         print("RECV: " + str(response))
@@ -348,6 +350,7 @@ class Device(object):
                         if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
                             response_seen = True
                             device_response = response
+                            self.ip_addr = ip_addr
                             success = True
                 except timeout:
                     pass

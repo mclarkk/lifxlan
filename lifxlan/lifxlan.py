@@ -49,11 +49,8 @@ class LifxLAN:
                 responses = self.discover()
             else:
                 responses = self.broadcast_with_resp(GetService, StateService)
-            for r in responses:
-                mac = r.target_addr
-                service = r.service
-                port = r.port
-                light = Light(mac, service, port, self.source_id, self.verbose)
+            for r in enumerate(responses):
+                light = Light(r.target_addr, r.service, r.port, self.source_id, r.ip_addr, self.verbose)
                 self.lights.append(light)
                 self.devices.append(light)
             self.num_lights = len(self.lights)
@@ -132,15 +129,16 @@ class LifxLAN:
                     if self.verbose:
                         print("SEND: " + str(msg))
                 try: 
-                    data = self.sock.recv(1024)
+                    data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
+                    response.ip_addr = ip_addr
                     if self.verbose:
                         print("RECV: " + str(response))
                     if type(response) == StateService and response.origin == 1 and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
                             num_devices_seen += 1
-                            responses.append(response)
+                            responses.append((response, ip_addr))
                 except timeout:
                     pass
                 elapsed_time = time() - start_time
@@ -184,8 +182,9 @@ class LifxLAN:
                     if self.verbose:
                         print("SEND: " + str(msg))
                 try: 
-                    data = self.sock.recv(1024)
+                    data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
+                    response.ip_addr = ip_addr
                     if self.verbose:
                         print("RECV: " + str(response))
                     if type(response) == response_type and response.origin == 1 and response.source_id == self.source_id:
