@@ -23,6 +23,9 @@ from unpack import unpack_lifx_message
 from time import time, sleep
 from datetime import datetime
 
+DEFAULT_TIMEOUT = 0.5
+DEFAULT_ATTEMPTS = 5
+
 UDP_BROADCAST_IP = "255.255.255.255"
 UDP_BROADCAST_PORT = 56700
 
@@ -268,14 +271,14 @@ class Device(object):
 		return s
 
 	def device_time_str(self, indent):
-		time, uptime, downtime = self._get_info()
+		time, uptime, downtime = self.get_info_tuple()
 		s = "Current Time: {} ({} UTC)\n".format(time, datetime.utcfromtimestamp(time/1000000000))
 		s += indent + "Uptime (ns): {} ({} hours)\n".format(uptime, round(nanosec_to_hours(uptime), 2))
 		s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(downtime, round(nanosec_to_hours(downtime), 2))
 		return s
 
 	def device_radio_str(self, indent):
-		signal, tx, rx = self._get_wifi_info()
+		signal, tx, rx = self.get_wifi_info_tuple()
 		s = "Wifi Signal Strength (mW): {}\n".format(signal)
 		s += indent + "Wifi TX (bytes): {}\n".format(tx)
 		s += indent + "Wifi RX (bytes): {}\n".format(rx)
@@ -298,7 +301,7 @@ class Device(object):
 	############################################################################
 
 	# Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
-	def fire_and_forget(self, msg_type, payload={}, timeout_secs=0.5, num_repeats=5):
+	def fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
 		self.initialize_socket(timeout_secs)
 		msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
 		sent_msg_count = 0
@@ -312,11 +315,11 @@ class Device(object):
 		self.close_socket()
 
 	# Usually used for Set messages
-	def req_with_ack(self, msg_type, payload, timeout_secs=0.5, max_attempts=5):
+	def req_with_ack(self, msg_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
 		self.req_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
 
 	# Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
-	def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=0.5, max_attempts=5):
+	def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
 		success = False
 		device_response = None
 		self.initialize_socket(timeout_secs)
@@ -357,7 +360,7 @@ class Device(object):
 		return device_response
 
 	# Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
-	def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=0.5, max_attempts=5):
+	def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
 		pass
 
 	############################################################################
