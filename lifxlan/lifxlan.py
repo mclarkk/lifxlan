@@ -7,7 +7,6 @@ from unpack import unpack_lifx_message
 from random import randint
 from time import time, sleep # sleep = TEST
 
-
 class LifxLAN:
 	def __init__(self, num_lights=None):
 		self.source_id = randint(0, (2**32)-1)
