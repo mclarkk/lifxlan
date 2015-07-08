@@ -104,6 +104,7 @@ get_power()                             # returns 0 or 65535
 get_color()                             # returns color (HSBK list)
 ```
 
+Fun Fact: The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
 
 #### LIFX LAN Protocol Implementation:
 
