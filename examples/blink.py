@@ -11,7 +11,10 @@ def main():
     else:
         num_lights = int(sys.argv[1])
 
-    # instantiate LifxLAN client, num_lights may be None (unknown)
+    # instantiate LifxLAN client, num_lights may be None (unknown).
+    # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # simply makes initial bulb discovery faster.
     print("Discovering lights...")
     lifx = LifxLAN(num_lights)
 
