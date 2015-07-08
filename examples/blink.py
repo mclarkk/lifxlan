@@ -1,5 +1,7 @@
 from lifxlan import *
 import sys
+from time import sleep
+
 
 def main():
     num_lights = None
@@ -9,7 +11,7 @@ def main():
     else:
         num_lights = int(sys.argv[1])
 
-    # instantiate LifxLAN client
+    # instantiate LifxLAN client, num_lights may be None (unknown)
     print("Discovering lights...")
     lifx = LifxLAN(num_lights)
 
@@ -18,8 +20,12 @@ def main():
     bulb = devices[0]
     print("Selected {}".format(bulb.get_label()))
 
-    # get color
+    # get original state
+    original_power = bulb.get_power()
     original_color = bulb.get_color()
+    bulb.set_power("on")
+
+    sleep(0.2) # to look pretty
 
     print("Toggling power...")
     toggle_device_power(bulb, 0.2)
@@ -28,7 +34,14 @@ def main():
     toggle_light_color(bulb, 0.2)
 
     # restore original color
+    # color can be restored after the power is turned off as well
+    print("Restoring original color and power...")
     bulb.set_color(original_color)
+
+    sleep(1) # to look pretty.
+
+    # restore original power
+    bulb.set_power(original_power)
 
 def toggle_device_power(device, interval=0.5, num_cycles=3): #TEST
     original_power_state = device.get_power()

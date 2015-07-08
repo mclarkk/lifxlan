@@ -1,5 +1,6 @@
 from lifxlan import *
 import sys
+from time import sleep
 
 def main():
     num_lights = None
@@ -9,11 +10,16 @@ def main():
     else:
         num_lights = int(sys.argv[1])
 
-    # instantiate LifxLAN client
+    # instantiate LifxLAN client, num_lights may be None (unknown)
     print("Discovering lights...")
     lifx = LifxLAN(num_lights)
 
     original_colors = lifx.get_color_all_lights()
+    original_powers = lifx.get_power_all_lights()
+
+    print("Turning on all lights...")
+    lifx.set_power_all_lights(True)
+    sleep(1)
 
     print("Flashy fast rainbow")
     rainbow(lifx, 0.1)
@@ -21,10 +27,12 @@ def main():
     print("Smooth slow rainbow")
     rainbow(lifx, 1, smooth=True)
 
+    print("Restoring original power and color...")
+    # restore original power
+    bulb.set_power(original_power)
     # restore original color
-    print("Restoring original colors...")
-    for bulb, color in original_colors:
-        bulb.set_color(color)
+    sleep(0.5) # for looks
+    bulb.set_color(original_color)
 
 def rainbow(lan, duration_secs=0.5, smooth=False):
     colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]
