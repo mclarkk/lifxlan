@@ -40,7 +40,7 @@ TL;DR: Theoretically, you can use this library to write proxy programs that let 
 # duration = transition time in seconds
 # rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
 
-get_devices()								# returns list of Devices objects
+get_devices()								# returns list of Device objects
 get_lights()								# returns list of Light objects
 set_all_power(power, [duration], [rapid])	# set power for all lights on LAN
 set_all_color(color, [duration], [rapid])	# set color for all lights on LAN
@@ -49,8 +49,12 @@ set_all_color(color, [duration], [rapid])	# set color for all lights on LAN
 ##### Device API
 
 ```
-set_label(label)					# label is a string, 32 char max
-set_power(power, [rapid])			# power = "on"/"off", True/False, 0/1, or 0/65535
+# label = string, 32 char max
+# power = "on"/"off", True/False, 0/1, or 0/65535
+# rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+
+set_label(label)			
+set_power(power, [rapid])			 
 
 get_mac_addr()
 get_service()						# returns int, 1 = UDP
@@ -82,11 +86,16 @@ get_downtime()
 The Light API provides everything in the Device API, as well as:
 
 ```
-set_power(power, [duration], [rapid])	# power = "on"/"off", True/False, 0/1, or 0/65535
-set_color(color, [duration], [rapid])	# color = list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
+# power = power = "on"/"off", True/False, 0/1, or 0/65535
+# color = HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
+# duration = transition time in seconds
+# rapid = True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+
+set_power(power, [duration], [rapid])	
+set_color(color, [duration], [rapid])	
 										
 get_power()								# returns 0 or 65535
-get_color()								# returns list of HSBK values: [hue, saturation, brightness, Kelvin]
+get_color()								# returns color (HSBK list)
 ```
 
 
