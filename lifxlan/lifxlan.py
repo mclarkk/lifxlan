@@ -19,7 +19,7 @@ class LifxLAN:
         self.lights = None
         self.verbose = verbose
 
-        self.lights = self.get_lights()
+        self.lights = None #self.get_lights()
 
     ############################################################################
     #                                                                          #
@@ -103,7 +103,7 @@ class LifxLAN:
             except WorkflowException as e:
                 print(e)
         else:
-            print("{} is not a valid power level.".format(power_level))
+            print("{} is not a valid color.".format(color))
 
     ############################################################################
     #                                                                          #
