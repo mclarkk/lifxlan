@@ -13,11 +13,10 @@ def main():
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
     # simply makes initial bulb discovery faster.
-    print("Discovering lights...")
     lifx = LifxLAN(num_lights)
 
-
     # test power control
+    print("Discovering lights...")
     original_powers = lifx.get_power_all_lights()
 
     print("Turning lights on...")
