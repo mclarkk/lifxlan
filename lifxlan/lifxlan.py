@@ -18,8 +18,6 @@ class LifxLAN:
         self.devices = None
         self.lights = None
         self.verbose = verbose
-
-        self.lights = None
         
     ############################################################################
     #                                                                          #
