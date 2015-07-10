@@ -30,12 +30,15 @@ def main():
     print("Smooth slow rainbow")
     rainbow(lifx, 1, smooth=True)
 
-    print("Restoring original power and color...")
-    # restore original power
-    bulb.set_power(original_power)
-    # restore original color
-    sleep(0.5) # for looks
-    bulb.set_color(original_color)
+    print("Restoring original color to all lights...")
+    for light, color in original_colors:
+        light.set_color(color)
+
+    sleep(1)
+
+    print("Restoring original power to all lights...")
+    for light, power in original_powers:
+        light.set_power(power)
 
 def rainbow(lan, duration_secs=0.5, smooth=False):
     colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]
