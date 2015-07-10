@@ -14,6 +14,8 @@ However, to get the most recent features and fixes you can install from source w
 
 See the `examples` folder for example scripts that use **lifxlan**.  
 
+Many of the examples perform device discovery in the beginning in order to find indvidual bulbs, which can be slow. However, see `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` for ways to send commands to all lights quickly without doing device discovery.
+
 ## Overview
 
 You can do several things with this library:
