@@ -57,8 +57,6 @@ class LifxLAN:
 
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
-        if self.lights == None:
-            self.get_lights()
         responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
         power_states = []
         for light in self.lights:
@@ -70,8 +68,6 @@ class LifxLAN:
     def set_power_all_lights(self, power_level, duration=0, rapid=False):
         on = [True, 1, "on", 65535]
         off = [False, 0, "off"]
-        if self.lights == None:
-            self.get_lights()
         try:
             if power_level in on and not rapid:
                 self.broadcast_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
@@ -87,8 +83,6 @@ class LifxLAN:
             print(e)
 
     def get_color_all_lights(self):
-        if self.lights == None:
-            self.get_lights()
         responses = self.broadcast_with_resp(LightGet, LightState)
         colors = []
         for light in self.lights:
@@ -98,8 +92,6 @@ class LifxLAN:
         return colors
 
     def set_color_all_lights(self, color, duration=0, rapid=False):
-        if self.lights == None:
-            self.get_lights()
         if len(color) == 4:
             try:
                 if rapid:
@@ -167,6 +159,8 @@ class LifxLAN:
         self.close_socket()
 
     def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        if self.lights == None:
+            self.get_lights()
         success = False
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
