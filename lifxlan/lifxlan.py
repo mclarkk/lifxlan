@@ -19,8 +19,8 @@ class LifxLAN:
         self.lights = None
         self.verbose = verbose
 
-        self.lights = None #self.get_lights()
-
+        self.lights = None
+        
     ############################################################################
     #                                                                          #
     #                         LAN (Broadcast) API Methods                      #
