@@ -55,6 +55,8 @@ class LifxLAN:
             self.num_devices = len(self.lights)
         return self.lights
 
+    def get_lights_from_file(self, file):
+
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
         responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
