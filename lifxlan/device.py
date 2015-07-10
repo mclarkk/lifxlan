@@ -314,7 +314,7 @@ class Device(object):
         while(sent_msg_count < num_repeats):
             self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
             if self.verbose:
-                        print("SEND: " + str(msg))
+                print("SEND: " + str(msg))
             sent_msg_count += 1
             sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket()
