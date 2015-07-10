@@ -109,7 +109,7 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    def discover(self, timeout_secs=1, num_repeats=3):
+    def discover(self, timeout_secs=0.3, num_repeats=3):
         self.initialize_socket(timeout_secs)
         msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)    
         responses = []
