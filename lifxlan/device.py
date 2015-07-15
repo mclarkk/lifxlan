@@ -17,7 +17,7 @@
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout, error
 from msgtypes import *
 from unpack import unpack_lifx_message
 from time import time, sleep
@@ -381,7 +381,13 @@ class Device(object):
         self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.sock.settimeout(timeout)
         port = UDP_BROADCAST_PORT
-        self.sock.bind(("", port))
+        success = False
+        while not success:
+            try:
+                self.sock.bind(("", port))
+                success = True
+            except: # address (port) already in use, maybe another client on the same computer...
+                port += 1
 
     def close_socket(self):
         self.sock.close()
