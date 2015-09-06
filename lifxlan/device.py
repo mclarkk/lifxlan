@@ -100,7 +100,7 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label
+            self.label = response.label.replace("\x00", "")
         except:
             pass
         return self.label
