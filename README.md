@@ -4,9 +4,11 @@
 
 ## How to Install
 
+To get the latest stable release:
+
 `sudo pip install lifxlan`
 
-However, to get the most recent features and fixes you can install from source with:
+However, to be guaranteed to get the most recent features and fixes you can install from source with:
 
 `sudo python setup.py install`
 
