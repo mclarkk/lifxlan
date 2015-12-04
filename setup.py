@@ -9,6 +9,6 @@ setup(name='lifxlan',
       license='MIT',
       packages=['lifxlan'],
       install_requires=[
-        "bitstring",
+        'bitstring',
 	  ],
       zip_safe=False)

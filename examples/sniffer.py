@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # sniffer.py
 # Author: Meghan Clark
 # Listens to broadcast UDP messages. If you are using the LIFX app to control a bulb,
@@ -21,7 +21,7 @@ class Sniffer(object):
                     try: 
                         data = self.sock.recv(1024)
                         request = unpack_lifx_message(data)
-                        print("\nRECV:"),
+                        print('\nRECV:')
                         print(request)
                     except timeout:
                         pass
@@ -32,7 +32,7 @@ class Sniffer(object):
         if self.sock == None:
             self.initialize_socket()
         msg.origin = 1
-        print("SEND:"),
+        print('SEND:')
         print(msg)
         self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
 
@@ -42,7 +42,7 @@ class Sniffer(object):
         self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.sock.settimeout(0.5)
         port = UDP_BROADCAST_PORT
-        self.sock.bind(("", port))
+        self.sock.bind((b'', port))
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     Sniffer()
