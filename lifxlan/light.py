@@ -1,8 +1,8 @@
 # light.py
 # Author: Meghan Clark
 
-from device import Device, WorkflowException
-from msgtypes import *
+from .device import Device, WorkflowException
+from .msgtypes import *
 
 RED = [62978, 65535, 65535, 3500]
 ORANGE = [5525, 65535, 65535, 3500]
@@ -38,19 +38,19 @@ class Light(Device):
         return self.power_level
 
     def set_power(self, power, duration=0, rapid=False):
-        on = [True, 1, "on", 65535]
-        off = [False, 0, "off"]
+        on = [True, 1, 'on', 65535]
+        off = [False, 0, 'off']
         try:
             if power in on and not rapid:
-                self.req_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
+                self.req_with_ack(LightSetPower, {'power_level': 65535, 'duration': duration})
             elif power in on and rapid:
-                self.fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetPower, {'power_level': 65535, 'duration': duration}, num_repeats=5)
             elif power in off and not rapid:
-                self.req_with_ack(LightSetPower, {"power_level": 0, "duration": duration})
+                self.req_with_ack(LightSetPower, {'power_level': 0, 'duration': duration})
             elif power in off and rapid:
-                self.fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetPower, {'power_level': 0, 'duration': duration}, num_repeats=5)
             else:
-                print("{} is not a valid power level.".format(power))
+                print('{} is not a valid power level.'.format(power))
         except WorkflowException as e:
             print(e)
 
@@ -59,9 +59,9 @@ class Light(Device):
         if len(color) == 4:
             try:
                 if rapid:
-                    self.fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=5)
+                    self.fire_and_forget(LightSetColor, {'color': color, 'duration': duration}, num_repeats=5)
                 else:
-                    self.req_with_ack(LightSetColor, {"color": color, "duration": duration})
+                    self.req_with_ack(LightSetColor, {'color': color, 'duration': duration})
             except WorkflowException as e:
                 print(e)
 
@@ -84,9 +84,9 @@ class Light(Device):
 
     def __str__(self):
         self.refresh()
-        indent = "  "
+        indent = '  '
         s = self.device_characteristics_str(indent)
-        s += indent + "Color (HSBK): {}\n".format(self.get_color())
+        s += indent + 'Color (HSBK): {}\n'.format(self.get_color())
         s += indent + self.device_firmware_str(indent)
         s += indent + self.device_product_str(indent)
         s += indent + self.device_time_str(indent)
