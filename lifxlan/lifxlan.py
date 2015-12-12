@@ -2,11 +2,11 @@
 # Author: Meghan Clark
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
-from message import BROADCAST_MAC, BROADCAST_SOURCE_ID
-from device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
-from light import *
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .message import BROADCAST_MAC, BROADCAST_SOURCE_ID
+from .device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
+from .light import *
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from random import randint
 from time import time, sleep
 
@@ -66,19 +66,19 @@ class LifxLAN:
         return power_states
 
     def set_power_all_lights(self, power_level, duration=0, rapid=False):
-        on = [True, 1, "on", 65535]
-        off = [False, 0, "off"]
+        on = [True, 1, 'on', 65535]
+        off = [False, 0, 'off']
         try:
             if power_level in on and not rapid:
-                self.broadcast_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
+                self.broadcast_with_ack(LightSetPower, {'power_level': 65535, 'duration': duration})
             elif power_level in on and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=5)
+                self.broadcast_fire_and_forget(LightSetPower, {'power_level': 65535, 'duration': duration}, num_repeats=5)
             elif power_level in off and not rapid:
-                self.broadcast_with_ack(LightSetPower, {"power_level": 0, "duration": duration})
+                self.broadcast_with_ack(LightSetPower, {'power_level': 0, 'duration': duration})
             elif power_level in off and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=5)
+                self.broadcast_fire_and_forget(LightSetPower, {'power_level': 0, 'duration': duration}, num_repeats=5)
             else:
-                print("{} is not a valid power level.".format(power_level))
+                print('{} is not a valid power level.'.format(power_level))
         except WorkflowException as e:
             print(e)
 
@@ -95,13 +95,13 @@ class LifxLAN:
         if len(color) == 4:
             try:
                 if rapid:
-                    self.broadcast_fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=5)
+                    self.broadcast_fire_and_forget(LightSetColor, {'color': color, 'duration': duration}, num_repeats=5)
                 else:
-                    self.broadcast_with_ack(LightSetColor, {"color": color, "duration": duration})
+                    self.broadcast_with_ack(LightSetColor, {'color': color, 'duration': duration})
             except WorkflowException as e:
                 print(e)
         else:
-            print("{} is not a valid color.".format(color))
+            print('{} is not a valid color.'.format(color))
 
     ############################################################################
     #                                                                          #
@@ -125,13 +125,13 @@ class LifxLAN:
                     self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
                     sent = True
                     if self.verbose:
-                        print("SEND: " + str(msg))
+                        print('SEND: ' + str(msg))
                 try: 
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
                     if self.verbose:
-                        print("RECV: " + str(response))
+                        print('RECV: ' + str(response))
                     if type(response) == StateService and response.origin == 1 and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
@@ -153,7 +153,7 @@ class LifxLAN:
         while(sent_msg_count < num_repeats):
             self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
             if self.verbose:
-                        print("SEND: " + str(msg))
+                        print('SEND: ' + str(msg))
             sent_msg_count += 1
             sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket()
@@ -180,13 +180,13 @@ class LifxLAN:
                     self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
                     sent = True
                     if self.verbose:
-                        print("SEND: " + str(msg))
+                        print('SEND: ' + str(msg))
                 try: 
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
                     if self.verbose:
-                        print("RECV: " + str(response))
+                        print('RECV: ' + str(response))
                     if type(response) == response_type and response.origin == 1 and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
@@ -200,7 +200,7 @@ class LifxLAN:
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if success == False:
-            raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException('Did not receive {} in response to {}'.format(str(response_type), str(msg_type)))
         self.close_socket()
         return responses
 
@@ -223,7 +223,7 @@ class LifxLAN:
         self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.sock.settimeout(timeout)
         port = UDP_BROADCAST_PORT
-        self.sock.bind(("", port))
+        self.sock.bind((b'', port))
 
     def close_socket(self):
         self.sock.close()
@@ -231,5 +231,5 @@ class LifxLAN:
 def test():
     pass
 
-if __name__=="__main__":
+if __name__=='__main__':
     test()

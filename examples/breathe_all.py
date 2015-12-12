@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from lifxlan import *
 import sys
 from copy import copy
@@ -7,8 +7,8 @@ from time import sleep, time
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
-        print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
+        print('\nDiscovery will go much faster if you provide the number of lights on your LAN:')
+        print('  python {} <number of lights on LAN>\n'.format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
 
@@ -20,16 +20,16 @@ def main():
     bulbs = lifx.get_lights()
 
     # test power control
-    print("Discovering lights...")
+    print('Discovering lights...')
     original_powers = lifx.get_power_all_lights()
     original_colors = lifx.get_color_all_lights()
-    print original_colors
+    print(original_colors)
 
 
     half_period_ms = 2500
     duration_mins = 20
     duration_secs = duration_mins*60
-    print("Breathing...")
+    print('Breathing...')
     try:    
         start_time = time()
         while True:
@@ -45,13 +45,13 @@ def main():
             if time() - start_time > duration_secs:
                 raise KeyboardInterrupt
     except KeyboardInterrupt:
-        print("Restoring original color to all lights...")
+        print('Restoring original color to all lights...')
         for light, color in original_colors:
             light.set_color(color)
 
-        print("Restoring original power to all lights...")
+        print('Restoring original power to all lights...')
         for light, power in original_powers:
             light.set_power(power)
 
-if __name__=="__main__":
+if __name__=='__main__':
     main()

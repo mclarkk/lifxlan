@@ -18,21 +18,21 @@
 # per device, and also to capture in real time when a service is down (port = 0).
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout, error
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from time import time, sleep
 from datetime import datetime
 
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5
 
-UDP_BROADCAST_IP = "255.255.255.255"
+UDP_BROADCAST_IP = b'255.255.255.255'
 UDP_BROADCAST_PORT = 56700
 
 VERBOSE = False
 
 class Device(object):
-    # mac_addr is a string, with the ":" and everything.
+    # mac_addr is a string, with the ':' and everything.
     # service is an integer that maps to a service type. See SERVICE_IDS in msgtypes.py
     # source_id is a number unique to this client, will appear in responses to this client
     def __init__(self, mac_addr, service, port, source_id, ip_addr, verbose=False):
@@ -100,7 +100,7 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label.replace("\x00", "")
+            self.label = response.label.replace(b'\x00', b'')
         except:
             pass
         return self.label
@@ -108,7 +108,7 @@ class Device(object):
     def set_label(self, label):
         if len(label) > 32:
             label = label[:32]
-        self.req_with_ack(SetLabel, {"label": label})
+        self.req_with_ack(SetLabel, {'label': label})
 
     def get_power(self):
         try:
@@ -119,16 +119,16 @@ class Device(object):
         return self.power_level
 
     def set_power(self, power, rapid=False):
-        on = [True, 1, "on"]
-        off = [False, 0, "off"]
+        on = [True, 1, 'on']
+        off = [False, 0, 'off']
         if power in on and not rapid:
-            success = self.req_with_ack(SetPower, {"power_level": 65535})
+            success = self.req_with_ack(SetPower, {'power_level': 65535})
         elif power in off and not rapid:
-            success = self.req_with_ack(SetPower, {"power_level": 0})
+            success = self.req_with_ack(SetPower, {'power_level': 0})
         elif power in on and rapid:
-            success = self.fire_and_forget(SetPower, {"power_level": 65535})
+            success = self.fire_and_forget(SetPower, {'power_level': 65535})
         elif power in off and rapid:
-            success = self.fire_and_forget(SetPower, {"power_level": 0})
+            success = self.fire_and_forget(SetPower, {'power_level': 0})
 
     def get_host_firmware_tuple(self):
         build = None
@@ -250,12 +250,12 @@ class Device(object):
     ############################################################################
 
     def device_characteristics_str(self, indent):
-        s = "{}\n".format(self.label)
-        s += indent + "MAC Address: {}\n".format(self.mac_addr)
-        s += indent + "IP Address: {}\n".format(self.ip_addr)
-        s += indent + "Port: {}\n".format(self.port)
-        s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
-        s += indent + "Power: {}\n".format(str_map(self.power_level))
+        s = '{}\n'.format(self.label.decode('utf8'))
+        s += indent + 'MAC Address: {}\n'.format(self.mac_addr.decode('utf8'))
+        s += indent + 'IP Address: {}\n'.format(self.ip_addr)
+        s += indent + 'Port: {}\n'.format(self.port)
+        s += indent + 'Service: {}\n'.format(SERVICE_IDS[self.service])
+        s += indent + 'Power: {}\n'.format(str_map(self.power_level))
         return s
 
     def device_firmware_str(self, indent):
@@ -263,35 +263,35 @@ class Device(object):
         host_build_s = host_build_ns/1000000000
         wifi_build_ns = self.wifi_firmware_build_timestamp
         wifi_build_s = wifi_build_ns/1000000000
-        s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, datetime.utcfromtimestamp(host_build_s))
-        s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
-        s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, datetime.utcfromtimestamp(wifi_build_s))
-        s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_version)
+        s = 'Host Firmware Build Timestamp: {} ({} UTC)\n'.format(host_build_ns, datetime.utcfromtimestamp(host_build_s))
+        s += indent + 'Host Firmware Build Version: {}\n'.format(self.host_firmware_version)
+        s += indent + 'Wifi Firmware Build Timestamp: {} ({} UTC)\n'.format(wifi_build_ns, datetime.utcfromtimestamp(wifi_build_s))
+        s += indent + 'Wifi Firmware Build Version: {}\n'.format(self.wifi_firmware_version)
         return s
 
     def device_product_str(self, indent):
-        s = "Vendor: {}\n".format(self.vendor)
-        s += indent + "Product: {}\n".format(self.product)
-        s += indent + "Version: {}\n".format(self.version)
+        s = 'Vendor: {}\n'.format(self.vendor)
+        s += indent + 'Product: {}\n'.format(self.product)
+        s += indent + 'Version: {}\n'.format(self.version)
         return s
 
     def device_time_str(self, indent):
         time, uptime, downtime = self.get_info_tuple()
-        s = "Current Time: {} ({} UTC)\n".format(time, datetime.utcfromtimestamp(time/1000000000))
-        s += indent + "Uptime (ns): {} ({} hours)\n".format(uptime, round(nanosec_to_hours(uptime), 2))
-        s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(downtime, round(nanosec_to_hours(downtime), 2))
+        s = 'Current Time: {} ({} UTC)\n'.format(time, datetime.utcfromtimestamp(time/1000000000))
+        s += indent + 'Uptime (ns): {} ({} hours)\n'.format(uptime, round(nanosec_to_hours(uptime), 2))
+        s += indent + 'Last Downtime Duration +/-5s (ns): {} ({} hours)\n'.format(downtime, round(nanosec_to_hours(downtime), 2))
         return s
 
     def device_radio_str(self, indent):
         signal, tx, rx = self.get_wifi_info_tuple()
-        s = "Wifi Signal Strength (mW): {}\n".format(signal)
-        s += indent + "Wifi TX (bytes): {}\n".format(tx)
-        s += indent + "Wifi RX (bytes): {}\n".format(rx)
+        s = 'Wifi Signal Strength (mW): {}\n'.format(signal)
+        s += indent + 'Wifi TX (bytes): {}\n'.format(tx)
+        s += indent + 'Wifi RX (bytes): {}\n'.format(rx)
         return s
 
     def __str__(self):
         self.refresh()
-        indent = "  "
+        indent = '  '
         s = self.device_characteristics_str(indent)
         s += indent + self.device_firmware_str(indent)
         s += indent + self.device_product_str(indent)
@@ -314,7 +314,7 @@ class Device(object):
         while(sent_msg_count < num_repeats):
             self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
             if self.verbose:
-                print("SEND: " + str(msg))
+                print('SEND: ' + str(msg))
             sent_msg_count += 1
             sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket()
@@ -343,12 +343,12 @@ class Device(object):
                     self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
                     sent = True
                     if self.verbose:
-                        print("SEND: " + str(msg))
+                        print('SEND: ' + str(msg))
                 try: 
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
-                        print("RECV: " + str(response))
+                        print('RECV: ' + str(response))
                     if type(response) == response_type:
                         if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
                             response_seen = True
@@ -361,7 +361,7 @@ class Device(object):
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if not success:
-            raise WorkflowException("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException('WorkflowException: Did not receive {} in response to {}'.format(str(response_type), str(msg_type)))
         self.close_socket()
         return device_response
 
@@ -384,7 +384,7 @@ class Device(object):
         success = False
         while not success:
             try:
-                self.sock.bind(("", port))
+                self.sock.bind((b'', port))
                 success = True
             except: # address (port) already in use, maybe another client on the same computer...
                 port += 1
