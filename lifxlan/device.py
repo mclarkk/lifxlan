@@ -255,7 +255,7 @@ class Device(object):
         s += indent + "IP Address: {}\n".format(self.ip_addr)
         s += indent + "Port: {}\n".format(self.port)
         s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
-        s += indent + "Power: {}\n".format(STR_MAP[self.power_level])
+        s += indent + "Power: {}\n".format(str_map(self.power_level))
         return s
 
     def device_firmware_str(self, indent):
