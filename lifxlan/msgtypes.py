@@ -441,3 +441,14 @@ SERVICE_IDS = { 1: "UDP",
 STR_MAP = { 65535: "On",
             0: "Off",
             None: "Unknown"}
+
+def str_map(key):
+    string_representation = "Unknown"
+    if key == None:
+        string_representation = "Unknown"
+    elif type(key) == type(0):
+        if key > 0 and key <= 65535:
+            string_representation = "On"
+        elif key == 0:
+            string_representation = "Off" 
+    return string_representation

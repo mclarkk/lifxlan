@@ -156,7 +156,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetHostFirmware, StateHostFirmware)
             build = response.build
-            version = response.version
+            version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
         except:
             pass
         return build, version
@@ -200,7 +200,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetWifiFirmware, StateWifiFirmware)
             build = response.build
-            version = response.version
+            version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
         except:
             pass
         return build, version
@@ -288,7 +288,7 @@ class Device(object):
         except:
             pass
         return time, uptime, downtime
-        
+
     def get_time(self):
         time, uptime, downtime = self.get_info_tuple()
         return time
@@ -313,18 +313,18 @@ class Device(object):
         s += indent + "IP Address: {}\n".format(self.ip_addr)
         s += indent + "Port: {}\n".format(self.port)
         s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
-        s += indent + "Power: {}\n".format(STR_MAP[self.power_level])
+        s += indent + "Power: {}\n".format(str_map[self.power_level])
         s += indent + "Location: {}\n".format(self.location)        
         return s
 
     def device_firmware_str(self, indent):
         host_build_ns = self.host_firmware_build_timestamp
-        host_build_s = host_build_ns/1000000000
+        host_build_s = datetime.utcfromtimestamp(host_build_ns/1000000000) if host_build_ns != None else None
         wifi_build_ns = self.wifi_firmware_build_timestamp
-        wifi_build_s = wifi_build_ns/1000000000
-        s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, datetime.utcfromtimestamp(host_build_s))
+        wifi_build_s = datetime.utcfromtimestamp(wifi_build_ns/1000000000) if wifi_build_ns != None else None
+        s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, host_build_s)
         s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
-        s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, datetime.utcfromtimestamp(wifi_build_s))
+        s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, wifi_build_s)
         s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_version)
         return s
 
@@ -336,9 +336,12 @@ class Device(object):
 
     def device_time_str(self, indent):
         time, uptime, downtime = self.get_info_tuple()
-        s = "Current Time: {} ({} UTC)\n".format(time, datetime.utcfromtimestamp(time/1000000000))
-        s += indent + "Uptime (ns): {} ({} hours)\n".format(uptime, round(nanosec_to_hours(uptime), 2))
-        s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(downtime, round(nanosec_to_hours(downtime), 2))
+        time_s = datetime.utcfromtimestamp(time/1000000000) if time != None else None
+        uptime_s = round(nanosec_to_hours(uptime), 2) if uptime != None else None
+        downtime_s = round(nanosec_to_hours(downtime), 2) if downtime != None else None
+        s = "Current Time: {} ({} UTC)\n".format(time, time_s)
+        s += indent + "Uptime (ns): {} ({} hours)\n".format(uptime, uptime_s)
+        s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(downtime, downtime_s)
         return s
 
     def device_radio_str(self, indent):
