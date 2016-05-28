@@ -129,4 +129,3 @@ The files that deal with LIFX packet construction and representation are:
 * **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
 * **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
-Happy hacking!
