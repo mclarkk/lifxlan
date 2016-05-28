@@ -87,7 +87,6 @@ get_location()                      # Returns location id (bytearray length 16)
 get_location_tuple()                # Returns a tuple of location(bytearray lenght 16), location_label(string), and location_updated_at(unsigned 64 bit epoch timestamp)
 get_location_label()                # Returns location_label string
 get_location_updated_at             # Returns location_updated_at unsigned 64 bit int -> epoch timestamp
-
 get_group()                         # Returns group id (bytearray length 16)
 get_group_tuple()                   # Returns a tuple of group(bytearray lenght 16), group_label(string), and group_updated_at(unsigned 64 bit epoch timestamp)
 get_group_label()                   # Returns group_label(string)
