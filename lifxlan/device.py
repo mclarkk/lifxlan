@@ -259,11 +259,13 @@ class Device(object):
         return updated_at
         
     def get_group_tuple(self):
-
-        response = self.req_with_resp(GetGroup, StateGroup)
-        self.group = response.group
-        label = response.label.replace("\x00", "")
-        updated_at = response.updated_at
+        try:
+            response = self.req_with_resp(GetGroup, StateGroup)
+            self.group = response.group
+            label = response.label.replace("\x00", "")
+            updated_at = response.updated_at
+        except:
+            pass
         return self.group, label, updated_at
 
     def get_group_label(self):
