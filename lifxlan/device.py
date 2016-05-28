@@ -259,13 +259,11 @@ class Device(object):
         return updated_at
         
     def get_group_tuple(self):
-        try:
-            response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.group
-            label = response.label.replace("\x00", "")
-            updated_at = response.updated_at
-        except:
-            pass
+
+        response = self.req_with_resp(GetGroup, StateGroup)
+        self.group = response.group
+        label = response.label.replace("\x00", "")
+        updated_at = response.updated_at
         return self.group, label, updated_at
 
     def get_group_label(self):
@@ -314,7 +312,8 @@ class Device(object):
         s += indent + "Port: {}\n".format(self.port)
         s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
         s += indent + "Power: {}\n".format(str_map(self.power_level))
-        s += indent + "Location: {}\n".format(self.location)        
+        s += indent + "Location: {}\n".format(self.location)
+        s += indent + "Group: {}\n".format(self.group)
         return s
 
     def device_firmware_str(self, indent):

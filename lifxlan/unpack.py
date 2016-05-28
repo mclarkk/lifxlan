@@ -118,7 +118,9 @@ def unpack_lifx_message(packed_message):
 
     elif message_type == MSG_IDS[StateGroup]:
         group = [b for b in struct.unpack("B"*16, payload_str[0:16])]
-        label = binascii.unhexlify("".join(["%x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])]))
+        label = "".join([chr(b) for b in struct.unpack("b"*32, payload_str[16:48])])
+        # Using the old method as this continues to return TypeError: Odd-length string
+        #label = binascii.unhexlify("".join(["%x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])]))
         updated_at = struct.unpack("Q", payload_str[48:56])[0]
         payload = {"group": group, "label": label, "updated_at": updated_at}
         message = StateGroup(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
