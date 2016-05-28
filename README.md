@@ -83,6 +83,14 @@ get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds),
 get_wifi_firmware_build_timestamp() 
 get_wifi_firmware_version()
 get_version_tuple()                 # returns (vendor, product, version)
+get_location()                      # Returns location id (bytearray length 16)
+get_location_tuple()                # Returns a tuple of location(bytearray lenght 16), location_label(string), and location_updated_at(unsigned 64 bit epoch timestamp)
+get_location_label()                # Returns location_label string
+get_location_updated_at             # Returns location_updated_at unsigned 64 bit int -> epoch timestamp
+get_group()                         # Returns group id (bytearray length 16)
+get_group_tuple()                   # Returns a tuple of group(bytearray lenght 16), group_label(string), and group_updated_at(unsigned 64 bit epoch timestamp)
+get_group_label()                   # Returns group_label(string)
+get_group_updated_at                # Returns group_updated_at unsigned 64 bit int -> epoch timestamp
 get_vendor()
 get_product()
 get_version()
@@ -121,4 +129,3 @@ The files that deal with LIFX packet construction and representation are:
 * **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
 * **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
-Happy hacking!

@@ -49,6 +49,8 @@ class Device(object):
         # Printing the device is therefore accurate but expensive.
 
         self.label = None
+        self.location = None
+        self.group = None
         self.power_level = None
         self.host_firmware_build_timestamp = None
         self.host_firmware_version = None
@@ -80,6 +82,8 @@ class Device(object):
     # update the device's (relatively) persistent attributes
     def refresh(self):
         self.label = self.get_label()
+        self.location = self.get_location()
+        self.group = self.get_group()
         self.power_level = self.get_power()
         self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
         self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
@@ -104,6 +108,22 @@ class Device(object):
         except:
             pass
         return self.label
+        
+    def get_location(self):
+        try:
+            response = self.req_with_resp(GetLocation, StateLocation)
+            self.location = response.location
+        except:
+            pass
+        return self.location
+        
+    def get_group(self):
+        try:
+            response = self.req_with_resp(GetGroup, StateGroup)
+            self.group = response.group
+        except:
+            pass
+        return self.group
 
     def set_label(self, label):
         if len(label) > 32:
@@ -218,6 +238,44 @@ class Device(object):
         self.vendor, self.product, self.version = self.get_version_tuple()
         return self.version
 
+    def get_location_tuple(self):
+        label = None
+        updated_at = None
+        try:
+            response = self.req_with_resp(GetLocation, StateLocation)
+            self.location = response.location
+            label = response.label.replace("\x00", "")
+            updated_at = response.updated_at
+        except:
+            pass
+        return self.location, label, updated_at
+        
+    def get_location_label(self):
+        self.location, label, updated_at = self.get_location_tuple()
+        return label
+        
+    def get_location_updated_at(self):
+        self.location, label, updated_at = self.get_location_tuple()
+        return updated_at
+        
+    def get_group_tuple(self):
+        try:
+            response = self.req_with_resp(GetGroup, StateGroup)
+            self.group = response.group
+            label = response.label.replace("\x00", "")
+            updated_at = response.updated_at
+        except:
+            pass
+        return self.group, label, updated_at
+
+    def get_group_label(self):
+        self.group, label, updated_at = self.get_group_tuple()
+        return label
+        
+    def get_group_updated_at(self):
+        self.group, label, updated_at = self.get_group_tuple()
+        return updated_at
+        
     def get_info_tuple(self):
         time = None
         uptime = None
@@ -256,6 +314,8 @@ class Device(object):
         s += indent + "Port: {}\n".format(self.port)
         s += indent + "Service: {}\n".format(SERVICE_IDS[self.service])
         s += indent + "Power: {}\n".format(str_map(self.power_level))
+        s += indent + "Location: {}\n".format(self.location)
+        s += indent + "Group: {}\n".format(self.group)
         return s
 
     def device_firmware_str(self, indent):
@@ -364,7 +424,7 @@ class Device(object):
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if not success:
-            raise WorkflowException("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise IOError("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
         self.close_socket()
         return device_response
 

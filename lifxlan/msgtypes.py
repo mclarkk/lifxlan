@@ -238,7 +238,54 @@ class StateInfo(Message):
         payload = time + uptime + downtime
         return payload
 
+class GetLocation(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        super(GetLocation, self).__init__(MSG_IDS[GetLocation], target_addr, source_id, seq_num, ack_requested, response_requested)
 
+
+class StateLocation(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.location = payload["location"] 
+        self.label = payload["label"]
+        self.updated_at = payload["updated_at"]
+        super(StateLocation, self).__init__(MSG_IDS[StateLocation], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Location ", self.location))
+        self.payload_fields.append(("Label ", self.label))
+        self.payload_fields.append(("Updated At ", self.updated_at))
+        location = "".join(little_endian(bitstring.pack("8", b)) for b in self.location)
+        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
+        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        label += label_padding
+        updated_at = little_endian(bitstring.pack("64", self.updated_at))
+        payload = location + label + updated_at
+        return payload
+
+class GetGroup(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        super(GetGroup, self).__init__(MSG_IDS[GetGroup], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+
+class StateGroup(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.group = payload["group"] 
+        self.label = payload["label"]
+        self.updated_at = payload["updated_at"]
+        super(StateGroup, self).__init__(MSG_IDS[StateGroup], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Group ", self.group))
+        self.payload_fields.append(("Label ", self.label))
+        self.payload_fields.append(("Updated At ", self.updated_at))
+        group = "".join(little_endian(bitstring.pack("8", b)) for b in self.group)
+        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
+        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        label += label_padding
+        updated_at = little_endian(bitstring.pack("64", self.updated_at))
+        payload = group + label + updated_at
+        return payload
+        
 class Acknowledgement(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         super(Acknowledgement, self).__init__(MSG_IDS[Acknowledgement], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -373,6 +420,10 @@ MSG_IDS = {     GetService: 2,
                 GetInfo: 34, 
                 StateInfo: 35, 
                 Acknowledgement: 45, 
+                GetLocation: 48,
+                StateLocation: 50,
+                GetGroup: 51,
+                StateGroup: 53,
                 EchoRequest: 58, 
                 EchoResponse: 59,
                 LightGet: 101,
