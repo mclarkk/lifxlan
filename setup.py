@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='lifxlan',
-      version='0.2.5',
+      version='0.3.0',
       description='API for local communication with LIFX devices over a LAN.',
       url='http://github.com/mclarkk/lifxlan',
       author='Meghan Clark',
@@ -22,5 +22,4 @@ setup(name='lifxlan',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7'
-    ],
-    long_description_markdown_filename='README.md')
+    ])
