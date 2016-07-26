@@ -26,11 +26,6 @@ You can do several things with this library:
 * Build your own high-level API on top of the low-level networking messages.
 * Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, Wemo, etc).
 
-<!---
-That's right, you can also use the low-level networking library to create messages that LIFX *devices* send to *clients*, effectively simulating a LIFX device in software. That means you can write a software program that looks and acts like a LIFX device, but is really converting SetColor and/or SetPower messages into API calls for other RGB lightbulbs or on/off devices, like Philips Hue bulbs and Wemos.
-
-TL;DR: Theoretically, you can use this library to write proxy programs that let you view and control your Hue lights and Wemos through the LIFX app! Whoa!
--->
 #### High-Level API:
 
 * **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
@@ -38,6 +33,14 @@ TL;DR: Theoretically, you can use this library to write proxy programs that let 
 * **light.py** - Provides the Light API. Subclass of Device.
 
 ##### LifxLAN API
+
+You can create a LifxLAN object to represent the local network:
+
+```
+lan = LifxLAN()
+```
+
+LifxLAN objects have the following methods:
 
 ```
 # power can be "on"/"off", True/False, 0/1, or 0/65535
@@ -51,12 +54,11 @@ set_power_all_lights(power, [duration], [rapid])        # set power for all ligh
 set_color_all_lights_color(color, [duration], [rapid])  # set color for all lights on LAN
 get_power_all_lights()                                  # returns dict of Light, power pairs
 get_color_all_lights()                                  # returns dict of Light, color pairs
-
 ```
 
-Note: These have only been tested on one bulb so far. If you test the above calls on a setup with multiple bulbs, let me know how it goes!
-
 ##### Device API
+
+In keeping with the LIFX protocol, all lights are devices, and so support the following methods:
 
 ```
 # label is a string, 32 char max
@@ -102,6 +104,13 @@ get_downtime()
 
 ##### Light API
 
+You can get Light objects automatically though LAN-based discovery (takes a few seconds), or by creating Light objects using a known MAC address and IP address:
+
+```
+lights = lan.get_lights()
+light = Light("12:34:56:78:9a:bc", "192.168.1.42")
+```
+
 The Light API provides everything in the Device API, as well as:
 
 ```
@@ -114,14 +123,14 @@ The Light API provides everything in the Device API, as well as:
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
 get_power()                             # returns 0 or 65535
-get_color()                             # returns color (HSBK list)
+get_color()                             # returns color (HSBK list
 ```
 
 The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
 
 #### LIFX LAN Protocol Implementation:
 
-The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (Ssee `examples/verbose_lan.py`.)
+The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.)
 
 The files that deal with LIFX packet construction and representation are:
 
