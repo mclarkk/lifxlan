@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # sniffer.py
 # Author: Meghan Clark
 # Listens to broadcast UDP messages. If you are using the LIFX app to control a bulb,
