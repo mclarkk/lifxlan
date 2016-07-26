@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from lifxlan import *
 import sys
 from copy import copy

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from lifxlan import *
 import sys
 from time import sleep
