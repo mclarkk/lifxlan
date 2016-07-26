@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification.
+**lifxlan** is a Python 2 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification.
 
 ## How to Install
 
@@ -129,3 +129,4 @@ The files that deal with LIFX packet construction and representation are:
 * **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
 * **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
+Happy hacking!
