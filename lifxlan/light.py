@@ -19,6 +19,7 @@ GOLD = [58275, 0, 65535, 2500]
 
 class Light(Device):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=0, verbose=False):
+        mac_addr = mac_addr.lower()
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
 
