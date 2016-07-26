@@ -16,7 +16,7 @@ However, to be guaranteed to get the most recent features and fixes you can inst
 
 See the `examples` folder for example scripts that use **lifxlan**.  
 
-Many of the examples perform device discovery in the beginning in order to find indvidual bulbs, which causes a short but noticeable delay. However, see `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` for ways to send commands to all lights quickly from the command line without doing device discovery.
+Many of the examples perform device discovery in the beginning in order to find indvidual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
 
 ## Overview
 
