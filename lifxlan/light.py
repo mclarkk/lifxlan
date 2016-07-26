@@ -18,8 +18,8 @@ WARM_WHITE = [58275, 0, 65535, 3200]
 GOLD = [58275, 0, 65535, 2500]
 
 class Light(Device):
-    def __init__(self, mac_addr, service, port, source_id, ip_addr, verbose=False):
-        super(Light, self).__init__(mac_addr, service, port, source_id, ip_addr, verbose)
+    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=0, verbose=False):
+        super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
 
     ############################################################################
