@@ -48,7 +48,7 @@ class LifxLAN:
             else:
                 responses = self.broadcast_with_resp(GetService, StateService)
             for r in responses:
-                light = Light(r.target_addr, r.service, r.port, self.source_id, r.ip_addr, self.verbose)
+                light = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(light)
                 self.devices.append(light)
             self.num_lights = len(self.lights)
