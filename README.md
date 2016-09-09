@@ -47,6 +47,7 @@ LifxLAN objects have the following methods:
 # color is a list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
 # duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use. 
 # arguments in [square brackets] are optional
 
 get_lights()                                            # returns list of Light objects
@@ -64,6 +65,7 @@ In keeping with the LIFX protocol, all lights are devices, and so support the fo
 # label is a string, 32 char max
 # power can be "on"/"off", True/False, 0/1, or 0/65535
 # rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use. 
 # arguments in [square brackets] are optional
 
 set_label(label)            
@@ -118,6 +120,7 @@ The Light API provides everything in the Device API, as well as:
 # color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
 # duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for device response before proceeding, just send multiple packets and move on
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use. 
 # arguments in [square brackets] are optional
 
 set_power(power, [duration], [rapid])   
