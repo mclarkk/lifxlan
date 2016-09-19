@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from builtins import range
 # msgtypes.py
 # Author: Meghan Clark
 
@@ -5,7 +7,7 @@
 # Need to look into assert-type frameworks or something, there has to be a tool for that.
 # Also need to make custom errors possibly, though tool may have those.
 
-from message import Message, BROADCAST_MAC, HEADER_SIZE_BYTES, little_endian
+from .message import Message, BROADCAST_MAC, HEADER_SIZE_BYTES, little_endian
 import bitstring
 import sys
 import struct
@@ -285,7 +287,8 @@ class StateGroup(Message):
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
         payload = group + label + updated_at
         return payload
-        
+
+
 class Acknowledgement(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         super(Acknowledgement, self).__init__(MSG_IDS[Acknowledgement], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -399,32 +402,32 @@ class LightStatePower(Message):
         return payload
 
 
-MSG_IDS = {     GetService: 2, 
-                StateService: 3, 
-                GetHostInfo: 12, 
-                StateHostInfo: 13, 
-                GetHostFirmware: 14, 
-                StateHostFirmware: 15, 
-                GetWifiInfo: 16, 
-                StateWifiInfo: 17, 
-                GetWifiFirmware: 18, 
-                StateWifiFirmware: 19, 
-                GetPower: 20, 
-                SetPower: 21, 
-                StatePower: 22, 
-                GetLabel: 23, 
-                SetLabel: 24, 
-                StateLabel: 25, 
-                GetVersion: 32, 
-                StateVersion: 33, 
-                GetInfo: 34, 
-                StateInfo: 35, 
-                Acknowledgement: 45, 
+MSG_IDS = {     GetService: 2,
+                StateService: 3,
+                GetHostInfo: 12,
+                StateHostInfo: 13,
+                GetHostFirmware: 14,
+                StateHostFirmware: 15,
+                GetWifiInfo: 16,
+                StateWifiInfo: 17,
+                GetWifiFirmware: 18,
+                StateWifiFirmware: 19,
+                GetPower: 20,
+                SetPower: 21,
+                StatePower: 22,
+                GetLabel: 23,
+                SetLabel: 24,
+                StateLabel: 25,
+                GetVersion: 32,
+                StateVersion: 33,
+                GetInfo: 34,
+                StateInfo: 35,
+                Acknowledgement: 45,
                 GetLocation: 48,
                 StateLocation: 50,
                 GetGroup: 51,
                 StateGroup: 53,
-                EchoRequest: 58, 
+                EchoRequest: 58,
                 EchoResponse: 59,
                 LightGet: 101,
                 LightSetColor: 102,
@@ -433,22 +436,25 @@ MSG_IDS = {     GetService: 2,
                 LightSetPower: 117,
                 LightStatePower: 118}
 
+
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
                 3: "reserved",
                 4: "reserved"}
 
+
 STR_MAP = { 65535: "On",
             0: "Off",
             None: "Unknown"}
 
+
 def str_map(key):
     string_representation = "Unknown"
-    if key == None:
+    if key is None:
         string_representation = "Unknown"
-    elif type(key) == type(0):
+    elif isinstance(key, type(0)):
         if key > 0 and key <= 65535:
             string_representation = "On"
         elif key == 0:
-            string_representation = "Off" 
+            string_representation = "Off"
     return string_representation

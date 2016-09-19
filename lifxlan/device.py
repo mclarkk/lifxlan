@@ -1,15 +1,20 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
 # device.py
 # Author: Meghan Clark
 # This file contains a Device object that exposes a high-level API for interacting
 # with a LIFX device, and which caches some of the more persistent state attributes
 # so that you don't always need to spam the light with packets.
 #
-# The Device object also provides the low-level workflow functions for sending 
+# The Device object also provides the low-level workflow functions for sending
 # LIFX unicast packets to the specific device. LIFX unicast packets are sent
-# via UDP broadcast, but by including the device's MAC other LIFX devices will 
+# via UDP broadcast, but by including the device's MAC other LIFX devices will
 # ignore the packet.
 #
-# Import note: Every time you call a `get` method you are sending packets to the 
+# Import note: Every time you call a `get` method you are sending packets to the
 # real device. If you want to access the last known (cached) value of an attribute
 # just access the attribute directly, e.g., mydevice.label instead of mydevice.get_label()
 #
@@ -18,8 +23,8 @@
 # per device, and also to capture in real time when a service is down (port = 0).
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout, error
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from time import time, sleep
 from datetime import datetime
 
@@ -43,7 +48,7 @@ class Device(object):
         self.source_id = source_id
         self.ip_addr = ip_addr # IP addresses can change, though...
 
-        # The following attributes can be set by calling refresh(), but that 
+        # The following attributes can be set by calling refresh(), but that
         # takes time so it is not done by default during initialization.
         # However, refresh() will be called each time __str__ is called.
         # Printing the device is therefore accurate but expensive.
@@ -60,9 +65,9 @@ class Device(object):
         self.product = None
         self.version = None
 
-        # For completeness, the following are state attributes of the device 
-        # that become stale too fast to bother caching in the device object, 
-        # though they can be accessed directly from the real device using the 
+        # For completeness, the following are state attributes of the device
+        # that become stale too fast to bother caching in the device object,
+        # though they can be accessed directly from the real device using the
         # methods below:
 
         # wifi signal mw
@@ -108,7 +113,7 @@ class Device(object):
         except:
             pass
         return self.label
-        
+
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
@@ -116,7 +121,7 @@ class Device(object):
         except:
             pass
         return self.location
-        
+
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
@@ -249,15 +254,15 @@ class Device(object):
         except:
             pass
         return self.location, label, updated_at
-        
+
     def get_location_label(self):
         self.location, label, updated_at = self.get_location_tuple()
         return label
-        
+
     def get_location_updated_at(self):
         self.location, label, updated_at = self.get_location_tuple()
         return updated_at
-        
+
     def get_group_tuple(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
@@ -271,11 +276,11 @@ class Device(object):
     def get_group_label(self):
         self.group, label, updated_at = self.get_group_tuple()
         return label
-        
+
     def get_group_updated_at(self):
         self.group, label, updated_at = self.get_group_tuple()
         return updated_at
-        
+
     def get_info_tuple(self):
         time = None
         uptime = None
@@ -320,9 +325,11 @@ class Device(object):
 
     def device_firmware_str(self, indent):
         host_build_ns = self.host_firmware_build_timestamp
-        host_build_s = datetime.utcfromtimestamp(host_build_ns/1000000000) if host_build_ns != None else None
+        host_build_s = (datetime.utcfromtimestamp(host_build_ns // 1000000000)
+                        if host_build_ns is not None else None)
         wifi_build_ns = self.wifi_firmware_build_timestamp
-        wifi_build_s = datetime.utcfromtimestamp(wifi_build_ns/1000000000) if wifi_build_ns != None else None
+        wifi_build_s = (datetime.utcfromtimestamp(wifi_build_ns // 1000000000)
+                        if wifi_build_ns is not None else None)
         s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, host_build_s)
         s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
         s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, wifi_build_s)
@@ -337,7 +344,7 @@ class Device(object):
 
     def device_time_str(self, indent):
         time, uptime, downtime = self.get_info_tuple()
-        time_s = datetime.utcfromtimestamp(time/1000000000) if time != None else None
+        time_s = datetime.utcfromtimestamp(time // 1000000000) if time != None else None
         uptime_s = round(nanosec_to_hours(uptime), 2) if uptime != None else None
         downtime_s = round(nanosec_to_hours(downtime), 2) if downtime != None else None
         s = "Current Time: {} ({} UTC)\n".format(time, time_s)
@@ -364,7 +371,7 @@ class Device(object):
 
     ############################################################################
     #                                                                          #
-    #                            Workflow Methods                              #     
+    #                            Workflow Methods                              #
     #                                                                          #
     ############################################################################
 
@@ -392,9 +399,9 @@ class Device(object):
         device_response = None
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False) 
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
         else:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True) 
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
         response_seen = False
         attempts = 0
         while not response_seen and attempts < max_attempts:
@@ -407,7 +414,7 @@ class Device(object):
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
@@ -473,4 +480,4 @@ class WorkflowException(Exception):
 ################################################################################
 
 def nanosec_to_hours(ns):
-    return ns/(1000000000.0*60*60)
+    return ns // (1000000000.0*60*60)

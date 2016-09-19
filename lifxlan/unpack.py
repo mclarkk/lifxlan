@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 # unpack.py
 # Author: Meghan Clark
 
-from msgtypes import *
+from .msgtypes import *
 import binascii
 
 # Creates a LIFX Message out of packed binary data

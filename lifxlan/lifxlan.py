@@ -1,16 +1,20 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
 # lifxlan.py
 # Author: Meghan Clark
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
-from message import BROADCAST_MAC, BROADCAST_SOURCE_ID
-from device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
-from light import *
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .message import BROADCAST_MAC, BROADCAST_SOURCE_ID
+from .device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
+from .light import *
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from random import randint
 from time import time, sleep
 
-class LifxLAN:
+class LifxLAN(object):
     def __init__(self, num_lights=None, verbose=False):
         self.source_id = randint(0, (2**32)-1)
         self.num_devices = num_lights
