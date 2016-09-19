@@ -14,6 +14,7 @@ import struct
 
 ##### DEVICE MESSAGES #####
 
+
 class GetService(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         target_addr = BROADCAST_MAC
@@ -175,8 +176,10 @@ class SetLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        padding = b"".join(little_endian(bitstring.pack("8", 0)) for i
+                           in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
 
@@ -189,8 +192,10 @@ class StateLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        padding = b"".join(little_endian(bitstring.pack("8", 0)) for i
+                           in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
 
@@ -256,9 +261,12 @@ class StateLocation(Message):
         self.payload_fields.append(("Location ", self.location))
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
-        location = "".join(little_endian(bitstring.pack("8", b)) for b in self.location)
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        location = b"".join(little_endian(bitstring.pack("8", b)) for
+                            b in self.location)
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0))
+                                 for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
         payload = location + label + updated_at
@@ -280,9 +288,9 @@ class StateGroup(Message):
         self.payload_fields.append(("Group ", self.group))
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
-        group = "".join(little_endian(bitstring.pack("8", b)) for b in self.group)
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        group = b"".join(little_endian(bitstring.pack("8", b)) for b in self.group)
+        label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
         payload = group + label + updated_at
@@ -302,10 +310,10 @@ class EchoRequest(Message):
     def get_payload(self):
         field_len = 64
         self.payload_fields.append(("Byte Array", self.byte_array))
-        byte_array = "".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
+        byte_array = b"".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
         byte_array_len = len(byte_array)
         if byte_array_len < field_len:
-            byte_array += "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len-byte_array_len))
+            byte_array += b"".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len-byte_array_len))
         elif byte_array_len > field_len:
             byte_array = byte_array[:field_len]
         payload = byte_array
@@ -319,7 +327,7 @@ class EchoResponse(Message):
 
     def get_payload(self):
         self.payload_fields.append(("Byte Array", self.byte_array))
-        byte_array = "".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
+        byte_array = b"".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
         payload = byte_array
         return payload
 
@@ -340,7 +348,7 @@ class LightSetColor(Message):
 
     def get_payload(self):
         reserved_8 = little_endian(bitstring.pack("8", self.reserved))
-        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         duration = little_endian(bitstring.pack("32", self.duration))
         payload = reserved_8 + color + duration
         return payload
@@ -361,11 +369,11 @@ class LightState(Message):
         self.payload_fields.append(("Power Level", self.power_level))
         self.payload_fields.append(("Label", self.label))
         self.payload_fields.append(("Reserved", self.reserved2))
-        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         reserved1 = little_endian(bitstring.pack("16", self.reserved1))
         power_level = little_endian(bitstring.pack("16", self.power_level))
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         reserved2 = little_endian(bitstring.pack("64", self.reserved1))
         payload = color + reserved1 + power_level + label + reserved2

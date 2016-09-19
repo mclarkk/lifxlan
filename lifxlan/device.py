@@ -109,7 +109,7 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label.replace("\x00", "")
+            self.label = response.label.replace(b"\x00", b"")
         except:
             pass
         return self.label
@@ -133,7 +133,7 @@ class Device(object):
     def set_label(self, label):
         if len(label) > 32:
             label = label[:32]
-        self.req_with_ack(SetLabel, {"label": label})
+        self.req_with_ack(SetLabel, {"label": label.encode('utf-8')})
 
     def get_power(self):
         try:
@@ -249,7 +249,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
             self.location = response.location
-            label = response.label.replace("\x00", "")
+            label = response.label.replace(b"\x00", b"")
             updated_at = response.updated_at
         except:
             pass
@@ -267,7 +267,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
             self.group = response.group
-            label = response.label.replace("\x00", "")
+            label = response.label.replace(b"\x00", b"")
             updated_at = response.updated_at
         except:
             pass

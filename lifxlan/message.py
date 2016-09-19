@@ -139,7 +139,7 @@ def convert_MAC_to_int(addr):
 def little_endian(bs):
     shifts = [i*8 for i in range(len(bs)//8)]
     int_bytes_little_endian = [int(bs.uintbe >> i & 0xff) for i in shifts]
-    packed_message_little_endian = ""
+    packed_message_little_endian = b""
     for b in int_bytes_little_endian:
-        packed_message_little_endian += struct.pack("B", b)
+        packed_message_little_endian += struct.pack(b"B", b)
     return packed_message_little_endian
