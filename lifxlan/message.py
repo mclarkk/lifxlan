@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import unicode_literals
 # message.py
 # Author: Meghan Clark
 
@@ -48,7 +50,7 @@ class Message(object):
         packed_message = self.header + self.payload
         return packed_message
 
-    # frame (and thus header) needs to be generated after payload (for size field) 
+    # frame (and thus header) needs to be generated after payload (for size field)
     def get_header(self):
         if self.size == None:
             self.size = self.get_msg_size()
@@ -57,7 +59,7 @@ class Message(object):
         protocol_header = self.get_protocol_header()
         header = frame + frame_addr + protocol_header
         return header
-    
+
     # Default: No payload unless method overridden
     def get_payload(self):
         return little_endian(bitstring.pack(""))
@@ -95,7 +97,7 @@ class Message(object):
         return protocol_header
 
     def get_msg_size(self):
-        payload_size_bytes = len(self.payload)/8
+        payload_size_bytes = len(self.payload) // 8
         return HEADER_SIZE_BYTES + payload_size_bytes
 
     def __str__(self):
@@ -122,17 +124,19 @@ class Message(object):
         s += "\n"
         return s
 
+
 # reverses bytes for little endian, then converts to int
 def convert_MAC_to_int(addr):
     reverse_bytes_str = addr.split(':')
     reverse_bytes_str.reverse()
     addr_str = "".join(reverse_bytes_str)
-    return int(addr_str, 16)    
+    return int(addr_str, 16)
+
 
 def little_endian(bs):
-    shifts = [i*8 for i in range(len(bs)/8)]
+    shifts = [i*8 for i in range(len(bs)//8)]
     int_bytes_little_endian = [int(bs.uintbe >> i & 0xff) for i in shifts]
-    packed_message_little_endian = ""
+    packed_message_little_endian = b""
     for b in int_bytes_little_endian:
-        packed_message_little_endian += struct.pack("B", b)
+        packed_message_little_endian += struct.pack(b"B", b)
     return packed_message_little_endian

@@ -1,16 +1,20 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 # lifxlan.py
 # Author: Meghan Clark
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
-from message import BROADCAST_MAC, BROADCAST_SOURCE_ID
-from device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
-from light import *
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .message import BROADCAST_MAC, BROADCAST_SOURCE_ID
+from .device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
+from .light import *
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from random import randint
 from time import time, sleep
 
-class LifxLAN:
+class LifxLAN(object):
     def __init__(self, num_lights=None, verbose=False):
         self.source_id = randint(0, (2**32)-1)
         self.num_devices = num_lights
@@ -18,7 +22,7 @@ class LifxLAN:
         self.devices = None
         self.lights = None
         self.verbose = verbose
-        
+
     ############################################################################
     #                                                                          #
     #                         LAN (Broadcast) API Methods                      #
@@ -53,7 +57,7 @@ class LifxLAN:
                 self.devices.append(light)
             self.num_lights = len(self.lights)
             self.num_devices = len(self.lights)
-        return self.lights        
+        return self.lights
 
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
@@ -105,13 +109,13 @@ class LifxLAN:
 
     ############################################################################
     #                                                                          #
-    #                            Workflow Methods                              #     
+    #                            Workflow Methods                              #
     #                                                                          #
     ############################################################################
 
     def discover(self, timeout_secs=0.3, num_repeats=3):
         self.initialize_socket(timeout_secs)
-        msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)    
+        msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)
         responses = []
         addr_seen = []
         num_devices_seen = 0
@@ -126,7 +130,7 @@ class LifxLAN:
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
@@ -164,7 +168,7 @@ class LifxLAN:
         success = False
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
-            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False) 
+            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
         else:
             msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
         responses = []
@@ -181,7 +185,7 @@ class LifxLAN:
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr

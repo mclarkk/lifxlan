@@ -1,8 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
 # light.py
 # Author: Meghan Clark
 
-from device import Device, WorkflowException
-from msgtypes import *
+from .device import Device, WorkflowException
+from .msgtypes import *
 
 RED = [65535, 65535, 65535, 3500]
 ORANGE = [5525, 65535, 65535, 3500]

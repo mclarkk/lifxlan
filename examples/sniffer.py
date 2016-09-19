@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from builtins import object
 #!/usr/bin/env python
 # sniffer.py
 # Author: Meghan Clark
@@ -21,7 +24,7 @@ class Sniffer(object):
                     try: 
                         data = self.sock.recv(1024)
                         request = unpack_lifx_message(data)
-                        print("\nRECV:"),
+                        print(("\nRECV:"), end=' ')
                         print(request)
                     except timeout:
                         pass
@@ -32,7 +35,7 @@ class Sniffer(object):
         if self.sock == None:
             self.initialize_socket()
         msg.origin = 1
-        print("SEND:"),
+        print(("SEND:"), end=' ')
         print(msg)
         self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
 

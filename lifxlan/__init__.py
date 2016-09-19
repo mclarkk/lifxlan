@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from .lifxlan import LifxLAN
 from .message import *
 from .msgtypes import *

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 # msgtypes.py
 # Author: Meghan Clark
 
@@ -5,12 +7,13 @@
 # Need to look into assert-type frameworks or something, there has to be a tool for that.
 # Also need to make custom errors possibly, though tool may have those.
 
-from message import Message, BROADCAST_MAC, HEADER_SIZE_BYTES, little_endian
+from .message import Message, BROADCAST_MAC, HEADER_SIZE_BYTES, little_endian
 import bitstring
 import sys
 import struct
 
 ##### DEVICE MESSAGES #####
+
 
 class GetService(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
@@ -20,7 +23,7 @@ class GetService(Message):
 
 class StateService(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.service = payload["service"] 
+        self.service = payload["service"]
         self.port = payload["port"]
         super(StateService, self).__init__(MSG_IDS[StateService], target_addr, source_id, seq_num, ack_requested, response_requested)
 
@@ -66,7 +69,7 @@ class GetHostFirmware(Message):
 
 class StateHostFirmware(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.build = payload["build"] 
+        self.build = payload["build"]
         self.reserved1 = payload["reserved1"]
         self.version = payload["version"]
         super(StateHostFirmware, self).__init__(MSG_IDS[StateHostFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -89,7 +92,7 @@ class GetWifiInfo(Message):
 
 class StateWifiInfo(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.signal = payload["signal"] 
+        self.signal = payload["signal"]
         self.tx = payload["tx"]
         self.rx = payload["rx"]
         self.reserved1 = payload["reserved1"]
@@ -115,7 +118,7 @@ class GetWifiFirmware(Message):
 
 class StateWifiFirmware(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.build = payload["build"] 
+        self.build = payload["build"]
         self.reserved1 = payload["reserved1"]
         self.version = payload["version"]
         super(StateWifiFirmware, self).__init__(MSG_IDS[StateWifiFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -173,8 +176,10 @@ class SetLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        padding = b"".join(little_endian(bitstring.pack("8", 0)) for i
+                           in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
 
@@ -187,8 +192,10 @@ class StateLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        padding = b"".join(little_endian(bitstring.pack("8", 0)) for i
+                           in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
 
@@ -200,7 +207,7 @@ class GetVersion(Message):
 
 class StateVersion(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.vendor = payload["vendor"] 
+        self.vendor = payload["vendor"]
         self.product = payload["product"]
         self.version = payload["version"]
         super(StateVersion, self).__init__(MSG_IDS[StateVersion], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -223,7 +230,7 @@ class GetInfo(Message):
 
 class StateInfo(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.time = payload["time"] 
+        self.time = payload["time"]
         self.uptime = payload["uptime"]
         self.downtime = payload["downtime"]
         super(StateInfo, self).__init__(MSG_IDS[StateInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -245,7 +252,7 @@ class GetLocation(Message):
 
 class StateLocation(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.location = payload["location"] 
+        self.location = payload["location"]
         self.label = payload["label"]
         self.updated_at = payload["updated_at"]
         super(StateLocation, self).__init__(MSG_IDS[StateLocation], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -254,9 +261,12 @@ class StateLocation(Message):
         self.payload_fields.append(("Location ", self.location))
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
-        location = "".join(little_endian(bitstring.pack("8", b)) for b in self.location)
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        location = b"".join(little_endian(bitstring.pack("8", b)) for
+                            b in self.location)
+        label = b"".join(little_endian(bitstring.pack("8", c))
+                         for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0))
+                                 for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
         payload = location + label + updated_at
@@ -269,7 +279,7 @@ class GetGroup(Message):
 
 class StateGroup(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.group = payload["group"] 
+        self.group = payload["group"]
         self.label = payload["label"]
         self.updated_at = payload["updated_at"]
         super(StateGroup, self).__init__(MSG_IDS[StateGroup], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -278,14 +288,15 @@ class StateGroup(Message):
         self.payload_fields.append(("Group ", self.group))
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
-        group = "".join(little_endian(bitstring.pack("8", b)) for b in self.group)
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        group = b"".join(little_endian(bitstring.pack("8", b)) for b in self.group)
+        label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
         payload = group + label + updated_at
         return payload
-        
+
+
 class Acknowledgement(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         super(Acknowledgement, self).__init__(MSG_IDS[Acknowledgement], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -299,10 +310,10 @@ class EchoRequest(Message):
     def get_payload(self):
         field_len = 64
         self.payload_fields.append(("Byte Array", self.byte_array))
-        byte_array = "".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
+        byte_array = b"".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
         byte_array_len = len(byte_array)
         if byte_array_len < field_len:
-            byte_array += "".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len-byte_array_len))
+            byte_array += b"".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len-byte_array_len))
         elif byte_array_len > field_len:
             byte_array = byte_array[:field_len]
         payload = byte_array
@@ -316,7 +327,7 @@ class EchoResponse(Message):
 
     def get_payload(self):
         self.payload_fields.append(("Byte Array", self.byte_array))
-        byte_array = "".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
+        byte_array = b"".join(little_endian(bitstring.pack("8", b)) for b in self.byte_array)
         payload = byte_array
         return payload
 
@@ -337,7 +348,7 @@ class LightSetColor(Message):
 
     def get_payload(self):
         reserved_8 = little_endian(bitstring.pack("8", self.reserved))
-        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         duration = little_endian(bitstring.pack("32", self.duration))
         payload = reserved_8 + color + duration
         return payload
@@ -358,11 +369,11 @@ class LightState(Message):
         self.payload_fields.append(("Power Level", self.power_level))
         self.payload_fields.append(("Label", self.label))
         self.payload_fields.append(("Reserved", self.reserved2))
-        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         reserved1 = little_endian(bitstring.pack("16", self.reserved1))
         power_level = little_endian(bitstring.pack("16", self.power_level))
-        label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label)
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         reserved2 = little_endian(bitstring.pack("64", self.reserved1))
         payload = color + reserved1 + power_level + label + reserved2
@@ -399,32 +410,32 @@ class LightStatePower(Message):
         return payload
 
 
-MSG_IDS = {     GetService: 2, 
-                StateService: 3, 
-                GetHostInfo: 12, 
-                StateHostInfo: 13, 
-                GetHostFirmware: 14, 
-                StateHostFirmware: 15, 
-                GetWifiInfo: 16, 
-                StateWifiInfo: 17, 
-                GetWifiFirmware: 18, 
-                StateWifiFirmware: 19, 
-                GetPower: 20, 
-                SetPower: 21, 
-                StatePower: 22, 
-                GetLabel: 23, 
-                SetLabel: 24, 
-                StateLabel: 25, 
-                GetVersion: 32, 
-                StateVersion: 33, 
-                GetInfo: 34, 
-                StateInfo: 35, 
-                Acknowledgement: 45, 
+MSG_IDS = {     GetService: 2,
+                StateService: 3,
+                GetHostInfo: 12,
+                StateHostInfo: 13,
+                GetHostFirmware: 14,
+                StateHostFirmware: 15,
+                GetWifiInfo: 16,
+                StateWifiInfo: 17,
+                GetWifiFirmware: 18,
+                StateWifiFirmware: 19,
+                GetPower: 20,
+                SetPower: 21,
+                StatePower: 22,
+                GetLabel: 23,
+                SetLabel: 24,
+                StateLabel: 25,
+                GetVersion: 32,
+                StateVersion: 33,
+                GetInfo: 34,
+                StateInfo: 35,
+                Acknowledgement: 45,
                 GetLocation: 48,
                 StateLocation: 50,
                 GetGroup: 51,
                 StateGroup: 53,
-                EchoRequest: 58, 
+                EchoRequest: 58,
                 EchoResponse: 59,
                 LightGet: 101,
                 LightSetColor: 102,
@@ -433,22 +444,25 @@ MSG_IDS = {     GetService: 2,
                 LightSetPower: 117,
                 LightStatePower: 118}
 
+
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
                 3: "reserved",
                 4: "reserved"}
 
+
 STR_MAP = { 65535: "On",
             0: "Off",
             None: "Unknown"}
 
+
 def str_map(key):
     string_representation = "Unknown"
-    if key == None:
+    if key is None:
         string_representation = "Unknown"
-    elif type(key) == type(0):
+    elif isinstance(key, type(0)):
         if key > 0 and key <= 65535:
             string_representation = "On"
         elif key == 0:
-            string_representation = "Off" 
+            string_representation = "Off"
     return string_representation
