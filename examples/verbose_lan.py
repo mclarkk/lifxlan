@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import str
 #!/usr/bin/env python
 from lifxlan import *
 import sys

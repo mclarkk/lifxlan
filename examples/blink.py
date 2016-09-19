@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 #!/usr/bin/env python
 from lifxlan import *
 import sys

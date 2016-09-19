@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from lifxlan import *
 import sys
 from time import sleep
