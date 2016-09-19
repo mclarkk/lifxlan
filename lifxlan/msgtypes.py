@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from builtins import range
+from __future__ import unicode_literals
 # msgtypes.py
 # Author: Meghan Clark
 
@@ -23,7 +23,7 @@ class GetService(Message):
 
 class StateService(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.service = payload["service"] 
+        self.service = payload["service"]
         self.port = payload["port"]
         super(StateService, self).__init__(MSG_IDS[StateService], target_addr, source_id, seq_num, ack_requested, response_requested)
 
@@ -69,7 +69,7 @@ class GetHostFirmware(Message):
 
 class StateHostFirmware(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.build = payload["build"] 
+        self.build = payload["build"]
         self.reserved1 = payload["reserved1"]
         self.version = payload["version"]
         super(StateHostFirmware, self).__init__(MSG_IDS[StateHostFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -92,7 +92,7 @@ class GetWifiInfo(Message):
 
 class StateWifiInfo(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.signal = payload["signal"] 
+        self.signal = payload["signal"]
         self.tx = payload["tx"]
         self.rx = payload["rx"]
         self.reserved1 = payload["reserved1"]
@@ -118,7 +118,7 @@ class GetWifiFirmware(Message):
 
 class StateWifiFirmware(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.build = payload["build"] 
+        self.build = payload["build"]
         self.reserved1 = payload["reserved1"]
         self.version = payload["version"]
         super(StateWifiFirmware, self).__init__(MSG_IDS[StateWifiFirmware], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -207,7 +207,7 @@ class GetVersion(Message):
 
 class StateVersion(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.vendor = payload["vendor"] 
+        self.vendor = payload["vendor"]
         self.product = payload["product"]
         self.version = payload["version"]
         super(StateVersion, self).__init__(MSG_IDS[StateVersion], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -230,7 +230,7 @@ class GetInfo(Message):
 
 class StateInfo(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.time = payload["time"] 
+        self.time = payload["time"]
         self.uptime = payload["uptime"]
         self.downtime = payload["downtime"]
         super(StateInfo, self).__init__(MSG_IDS[StateInfo], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -252,7 +252,7 @@ class GetLocation(Message):
 
 class StateLocation(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.location = payload["location"] 
+        self.location = payload["location"]
         self.label = payload["label"]
         self.updated_at = payload["updated_at"]
         super(StateLocation, self).__init__(MSG_IDS[StateLocation], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -279,7 +279,7 @@ class GetGroup(Message):
 
 class StateGroup(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
-        self.group = payload["group"] 
+        self.group = payload["group"]
         self.label = payload["label"]
         self.updated_at = payload["updated_at"]
         super(StateGroup, self).__init__(MSG_IDS[StateGroup], target_addr, source_id, seq_num, ack_requested, response_requested)

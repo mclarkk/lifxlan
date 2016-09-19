@@ -1,8 +1,8 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
-from builtins import str
-from builtins import object
+from __future__ import unicode_literals
+
 # device.py
 # Author: Meghan Clark
 # This file contains a Device object that exposes a high-level API for interacting

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from __future__ import unicode_literals
 from lifxlan import *
 import sys
 
@@ -27,7 +28,7 @@ The four numbers are HSBK values: Hue (0-65535), Saturation (0-65535), Brightnes
 See get_colors_all.py to read the current HSBK values from your lights.
 
 The available predefined colors are:
-""" + ", ".join(colors.keys())
+""" + ", ".join(list(colors.keys()))
 
 lifxlan = LifxLAN()
 

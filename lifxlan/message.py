@@ -1,8 +1,5 @@
 from __future__ import division
-from builtins import str
-from builtins import hex
-from builtins import range
-from builtins import object
+from __future__ import unicode_literals
 # message.py
 # Author: Meghan Clark
 
