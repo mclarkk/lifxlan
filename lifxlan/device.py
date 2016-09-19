@@ -211,11 +211,11 @@ class Device(object):
         return build, version
 
     def get_wifi_firmware_build_timestamp(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
+        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_build_timestamp
 
     def get_wifi_firmware_version(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
+        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_version
 
     def get_version_tuple(self):
