@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from lifxlan import *
+from array import *
 import sys
 from time import sleep
 
@@ -20,33 +21,46 @@ def main():
 
     # get devices
     devices = lifx.get_lights()
-    bulb = ""
-    for b in devices:
-        if b.get_label() == "strip":
-            bulb = b
-    bulb.verbose = True
+    bulb = devices[0]
     print("Selected {}".format(bulb.get_label()))
 
-    # get original state
-    print("Turning on all lights...")
-    original_power = bulb.get_power()
-    original_color = bulb.get_color()
-    bulb.set_power("on")
+    for b in devices:
+        if b.get_label() == "strip":
+            strip = b#MultiZoneLight(b)
+            start = 0
+            while True:
+                strip.set_zone_color(0, 23, RED, 0.5, False, 0)
+                if start >= 22:
+                    strip.set_zone_color(0, 24 - start , GREEN, 0, False, 0)
+                strip.set_zone_color(start, start+2, GREEN,0.5,False,1)
 
-    sleep(1) # for looks
+                start = start + 1
+                if start > 23:
+                    start = 0
+                sleep(1)
+            # print(strip.get_color_zones())
 
-    print("Flashy fast rainbow")
-    rainbow(bulb, 0.1)
 
-    print("Smooth slow rainbow")
-    rainbow(bulb, 1, smooth=True)
-
-    print("Restoring original power and color...")
-    # restore original power
-    bulb.set_power(original_power)
-    # restore original color
+    # # get original state
+    # print("Turning on all lights...")
+    # original_power = bulb.get_power()
+    # original_color = bulb.get_color()
+    # bulb.set_power("on")
+    #
+    # sleep(1) # for looks
+    #
+    # print("Flashy fast rainbow")
+    # rainbow(bulb, 0.1)
+    #
+    # print("Smooth slow rainbow")
+    # rainbow(bulb, 1, smooth=True)
+    #
+    # print("Restoring original power and color...")
+    # # restore original power
+    # bulb.set_power(original_power)
+    # # restore original color
     sleep(0.5) # for looks
-    bulb.set_color(original_color)
+    # bulb.set_color(original_color)
 
 def rainbow(bulb, duration_secs=0.5, smooth=False):
     colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]

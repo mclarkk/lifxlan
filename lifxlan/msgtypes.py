@@ -398,6 +398,67 @@ class LightStatePower(Message):
         payload = power_level
         return payload
 
+class LightStateMultiZone(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.count = payload["count"]
+        self.index = payload["index"]
+        super(LightStateMultiZone, self).__init__(MSG_IDS[LightStateMultiZone], target_addr, source_id, seq_num,
+                                              ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Power Level", self.power_level))
+        power_level = little_endian(bitstring.pack("16", self.power_level))
+        payload = power_level
+        return payload
+
+class LightStateZone(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.count = payload["count"]
+        # self.reserved1 = payload["reserved1"]
+        # self.power_level = payload["power_level"]
+        self.index = payload["index"]
+        self.reserved2 = payload["reserved2"]
+        super(LightStateZone, self).__init__(MSG_IDS[LightState], target_addr, source_id, seq_num, ack_requested,
+                                         response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Color (HSBK)", self.color))
+        self.payload_fields.append(("Count", self.count))
+        # self.payload_fields.append(("Power Level", self.power_level))
+        self.payload_fields.append(("Index", self.index))
+        # self.payload_fields.append(("Reserved", self.reserved2))
+        # color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        # reserved1 = little_endian(bitstring.pack("16", self.reserved1))
+        # power_level = little_endian(bitstring.pack("16", self.power_level))
+        # label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
+        # label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32 - len(self.label)))
+        # label += label_padding
+        # reserved2 = little_endian(bitstring.pack("64", self.reserved1))
+        payload = ""#color + reserved1 + power_level + label + reserved2
+        return payload
+
+class LightSetColorZones(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.color = payload["color"]
+        self.duration = payload["duration"]
+        self.start_index = payload["start_index"]
+        self.end_index = payload["end_index"]
+        self.apply = payload["apply"]
+        super(LightSetColorZones, self).__init__(MSG_IDS[LightSetColorZones], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        start_index = little_endian(bitstring.pack("8", self.start_index))
+        end_index = little_endian(bitstring.pack("8", self.end_index))
+        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        duration = little_endian(bitstring.pack("32", self.duration))
+        apply = little_endian(bitstring.pack("8", self.apply))
+        payload = start_index + end_index + color + duration + apply
+        return payload
+
+class LightGetColorZones(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        super(LightGetColorZones, self).__init__(MSG_IDS[LightGetColorZones], target_addr, source_id, seq_num, ack_requested,
+                                            response_requested)
 
 MSG_IDS = {     GetService: 2, 
                 StateService: 3, 
@@ -431,7 +492,11 @@ MSG_IDS = {     GetService: 2,
                 LightState: 107,
                 LightGetPower: 116,
                 LightSetPower: 117,
-                LightStatePower: 118}
+                LightStatePower: 118,
+                LightSetColorZones: 501,
+                LightGetColorZones: 502,
+                LightStateZone: 503,
+                LightStateMultiZone: 506}
 
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
@@ -441,6 +506,10 @@ SERVICE_IDS = { 1: "UDP",
 STR_MAP = { 65535: "On",
             0: "Off",
             None: "Unknown"}
+
+ZONE_MAP = {0: "NO_APPLY",
+            1:"APPLY",
+            2:"APPLY_ONLY"}
 
 def str_map(key):
     string_representation = "Unknown"
