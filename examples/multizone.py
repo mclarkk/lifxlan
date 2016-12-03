@@ -24,20 +24,28 @@ def main():
     bulb = devices[0]
     print("Selected {}".format(bulb.get_label()))
 
+    speed = 1
+    zones = 23
+    color1 = RED
+    color2 = GREEN
+    size = 4
+
     for b in devices:
         if b.get_label() == "strip":
             strip = b#MultiZoneLight(b)
-            start = 0
+            start = 15
             while True:
-                strip.set_zone_color(0, 23, RED, 0.5, False, 0)
-                if start >= 22:
-                    strip.set_zone_color(0, 24 - start , GREEN, 0, False, 0)
-                strip.set_zone_color(start, start+2, GREEN,0.5,False,1)
+                strip.set_zone_color(0, zones, color1, 0.5, False, 0)
+                if start > zones-size:
+                    end = size - (zones - start) - (size-(size-1))
+                    strip.set_zone_color(0, end, color2, 0, False, 0)
+                    print( "{}: 0 - {}").format(start,end)
+                strip.set_zone_color(start, start+size, color2,0.5,False,1)
 
                 start = start + 1
-                if start > 23:
+                if start > zones:
                     start = 0
-                sleep(1)
+                sleep(speed)
             # print(strip.get_color_zones())
 
 
