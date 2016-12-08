@@ -406,36 +406,33 @@ class LightStateMultiZone(Message):
                                               ack_requested, response_requested)
 
     def get_payload(self):
-        self.payload_fields.append(("Power Level", self.power_level))
-        power_level = little_endian(bitstring.pack("16", self.power_level))
-        payload = power_level
+        self.payload_fields.append(("Count", self.service))
+        self.payload_fields.append(("Index", self.port))
+        count = little_endian(bitstring.pack("8", self.service))
+        index = little_endian(bitstring.pack("8", self.port))
+        payload = count + index
         return payload
 
-class LightStateZone(Message):
+class LightStateZone(Message): #503
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.count = payload["count"]
         # self.reserved1 = payload["reserved1"]
         # self.power_level = payload["power_level"]
         self.index = payload["index"]
-        self.reserved2 = payload["reserved2"]
+        # self.reserved2 = payload["reserved2"]
         super(LightStateZone, self).__init__(MSG_IDS[LightState], target_addr, source_id, seq_num, ack_requested,
                                          response_requested)
 
     def get_payload(self):
-        self.payload_fields.append(("Color (HSBK)", self.color))
         self.payload_fields.append(("Count", self.count))
-        # self.payload_fields.append(("Power Level", self.power_level))
         self.payload_fields.append(("Index", self.index))
-        # self.payload_fields.append(("Reserved", self.reserved2))
+        # self.payload_fields.append(("Color (HSBK)", self.color))
+        count = little_endian(bitstring.pack("8", self.count))
+        index = little_endian(bitstring.pack("8", self.index))
         # color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
-        # reserved1 = little_endian(bitstring.pack("16", self.reserved1))
-        # power_level = little_endian(bitstring.pack("16", self.power_level))
-        # label = "".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
-        # label_padding = "".join(little_endian(bitstring.pack("8", 0)) for i in range(32 - len(self.label)))
-        # label += label_padding
-        # reserved2 = little_endian(bitstring.pack("64", self.reserved1))
-        payload = ""#color + reserved1 + power_level + label + reserved2
+        payload = count + index #+ color
         return payload
+
 
 class LightSetColorZones(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
