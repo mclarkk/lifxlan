@@ -20,11 +20,7 @@ def main():
 
     # get devices
     devices = lifx.get_lights()
-    bulb = ""
-    for b in devices:
-        if b.get_label() == "strip":
-            bulb = b
-    bulb.verbose = True
+    bulb = devices[0]
     print("Selected {}".format(bulb.get_label()))
 
     # get original state
