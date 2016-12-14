@@ -340,6 +340,31 @@ class LightSetColor(Message):
         color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         duration = little_endian(bitstring.pack("32", self.duration))
         payload = reserved_8 + color + duration
+        payloadUi = " ".join("{:02x}".format(ord(c)) for c in payload)
+        return payload
+
+
+class LightSetWaveform(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.transient = payload["transient"]
+        self.color = payload["color"]
+        self.period = payload["period"]
+        self.cycles = payload["cycles"]
+        self.duty_cycle = payload["duty_cycle"]
+        self.waveform = payload["waveform"]
+        super(LightSetWaveform, self).__init__(MSG_IDS[LightSetWaveform], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        reserved_8 = little_endian(bitstring.pack("8", self.reserved))
+        transient = little_endian(bitstring.pack("uint:8", self.transient))
+        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        period = little_endian(bitstring.pack("uint:32", self.period))
+        cycles = little_endian(bitstring.pack("float:32", self.cycles))
+        duty_cycle = little_endian(bitstring.pack("int:16", self.duty_cycle))
+        waveform = little_endian(bitstring.pack("uint:8", self.waveform))
+        payload = reserved_8 + transient + color + period + cycles + duty_cycle + waveform
+
+        payloadUi = " ".join("{:02x}".format(ord(c)) for c in payload)
         return payload
 
 
@@ -428,6 +453,7 @@ MSG_IDS = {     GetService: 2,
                 EchoResponse: 59,
                 LightGet: 101,
                 LightSetColor: 102,
+                LightSetWaveform: 103,
                 LightState: 107,
                 LightGetPower: 116,
                 LightSetPower: 117,
