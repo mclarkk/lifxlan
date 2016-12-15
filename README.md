@@ -124,14 +124,13 @@ The Light API provides everything in the Device API, as well as:
 # is_transient is 1/0. If 1, return to the original color after the specified number of cycles. If 0, set light to specified color
 # period is the length of one cycle in milliseconds
 # cycles is the number of times to repeat the waveform
-# duty_cycle is an integer between -32768 and 32767 
-#     set it to 0 to spend an equal amount of time on the original color and the new color
-#     set it to positive to spend more time on the original color
-#     set it to negative to spend more time on the new color
+# duty_cycle is an integer between -32768 and 32767. Its effect is most obvious with the Pulse waveform 
+#     set duty_cycle to 0 to spend an equal amount of time on the original color and the new color
+#     set duty_cycle to positive to spend more time on the original color
+#     set duty_cycle to negative to spend more time on the new color
 # waveform can be 0 = Saw, 1 = Sine, 2 = HalfSine, 3 = Triangle, 4 = Pulse (strobe)
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# NOTE: the effect of duty_cycle is most obvious with the Pulse waveform.
 # NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color. This is a LIFX problem.
 
 set_power(power, [duration], [rapid])   
