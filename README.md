@@ -131,7 +131,8 @@ The Light API provides everything in the Device API, as well as:
 # waveform can be 0 = Saw, 1 = Sine, 2 = HalfSine, 3 = Triangle, 4 = Pulse (strobe)
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color. This is a LIFX problem.
+# NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color. 
+# 99.9% sure that this is a LIFX problem and will likely fix itself with firmware updates when SetWaveform becomes an official part of the protocol.
 
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
