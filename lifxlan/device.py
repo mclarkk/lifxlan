@@ -101,6 +101,9 @@ class Device(object):
     def get_ip_addr(self):
         return self.ip_addr
 
+    def get_source_id(self):
+        return self.source_id
+
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)

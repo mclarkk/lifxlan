@@ -56,13 +56,13 @@ class Light(Device):
             print(e)
 
     # color is [Hue, Saturation, Brightness, Kelvin]
-    def set_waveform(self, transient, color, period, cycles, duty_cycle, waveform, rapid=False):
+    def set_waveform(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
         if len(color) == 4:
             try:
                 if rapid:
-                    self.fire_and_forget(LightSetWaveform, {"transient": transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=5)
+                    self.fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=5)
                 else:
-                    self.req_with_ack(LightSetWaveform, {"transient": transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
+                    self.req_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
             except WorkflowException as e:
                 print(e)
 
