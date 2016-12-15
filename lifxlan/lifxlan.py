@@ -200,8 +200,10 @@ class LifxLAN:
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if success == False:
+            self.close_socket()
             raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
-        self.close_socket()
+        else:
+            self.close_socket()
         return responses
 
     def broadcast_with_ack(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT+0.5, max_attempts=DEFAULT_ATTEMPTS):

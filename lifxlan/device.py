@@ -209,11 +209,11 @@ class Device(object):
         return build, version
 
     def get_wifi_firmware_build_timestamp(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
+        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_build_timestamp
 
     def get_wifi_firmware_version(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self._get_wifi_firmware_tuple()
+        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_version
 
     def get_version_tuple(self):
@@ -427,8 +427,10 @@ class Device(object):
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
         if not success:
+            self.close_socket()
             raise IOError("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
-        self.close_socket()
+        else:
+            self.close_socket()
         return device_response
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
