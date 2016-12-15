@@ -190,6 +190,15 @@ def unpack_lifx_message(packed_message):
         payload = {"power_level": power_level}
         message = LightStatePower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
+    elif message_type == MSG_IDS[LightStateZone]: #503
+        count = struct.unpack("c", payload_str[0:1])[0]
+        count = ord(count) # 8 bit
+        index = struct.unpack("c", payload_str[1:2])[0]
+        index = ord(index) #8 bit
+        color = struct.unpack("H" * 4, payload_str[2:10])
+        payload = {"color": color, "count": count, "index": index}
+        message = LightStateZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
     else:
         message = Message(message_type, target_addr, source_id, seq_num, ack_requested, response_requested)
 
