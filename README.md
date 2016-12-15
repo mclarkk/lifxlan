@@ -116,26 +116,26 @@ light = Light("12:34:56:78:9a:bc", "192.168.1.42")
 The Light API provides everything in the Device API, as well as:
 
 ```
+# arguments in [square brackets] are optional
 # power can be "on"/"off", True/False, 0/1, or 0/65535
 # color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
 # duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# transient is 1 to return to the original color of the light after the specified number of cycles.
-# transient is 0 the light is left set to _color_ after the specified number of cycles.
+# is_transient is 1/0. If 1, return to the original color after the specified number of cycles. If 0, leave light on _color_.
 # period is the length of one cycle in milliseconds.
 # cycles is the number of times to repeat the waveform
-# duty-cycle is 0 for an equal amount of time to be spent on the original color and the new color
+# duty_cycle is 0 for an equal amount of time to be spent on the original color and the new color
 # duty_cycle is positive for more time to be spent on the original color
 # duty_cycle is negative for more time to be spent on the new color.
 # waveform 0 = Saw, 1 = Sine, 2 = HalfSine, 3 = Triangle, 4 = Pulse
-# arguments in [square brackets] are optional
+
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
-get_power()                             # returns 0 or 65535
-get_color()                             # returns color (HSBK list)
-set_waveform(transient, color, period, cycles, duty-cycle, waveform)
+set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
+get_power()                                                                 # returns 0 or 65535
+get_color()                                                                 # returns color (HSBK list)
 ```
 
 The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
