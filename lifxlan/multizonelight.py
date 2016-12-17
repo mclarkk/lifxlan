@@ -25,7 +25,7 @@ class MultiZoneLight(Light):
                 if rapid:
                     self.fire_and_forget(LightSetColorZones,
                                          {"start_index": start_index, "end_index": end_index, "color": color,
-                                          "duration": duration, "apply": apply}, num_repeats=5)
+                                          "duration": duration, "apply": apply}, num_repeats=1)
                 else:
                     self.req_with_ack(LightSetColorZones,
                                       {"start_index": start_index, "end_index": end_index, "color": color,
