@@ -24,14 +24,9 @@ def main():
         if "strip" in d.get_label().lower():
             strip =  MultiZoneLight(d.mac_addr, d.ip_addr)
 
-
-
     if strip != None:
         print("Selecting " + strip.get_label())
-        all_zones = []
-        for i in range(4):
-            zones = strip.get_color_zones(0+(i*8),7+(i*8))
-            all_zones += zones
+        all_zones = strip.get_color_zones()
         original_zones = all_zones
         dim_zones = []
         bright_zones = []
