@@ -14,7 +14,7 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
     lifx = LifxLAN(num_lights,False)
@@ -32,21 +32,21 @@ def main():
     for b in devices:
         print(b.get_label())
         if "strip" in b.get_label().lower():
-            strip =  MultiZoneLight(b)
-            zones = strip.get_color_zones() #autodetect zones
-            print(zones)
+            strip =  MultiZoneLight(b.mac_addr, b.ip_addr)
+            zone_count = len(strip.get_color_zones()) #autodetect zones
+            print(zone_count)
             size = size - 1 #0 based
-            zones = zones - 1
+            zone_count = zone_count - 1
             start = 0
             while True:
-                strip.set_zone_color(0, zones, color1, 0, True, 0) #queue command
-                if start > zones-size:
-                    end = size - (zones - start) - 1
+                strip.set_zone_color(0, zone_count, color1, 0, True, 0) #queue command
+                if start > zone_count-size:
+                    end = size - (zone_count - start) - 1
                     strip.set_zone_color(0, end, color2, 0, True, 0)#queue command
                 strip.set_zone_color(start, start+size, color2,0,True,1) #execute command
 
                 start += 1
-                if start > zones:
+                if start > zone_count:
                     start = 0
                 sleep(speed)
 
