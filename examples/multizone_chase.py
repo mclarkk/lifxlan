@@ -33,8 +33,8 @@ def main():
         print(b.get_label())
         if "strip" in b.get_label().lower():
             strip =  MultiZoneLight(b.mac_addr, b.ip_addr)
-            zone_count = len(strip.get_color_zones()) #autodetect zones
-            print(zone_count)
+            color_zones = strip.get_color_zones()
+            zone_count = len(color_zones) #autodetect zones
             size = size - 1 #0 based
             zone_count = zone_count - 1
             start = 0
