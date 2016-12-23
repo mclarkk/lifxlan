@@ -4,6 +4,7 @@
 from light import *
 from device import Device, WorkflowException
 from msgtypes import *
+import math
 
 class MultiZoneLight(Light):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=0, verbose=False):
@@ -17,9 +18,16 @@ class MultiZoneLight(Light):
     def get_color_zones(self, start=0, end=255):
         try:
             response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateMultiZone, {"start_index":start, "end_index":end})
-            self.color = response.color
+            #total_zones = response.count
+            all_zones = []
+            total_zones = response.count
+            for i in range(int(math.ceil(total_zones / 8.0))):
+                response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateMultiZone, {"start_index":0+(i*8), "end_index":7+(i*8)})
+                all_zones += response.color
+            self.color = all_zones[0:total_zones]
         except WorkflowException as e:
             try:
+                print("Receiving individual MultiZone::StateZone instead of StateMultiZone, will only receive the state from one zone")
                 response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateZone, {"start_index":start, "end_index":end})
                 self.color = response.color
             except WorkflowException as e:
