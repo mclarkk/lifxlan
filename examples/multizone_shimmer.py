@@ -30,12 +30,7 @@ def main():
 
     if strip != None:
         print("Selecting " + strip.get_label())
-        #%h, s, v, k = l.get_color_zones()
-        all_zones = []
-        for i in range(4):
-            zones = strip.get_color_zones(0+(i*8),7+(i*8))
-            all_zones += zones
-        #print(all_zones)
+        all_zones = strip.get_color_zones()
         original_zones = deepcopy(all_zones)
         zone_buff = all_zones
 
@@ -46,7 +41,7 @@ def main():
                 for i in range(12):
                     z = -1
                     while z in ignore:
-                        z = randrange(0,31)
+                        z = randrange(0,len(zone_buff))
                     ignore.append(z)
                     h, s, v, k = zone_buff[z]
                     zone_buff[z] = h, s, 2000, k
@@ -56,7 +51,7 @@ def main():
                 for i in range(12):
                     z = -1
                     while z in ignore:
-                        z = randrange(0,31)
+                        z = randrange(0,len(zone_buff))
                     ignore.append(z)
                     h, s, v, k = zone_buff[z]
                     zone_buff[z] = h, s, 65535, k
