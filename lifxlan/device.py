@@ -428,7 +428,7 @@ class Device(object):
             attempts += 1
         if not success:
             self.close_socket()
-            raise IOError("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
         else:
             self.close_socket()
         return device_response
