@@ -88,6 +88,58 @@ class Light(Device):
             print(e)
         return self.color
 
+    def set_hue(self, hue, duration=0, rapid=False):
+        """ hue to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (hue, color[1], color[2], color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
+
+    def set_saturation(self, saturation, duration=0, rapid=False):
+        """ saturation to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], saturation, color[2], color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
+
+    def set_brightness(self, brightness, duration=0, rapid=False):
+        """ brightness to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], color[1], brightness, color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+            print(e)
+
+    def set_colortemp(self, kelvin, duration=0, rapid=False):
+        """ kelvin: color temperature to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], color[1], color[2], kelvin)
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+            print(e)
+
     ############################################################################
     #                                                                          #
     #                            String Formatting                             #
