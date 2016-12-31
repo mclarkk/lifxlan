@@ -14,7 +14,7 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
     lifx = LifxLAN(num_lights,False)
@@ -24,28 +24,29 @@ def main():
     bulb = devices[0]
     print("Selected {}".format(bulb.get_label()))
 
-    speed = 5
+    speed = 0.1
     color1 = RED
     color2 = GREEN
     size = 12 #WIDTH
 
     for b in devices:
         print(b.get_label())
-        if b.get_label() == "strip":
-            strip =  MultiZoneLight(b)
-            zones = strip.get_color_zones() #autodetect zones
+        if "strip" in b.get_label().lower():
+            strip =  MultiZoneLight(b.mac_addr, b.ip_addr)
+            color_zones = strip.get_color_zones()
+            zone_count = len(color_zones) #autodetect zones
             size = size - 1 #0 based
-            zones = zones - 1
+            zone_count = zone_count - 1
             start = 0
             while True:
-                strip.set_zone_color(0, zones, color1, 500, False, 0) #queue command
-                if start > zones-size:
-                    end = size - (zones - start) - 1
-                    strip.set_zone_color(0, end, color2, 500, False, 0)#queue command
-                strip.set_zone_color(start, start+size, color2,500,False,1) #execute command
+                strip.set_zone_color(0, zone_count, color1, 0, True, 0) #queue command
+                if start > zone_count-size:
+                    end = size - (zone_count - start) - 1
+                    strip.set_zone_color(0, end, color2, 0, True, 0)#queue command
+                strip.set_zone_color(start, start+size, color2,0,True,1) #execute command
 
                 start += 1
-                if start > zones:
+                if start > zone_count:
                     start = 0
                 sleep(speed)
 
