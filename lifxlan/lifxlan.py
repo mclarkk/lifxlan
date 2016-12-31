@@ -46,7 +46,11 @@ class LifxLAN:
             if self.num_lights == None:
                 responses = self.discover()
             else:
-                responses = self.broadcast_with_resp(GetService, StateService)
+                try:
+                    responses = self.broadcast_with_resp(GetService, StateService)
+                except WorkflowException as e:
+                    print ("Exception: {}".format(e))
+                    return None
             for r in responses:
                 light = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(light)
