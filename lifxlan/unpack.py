@@ -190,6 +190,19 @@ def unpack_lifx_message(packed_message):
         payload = {"power_level": power_level}
         message = LightStatePower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
+    elif message_type == MSG_IDS[LightGetInfrared]:  # 120
+        message = LightGetInfrared(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[LightStateInfrared]:  # 121
+        infrared_brightness = struct.unpack("H", payload_str[0:2])[0]
+        payload = {"infrared_brightness": infrared_brightness}
+        message = LightStateInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[LightSetInfrared]:  # 122
+        infrared_brightness = struct.unpack("H", payload_str[0:2])[0]
+        payload = {"infrared_brightness": infrared_brightness}
+        message = LightSetInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
     elif message_type == MSG_IDS[MultiZoneStateZone]: #503
         count = struct.unpack("c", payload_str[0:1])[0]
         count = ord(count) # 8 bit
@@ -199,7 +212,7 @@ def unpack_lifx_message(packed_message):
         payload = {"count": count, "index": index, "color": color}
         message = MultiZoneStateZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
-    elif message_type == MSG_IDS[MultiZoneStateMultiZone]: #503
+    elif message_type == MSG_IDS[MultiZoneStateMultiZone]: #506
         count = struct.unpack("c", payload_str[0:1])[0]
         count = ord(count) # 8 bit
         index = struct.unpack("c", payload_str[1:2])[0]

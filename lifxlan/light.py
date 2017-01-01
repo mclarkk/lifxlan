@@ -88,6 +88,25 @@ class Light(Device):
             print(e)
         return self.color
 
+    # Infrared get maximum brightness, infrared_brightness
+    def get_infrared(self):
+        try:
+            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
+            self.infrared_brightness = response.infrared_brightness
+        except WorkflowException as e:
+            print(e)
+        return self.infrared_brightness
+
+    # Infrared set maximum brightness, infrared_brightness
+    def set_infrared(self, infrared_brightness, rapid=False):
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetInfrared, {"infrared_brightness": infrared_brightness}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetInfrared, {"infrared_brightness": infrared_brightness})
+        except WorkflowException as e:
+            print(e)
+
     ############################################################################
     #                                                                          #
     #                            String Formatting                             #
