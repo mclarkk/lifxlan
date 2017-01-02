@@ -5,6 +5,7 @@ from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BRO
 from message import BROADCAST_MAC, BROADCAST_SOURCE_ID
 from device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
 from light import *
+from multizonelight import *
 from msgtypes import *
 from unpack import unpack_lifx_message
 from random import randint
@@ -18,7 +19,7 @@ class LifxLAN:
         self.devices = None
         self.lights = None
         self.verbose = verbose
-        
+
     ############################################################################
     #                                                                          #
     #                         LAN (Broadcast) API Methods                      #
@@ -52,12 +53,40 @@ class LifxLAN:
                     print ("Exception: {}".format(e))
                     return None
             for r in responses:
-                light = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                self.lights.append(light)
-                self.devices.append(light)
+                device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                if device.supports_multizone():
+                    device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                else:
+                    device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                self.lights.append(device)
+                self.devices.append(device)
             self.num_lights = len(self.lights)
             self.num_devices = len(self.lights)
-        return self.lights        
+        return self.lights
+
+    def get_multizone_lights(self):
+        multizone_lights = []
+        all_lights = self.get_lights()
+        for l in all_lights:
+            if l.supports_multizone():
+                multizone_lights.append(l)
+        return multizone_lights
+
+    def get_infrared_lights(self):
+        infrared_lights = []
+        all_lights = self.get_lights()
+        for l in all_lights:
+            if l.supports_infrared():
+                infrared_lights.append(l)
+        return infrared_lights
+
+    def get_color_lights(self):
+        color_lights = []
+        all_lights = self.get_lights()
+        for l in all_lights:
+            if l.supports_color():
+                color_lights.append(l)
+        return color_lights
 
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
@@ -109,13 +138,13 @@ class LifxLAN:
 
     ############################################################################
     #                                                                          #
-    #                            Workflow Methods                              #     
+    #                            Workflow Methods                              #
     #                                                                          #
     ############################################################################
 
     def discover(self, timeout_secs=0.3, num_repeats=3):
         self.initialize_socket(timeout_secs)
-        msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)    
+        msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)
         responses = []
         addr_seen = []
         num_devices_seen = 0
@@ -130,7 +159,7 @@ class LifxLAN:
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
@@ -168,7 +197,7 @@ class LifxLAN:
         success = False
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
-            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False) 
+            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
         else:
             msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
         responses = []
@@ -185,7 +214,7 @@ class LifxLAN:
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
