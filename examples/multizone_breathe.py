@@ -38,7 +38,7 @@ def main():
                 strip.set_zone_colors(dim_zones, 2000, True)
                 sleep(2)
         except KeyboardInterrupt:
-            strip.set_zone_colors(original_zones, 1000)
+            strip.set_zone_colors(original_zones, 1000, True)
     else:
         print("No lights with MultiZone capability detected.")
 

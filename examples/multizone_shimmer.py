@@ -55,7 +55,7 @@ def main():
                 #sleep(0.25)
                 ignore = [-1]
         except KeyboardInterrupt:
-            strip.set_zone_colors(original_zones, 1000)
+            strip.set_zone_colors(original_zones, 1000, True)
 
 if __name__=="__main__":
     main()
