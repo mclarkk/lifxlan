@@ -426,6 +426,8 @@ class Device(object):
 
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
     def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        if type(response_type) != type([]):
+            response_type = [response_type]
         success = False
         device_response = None
         self.initialize_socket(timeout_secs)
@@ -450,7 +452,7 @@ class Device(object):
                     response = unpack_lifx_message(data)
                     if self.verbose:
                         print("RECV: " + str(response))
-                    if type(response) == response_type:
+                    if type(response) in response_type:
                         if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
                             response_seen = True
                             device_response = response
