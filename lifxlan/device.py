@@ -426,12 +426,13 @@ class Device(object):
 
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
     def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        # Need to put error checking here for aguments
         if type(response_type) != type([]):
             response_type = [response_type]
         success = False
         device_response = None
         self.initialize_socket(timeout_secs)
-        if response_type == Acknowledgement:
+        if len(response_type) == 1 and Acknowledgement in response_type:
             msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
         else:
             msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
@@ -465,7 +466,7 @@ class Device(object):
             attempts += 1
         if not success:
             self.close_socket()
-            raise WorkflowException("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException("WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(str(response_type), str(self.mac_addr), str(self.label), str(msg_type)))
         else:
             self.close_socket()
         return device_response
