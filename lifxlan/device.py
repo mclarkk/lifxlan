@@ -121,7 +121,7 @@ class Device(object):
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
-            self.location = response.location
+            self.location = response.label.replace("\x00", "")
         except:
             pass
         return self.location
@@ -129,7 +129,7 @@ class Device(object):
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.group
+            self.group = response.label.replace("\x00", "")
         except:
             pass
         return self.group
