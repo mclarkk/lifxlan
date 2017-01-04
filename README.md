@@ -140,8 +140,8 @@ set_color(color, [duration], [rapid])
 set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
 get_power()                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
-get_infrared()                                                              # returns infrared brightness (0 to 65535)
-set_infrared(infrared_brightness) 
+get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
+set_infrared(infrared_brightness)
 ```
 
 The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
