@@ -146,11 +146,12 @@ class Light(Device):
 
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
-        try:
-            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
-            self.infrared_brightness = response.infrared_brightness
-        except WorkflowException as e:
-            print(e)
+        if self.supports_infrared():
+            try:
+                response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
+                self.infrared_brightness = response.infrared_brightness
+            except WorkflowException as e:
+                print(e)
         return self.infrared_brightness
 
     # Infrared set maximum brightness, infrared_brightness
