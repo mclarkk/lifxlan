@@ -129,6 +129,7 @@ The Light API provides everything in the Device API, as well as:
 #     set duty_cycle to positive to spend more time on the original color
 #     set duty_cycle to negative to spend more time on the new color
 # waveform can be 0 = Saw, 1 = Sine, 2 = HalfSine, 3 = Triangle, 4 = Pulse (strobe)
+# infrared_brightness (0-65535) - is the maximum infrared brightness when the lamp automatically turns on infrared (0 = off)
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color.
@@ -139,6 +140,8 @@ set_color(color, [duration], [rapid])
 set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
 get_power()                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
+get_infrared()                                                              # returns infrared brightness (0 to 65535)
+set_infrared(infrared_brightness) 
 ```
 
 The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.

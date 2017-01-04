@@ -423,10 +423,34 @@ class LightStatePower(Message):
         payload = power_level
         return payload
 
+##### INFRARED MESSAGES #####
 
+class LightGetInfrared(Message): 
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        super(LightGetInfrared, self).__init__(MSG_IDS[LightGetInfrared], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class LightStateInfrared(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.infrared_brightness = payload["infrared_brightness"]
+        super(LightStateInfrared, self).__init__(MSG_IDS[LightStateInfrared], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Infrared Brightness", self.infrared_brightness))
+        infrared_brightness = little_endian(bitstring.pack("16", self.infrared_brightness))
+        payload = infrared_brightness
+        return payload
+
+class LightSetInfrared(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.infrared_brightness = payload["infrared_brightness"]
+        super(LightSetInfrared, self).__init__(MSG_IDS[LightSetInfrared], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        infrared_brightness = little_endian(bitstring.pack("16", self.infrared_brightness))
+        payload = infrared_brightness
+        return payload
 
 ##### MULTIZONE MESSAGES #####
-
 
 class MultiZoneStateMultiZone(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
@@ -531,6 +555,9 @@ MSG_IDS = {     GetService: 2,
                 LightGetPower: 116,
                 LightSetPower: 117,
                 LightStatePower: 118,
+                LightGetInfrared: 120,
+                LightStateInfrared: 121,
+                LightSetInfrared: 122, 
                 MultiZoneSetColorZones: 501,
                 MultiZoneGetColorZones: 502,
                 MultiZoneStateZone: 503,

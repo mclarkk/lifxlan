@@ -86,8 +86,8 @@ class Light(Device):
         except WorkflowException as e:
             print(e)
         return self.color
-
-    # hue in range [0 - 65535]
+      
+    # hue in range [0 - 65535] 
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
@@ -140,6 +140,25 @@ class Light(Device):
                 self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
             else:
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+            print(e)
+            
+    # Infrared get maximum brightness, infrared_brightness
+    def get_infrared(self):
+        try:
+            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
+            self.infrared_brightness = response.infrared_brightness
+        except WorkflowException as e:
+            print(e)
+        return self.infrared_brightness
+
+    # Infrared set maximum brightness, infrared_brightness
+    def set_infrared(self, infrared_brightness, rapid=False):
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetInfrared, {"infrared_brightness": infrared_brightness}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetInfrared, {"infrared_brightness": infrared_brightness})
         except WorkflowException as e:
             print(e)
 
