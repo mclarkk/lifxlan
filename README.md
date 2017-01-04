@@ -152,6 +152,21 @@ set_saturation(saturation, [duration], [rapid])    # saturation in range [0-6553
 set_colortemp(kelvin, [duration], [rapid])         # kelvin in range [2500-9000]
 ```
 
+##### MultiZoneLight API
+
+Lights with MultiZone capability, such as the LIFX Z, have all the same methods as the Light API, and also add the following:
+
+```
+# start and end refer to zone indices (inclusive).
+# duration is the transition time in milliseconds
+# rapid is True/False. True means there is no guarantee that the bulb will receive your message.
+# apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+
+get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
+set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
+set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+```
+
 #### LIFX LAN Protocol Implementation:
 
 The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.)
