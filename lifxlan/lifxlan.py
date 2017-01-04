@@ -136,6 +136,18 @@ class LifxLAN:
         else:
             print("{} is not a valid color.".format(color))
 
+    def set_waveform_all_lights(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
+        if len(color) == 4:
+            try:
+                if rapid:
+                    self.broadcast_fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=5)
+                else:
+                    self.broadcast_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
+            except WorkflowException as e:
+                print(e)
+        else:
+            print("{} is not a valid color.".format(color))
+
     ############################################################################
     #                                                                          #
     #                            Workflow Methods                              #
