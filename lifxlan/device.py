@@ -327,16 +327,19 @@ class Device(object):
         return downtime
 
     def supports_color(self):
-        features = self.get_product_features()
-        return features['color']
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['color']
 
     def supports_multizone(self):
-        features = self.get_product_features()
-        return features['multizone']
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['multizone']
 
     def supports_infrared(self):
-        features = self.get_product_features()
-        return features['infrared']
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['infrared']
 
     ############################################################################
     #                                                                          #
