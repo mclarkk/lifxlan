@@ -22,6 +22,7 @@ class Light(Device):
         mac_addr = mac_addr.lower()
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
+        self.infrared_brightness = None
 
     ############################################################################
     #                                                                          #
@@ -86,8 +87,8 @@ class Light(Device):
         except WorkflowException as e:
             print(e)
         return self.color
-      
-    # hue in range [0 - 65535] 
+
+    # hue in range [0 - 65535]
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
@@ -142,7 +143,7 @@ class Light(Device):
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
             print(e)
-            
+
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
         try:
