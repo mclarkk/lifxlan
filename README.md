@@ -50,11 +50,12 @@ LifxLAN objects have the following methods:
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
 
-get_lights()                                            # returns list of Light objects
-set_power_all_lights(power, [duration], [rapid])        # set power for all lights on LAN
-set_color_all_lights_color(color, [duration], [rapid])  # set color for all lights on LAN
-get_power_all_lights()                                  # returns dict of Light, power pairs
-get_color_all_lights()                                  # returns dict of Light, color pairs
+get_lights()                                                                                 # returns list of Light objects
+set_power_all_lights(power, [duration], [rapid])                                             # set power for all lights on LAN
+set_color_all_lights_color(color, [duration], [rapid])                                       # set color for all lights on LAN
+set_waveform_all_lights(is_transient, color, period, cycles, duty_cycle, waveform, [rapid])  # see the Light API for more details
+get_power_all_lights()                                                                       # returns dict of Light, power pairs
+get_color_all_lights()                                                                       # returns dict of Light, color pairs
 ```
 
 ##### Device API
