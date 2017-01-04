@@ -47,7 +47,7 @@ LifxLAN objects have the following methods:
 # color is a list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
 # duration is the transition time in milliseconds
 # rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use. 
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
 
 get_lights()                                            # returns list of Light objects
@@ -65,7 +65,7 @@ In keeping with the LIFX protocol, all lights are devices, and so support the fo
 # label is a string, 32 char max
 # power can be "on"/"off", True/False, 0/1, or 0/65535
 # rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use. 
+# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
 
 set_label(label)            
@@ -84,7 +84,7 @@ get_wifi_signal_mw()
 get_wifi_tx_bytes()
 get_wifi_rx_bytes()         
 get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
-get_wifi_firmware_build_timestamp() 
+get_wifi_firmware_build_timestamp()
 get_wifi_firmware_version()
 get_version_tuple()                 # returns (vendor, product, version)
 get_location()                      # Returns location id (bytearray length 16)
@@ -124,7 +124,7 @@ The Light API provides everything in the Device API, as well as:
 # is_transient is 1/0. If 1, return to the original color after the specified number of cycles. If 0, set light to specified color
 # period is the length of one cycle in milliseconds
 # cycles is the number of times to repeat the waveform
-# duty_cycle is an integer between -32768 and 32767. Its effect is most obvious with the Pulse waveform 
+# duty_cycle is an integer between -32768 and 32767. Its effect is most obvious with the Pulse waveform
 #     set duty_cycle to 0 to spend an equal amount of time on the original color and the new color
 #     set duty_cycle to positive to spend more time on the original color
 #     set duty_cycle to negative to spend more time on the new color
@@ -132,7 +132,7 @@ The Light API provides everything in the Device API, as well as:
 # infrared_brightness (0-65535) - is the maximum infrared brightness when the lamp automatically turns on infrared (0 = off)
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color. 
+# NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color.
 # 99.9% sure that this is a LIFX problem and will likely fix itself with firmware updates when SetWaveform becomes an official part of the protocol.
 
 set_power(power, [duration], [rapid])   
@@ -145,6 +145,30 @@ set_infrared(infrared_brightness)
 ```
 
 The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
+
+Finally, you can set parts of the color individually using the following four methods. However, the bulbs must receive all four values in each SetColor message. That means that using one of the following methods is always slower than using set_color(color) above because it will have to call get_color() first to get the other three values.
+
+```
+set_hue(hue, [duration], [rapid])                  # hue in range [0-65535]
+set_brightness(brightness, [duration], [rapid])    # brightness in range [0-65535]
+set_saturation(saturation, [duration], [rapid])    # saturation in range [0-65535]
+set_colortemp(kelvin, [duration], [rapid])         # kelvin in range [2500-9000]
+```
+
+##### MultiZoneLight API
+
+Lights with MultiZone capability, such as the LIFX Z, have all the same methods as the Light API, and also add the following:
+
+```
+# start and end refer to zone indices (inclusive).
+# duration is the transition time in milliseconds
+# rapid is True/False. True means there is no guarantee that the bulb will receive your message.
+# apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+
+get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
+set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
+set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+```
 
 #### LIFX LAN Protocol Implementation:
 

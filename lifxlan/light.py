@@ -77,7 +77,6 @@ class Light(Device):
             except WorkflowException as e:
                 print(e)
 
-    # LightGet, color, power_level, label
     def get_color(self):
         try:
             response = self.req_with_resp(LightGet, LightState)
@@ -87,7 +86,63 @@ class Light(Device):
         except WorkflowException as e:
             print(e)
         return self.color
+      
+    # hue in range [0 - 65535] 
+    def set_hue(self, hue, duration=0, rapid=False):
+        """ hue to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (hue, color[1], color[2], color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
 
+    # saturation in range [0 - 65535]
+    def set_saturation(self, saturation, duration=0, rapid=False):
+        """ saturation to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], saturation, color[2], color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+                print(e)
+
+    # brightness in range [0 - 65535]
+    def set_brightness(self, brightness, duration=0, rapid=False):
+        """ brightness to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], color[1], brightness, color[3])
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+            print(e)
+
+    # kelvin in range [2500 - 9000]
+    def set_colortemp(self, kelvin, duration=0, rapid=False):
+        """ kelvin: color temperature to set
+            duration in ms"""
+        color = self.get_color()
+        color2 = (color[0], color[1], color[2], kelvin)
+        try:
+            if rapid:
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+            else:
+                self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
+        except WorkflowException as e:
+            print(e)
+            
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
         try:

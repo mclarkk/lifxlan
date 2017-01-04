@@ -18,42 +18,35 @@ class MultiZoneLight(Light):
     # Need to add check that end is larger than start
     # 0 indexed, inclusive
     def get_color_zones(self, start=0, end=255):
-        try:
-            response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateMultiZone, {"start_index":0, "end_index":255})
-            total_zones = response.count
-            # automatically truncate if the end is too large
-            if end >= total_zones:
-                end = total_zones-1
-            if start >= total_zones:
-                raise ValueError("In the function get_color_zones, starting index is greater than the total available zones (provided start = {}, end = {} for a device with {} total zones).".format(start, end, total_zones))
-            if end <= start:
-                raise ValueError("In the function get_color_zones, end must be greater than start (provided start = {}, end = {}).".format(start, end, total_zones))
+        #try:
+        response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":0, "end_index":255})
+        total_zones = response.count
+        # automatically truncate if the end is too large
+        if end >= total_zones:
+            end = total_zones-1
+        if start >= total_zones:
+            raise ValueError("In the function get_color_zones, starting index is greater than the total available zones (provided start = {}, end = {} for a device with {} total zones).".format(start, end, total_zones))
+        if end <= start:
+            raise ValueError("In the function get_color_zones, end must be greater than start (provided start = {}, end = {}).".format(start, end, total_zones))
 
-            # get all zones
-            if start == 0 and end == 255:
-                all_zones = []
-                for i in range(int(math.ceil(total_zones / 8.0))):
-                    response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateMultiZone, {"start_index":0+(i*8), "end_index":7+(i*8)})
-                    all_zones += response.color
-                self.color = all_zones[0:total_zones]
-            # get specified zone range
-            else:
-                all_zones = []
-                total_requested_zones = end - start + 1
-                lower_8_aligned = start - (start % 8)
-                upper_8_aligned = end - (end % 8)
-                #for i in range(int(math.ceil(upper_8_aligned / 8.0))+1):
-                for i in range(((upper_8_aligned - lower_8_aligned) / 8) + 1):
-                    response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateMultiZone, {"start_index":lower_8_aligned+(i*8), "end_index":lower_8_aligned+7+(i*8)})
-                    all_zones += response.color
-                self.color = all_zones[(start % 8):((start % 8)+total_requested_zones)]
-        except WorkflowException as e:
-            try:
-                print("Receiving individual MultiZone::StateZone instead of StateMultiZone, will only receive the state from one zone")
-                response = self.req_with_resp(MultiZoneGetColorZones, MultiZoneStateZone, {"start_index":start, "end_index":end})
-                self.color = response.color
-            except WorkflowException as e:
-                print(e)
+        # get all zones
+        if start == 0 and end == 255:
+            all_zones = []
+            for i in range(int(math.ceil(total_zones / 8.0))):
+                response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":0+(i*8), "end_index":7+(i*8)})
+                all_zones += response.color
+            self.color = all_zones[0:total_zones]
+        # get specified zone range
+        else:
+            all_zones = []
+            total_requested_zones = end - start + 1
+            lower_8_aligned = start - (start % 8)
+            upper_8_aligned = end - (end % 8)
+            #for i in range(int(math.ceil(upper_8_aligned / 8.0))+1):
+            for i in range(((upper_8_aligned - lower_8_aligned) / 8) + 1):
+                response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":lower_8_aligned+(i*8), "end_index":lower_8_aligned+7+(i*8)})
+                all_zones += response.color
+            self.color = all_zones[(start % 8):((start % 8)+total_requested_zones)]
         return self.color
 
     def set_zone_color(self, start_index, end_index, color, duration=0, rapid=False, apply=1):

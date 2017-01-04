@@ -4,12 +4,12 @@
 # with a LIFX device, and which caches some of the more persistent state attributes
 # so that you don't always need to spam the light with packets.
 #
-# The Device object also provides the low-level workflow functions for sending 
+# The Device object also provides the low-level workflow functions for sending
 # LIFX unicast packets to the specific device. LIFX unicast packets are sent
-# via UDP broadcast, but by including the device's MAC other LIFX devices will 
+# via UDP broadcast, but by including the device's MAC other LIFX devices will
 # ignore the packet.
 #
-# Import note: Every time you call a `get` method you are sending packets to the 
+# Import note: Every time you call a `get` method you are sending packets to the
 # real device. If you want to access the last known (cached) value of an attribute
 # just access the attribute directly, e.g., mydevice.label instead of mydevice.get_label()
 #
@@ -22,6 +22,8 @@ from msgtypes import *
 from unpack import unpack_lifx_message
 from time import time, sleep
 from datetime import datetime
+from products import product_map
+from products import features_map
 
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5
@@ -43,7 +45,7 @@ class Device(object):
         self.source_id = source_id
         self.ip_addr = ip_addr # IP addresses can change, though...
 
-        # The following attributes can be set by calling refresh(), but that 
+        # The following attributes can be set by calling refresh(), but that
         # takes time so it is not done by default during initialization.
         # However, refresh() will be called each time __str__ is called.
         # Printing the device is therefore accurate but expensive.
@@ -59,10 +61,12 @@ class Device(object):
         self.vendor = None
         self.product = None
         self.version = None
+        self.product_name = None
+        self.product_features = None
 
-        # For completeness, the following are state attributes of the device 
-        # that become stale too fast to bother caching in the device object, 
-        # though they can be accessed directly from the real device using the 
+        # For completeness, the following are state attributes of the device
+        # that become stale too fast to bother caching in the device object,
+        # though they can be accessed directly from the real device using the
         # methods below:
 
         # wifi signal mw
@@ -88,6 +92,8 @@ class Device(object):
         self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
         self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
         self.vendor, self.product, self.version = self.get_version_tuple()
+        self.product_name = self.get_product_name()
+        self.product_features = self.get_product_features()
 
     def get_mac_addr(self):
         return self.mac_addr
@@ -111,19 +117,19 @@ class Device(object):
         except:
             pass
         return self.label
-        
+
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
-            self.location = response.location
+            self.location = response.label.replace("\x00", "")
         except:
             pass
         return self.location
-        
+
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.group
+            self.group = response.label.replace("\x00", "")
         except:
             pass
         return self.group
@@ -229,6 +235,22 @@ class Device(object):
             pass
         return vendor, product, version
 
+    def get_product_name(self):
+        product_name = None
+        if self.product == None:
+            self.vendor, self.product, self.version = self.get_version_tuple()
+        if self.product in product_map:
+            product_name = product_map[self.product]
+        return product_name
+
+    def get_product_features(self):
+        product_features = None
+        if self.product == None:
+            self.vendor, self.product, self.version = self.get_version_tuple()
+        if self.product in product_map:
+            product_features = features_map[self.product]
+        return product_features
+
     def get_vendor(self):
         self.vendor, self.product, self.version = self.get_version_tuple()
         return self.vendor
@@ -252,15 +274,15 @@ class Device(object):
         except:
             pass
         return self.location, label, updated_at
-        
+
     def get_location_label(self):
         self.location, label, updated_at = self.get_location_tuple()
         return label
-        
+
     def get_location_updated_at(self):
         self.location, label, updated_at = self.get_location_tuple()
         return updated_at
-        
+
     def get_group_tuple(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
@@ -274,11 +296,11 @@ class Device(object):
     def get_group_label(self):
         self.group, label, updated_at = self.get_group_tuple()
         return label
-        
+
     def get_group_updated_at(self):
         self.group, label, updated_at = self.get_group_tuple()
         return updated_at
-        
+
     def get_info_tuple(self):
         time = None
         uptime = None
@@ -303,6 +325,18 @@ class Device(object):
     def get_downtime(self):
         time, uptime, downtime = self.get_info_tuple()
         return downtime
+
+    def supports_color(self):
+        features = self.get_product_features()
+        return features['color']
+
+    def supports_multizone(self):
+        features = self.get_product_features()
+        return features['multizone']
+
+    def supports_infrared(self):
+        features = self.get_product_features()
+        return features['infrared']
 
     ############################################################################
     #                                                                          #
@@ -334,8 +368,9 @@ class Device(object):
 
     def device_product_str(self, indent):
         s = "Vendor: {}\n".format(self.vendor)
-        s += indent + "Product: {}\n".format(self.product)
+        s += indent + "Product: {} ({})\n".format(self.product, self.product_name)  #### FIX
         s += indent + "Version: {}\n".format(self.version)
+        s += indent + "Features: {}\n".format(self.product_features)
         return s
 
     def device_time_str(self, indent):
@@ -367,7 +402,7 @@ class Device(object):
 
     ############################################################################
     #                                                                          #
-    #                            Workflow Methods                              #     
+    #                            Workflow Methods                              #
     #                                                                          #
     ############################################################################
 
@@ -391,13 +426,16 @@ class Device(object):
 
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
     def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        # Need to put error checking here for aguments
+        if type(response_type) != type([]):
+            response_type = [response_type]
         success = False
         device_response = None
         self.initialize_socket(timeout_secs)
-        if response_type == Acknowledgement:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False) 
+        if len(response_type) == 1 and Acknowledgement in response_type:
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
         else:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True) 
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
         response_seen = False
         attempts = 0
         while not response_seen and attempts < max_attempts:
@@ -410,12 +448,12 @@ class Device(object):
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
-                try: 
+                try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
                         print("RECV: " + str(response))
-                    if type(response) == response_type:
+                    if type(response) in response_type:
                         if response.origin == 1 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
                             response_seen = True
                             device_response = response
@@ -428,7 +466,7 @@ class Device(object):
             attempts += 1
         if not success:
             self.close_socket()
-            raise IOError("WorkflowException: Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
+            raise WorkflowException("WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(str(response_type), str(self.mac_addr), str(self.label), str(msg_type)))
         else:
             self.close_socket()
         return device_response

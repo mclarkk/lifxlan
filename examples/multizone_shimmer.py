@@ -19,16 +19,10 @@ def main():
     lifx = LifxLAN(num_lights,False)
 
     # get devices
-    devices = lifx.get_lights()
-    strip = None
-    for d in devices:
-        print(d.get_label())
-        if "strip" in d.get_label().lower():
-            strip =  MultiZoneLight(d.mac_addr, d.ip_addr)
+    multizone_lights = lifx.get_multizone_lights()
 
-
-
-    if strip != None:
+    if len(multizone_lights) > 0:
+        strip = multizone_lights[0]
         print("Selecting " + strip.get_label())
         all_zones = strip.get_color_zones()
         original_zones = deepcopy(all_zones)

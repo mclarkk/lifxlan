@@ -3,6 +3,7 @@ from lifxlan import *
 from array import *
 import sys
 from time import sleep
+from copy import deepcopy
 
 def main():
     num_lights = None
@@ -20,35 +21,49 @@ def main():
     lifx = LifxLAN(num_lights,False)
 
     # get devices
-    devices = lifx.get_lights()
-    bulb = devices[0]
-    print("Selected {}".format(bulb.get_label()))
+    multizone_lights = lifx.get_multizone_lights()
 
-    speed = 0.1
-    color1 = RED
-    color2 = GREEN
-    size = 12 #WIDTH
+    if len(multizone_lights) > 0:
+        strip = multizone_lights[0]
+        print("Selected {}".format(strip.get_label()))
 
-    for b in devices:
-        print(b.get_label())
-        if "strip" in b.get_label().lower():
-            strip =  MultiZoneLight(b.mac_addr, b.ip_addr)
-            color_zones = strip.get_color_zones()
-            zone_count = len(color_zones) #autodetect zones
-            size = size - 1 #0 based
-            zone_count = zone_count - 1
-            start = 0
+        all_zones = strip.get_color_zones()
+        original_zones = deepcopy(all_zones)
+        zone_count = len(all_zones)
+
+        delay = 0.06
+        snake_color = RED
+        background_color = GREEN
+        snake_size = zone_count/2 # length of snake in zones
+
+        tail = 0
+        head = snake_size - 1
+
+        try:
             while True:
-                strip.set_zone_color(0, zone_count, color1, 0, True, 0) #queue command
-                if start > zone_count-size:
-                    end = size - (zone_count - start) - 1
-                    strip.set_zone_color(0, end, color2, 0, True, 0)#queue command
-                strip.set_zone_color(start, start+size, color2,0,True,1) #execute command
+                # Case 1: Snake hasn't wrapped around yet
+                if head > tail:
+                    if tail > 0:
+                        strip.set_zone_color(0, tail-1, background_color, 0, True, 0)
+                    strip.set_zone_color(tail, head, snake_color, 0, True, 0)
+                    if head < zone_count - 1:
+                        strip.set_zone_color(head+1, zone_count-1, background_color, 0, True, 1)
 
-                start += 1
-                if start > zone_count:
-                    start = 0
-                sleep(speed)
+                # Case 2: Snake has started to wrap around
+                else:
+                    if head > 0:
+                        strip.set_zone_color(0, head-1, snake_color, 0, True, 0)
+                    strip.set_zone_color(head, tail, background_color, 0, True, 0)
+                    if tail < zone_count - 1:
+                        strip.set_zone_color(tail+1, zone_count-1, snake_color, 0, True, 1)
+
+                # update indices for the snake's head and tail
+                tail = (tail+1) % zone_count
+                head = (head+1) % zone_count
+
+                sleep(delay)
+        except KeyboardInterrupt:
+            strip.set_zone_colors(original_zones, 500, True)
 
 if __name__=="__main__":
     main()

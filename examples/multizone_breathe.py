@@ -17,14 +17,10 @@ def main():
     lifx = LifxLAN(num_lights,False)
 
     # get devices
-    devices = lifx.get_lights()
-    strip = None
-    for d in devices:
-        print(d.get_label())
-        if "strip" in d.get_label().lower():
-            strip =  MultiZoneLight(d.mac_addr, d.ip_addr)
+    multizone_lights = lifx.get_multizone_lights()
 
-    if strip != None:
+    if len(multizone_lights) > 0:
+        strip = multizone_lights[0]
         print("Selecting " + strip.get_label())
         all_zones = strip.get_color_zones()
         original_zones = all_zones
@@ -35,6 +31,7 @@ def main():
             bright_zones.append((h,s,65535,k))
 
         try:
+            print("Breathing...")
             while True:
                 strip.set_zone_colors(bright_zones, 2000, True)
                 sleep(2)
@@ -43,7 +40,7 @@ def main():
         except KeyboardInterrupt:
             strip.set_zone_colors(original_zones, 1000, True)
     else:
-        print("No strips detected.")
+        print("No lights with MultiZone capability detected.")
 
 if __name__=="__main__":
     main()
