@@ -77,7 +77,6 @@ class Light(Device):
             except WorkflowException as e:
                 print(e)
 
-    # LightGet, color, power_level, label
     def get_color(self):
         try:
             response = self.req_with_resp(LightGet, LightState)
@@ -88,6 +87,7 @@ class Light(Device):
             print(e)
         return self.color
 
+    # hue in range [0 - 65535]
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
@@ -101,6 +101,7 @@ class Light(Device):
         except WorkflowException as e:
                 print(e)
 
+    # saturation in range [0 - 65535]
     def set_saturation(self, saturation, duration=0, rapid=False):
         """ saturation to set
             duration in ms"""
@@ -114,6 +115,7 @@ class Light(Device):
         except WorkflowException as e:
                 print(e)
 
+    # brightness in range [0 - 65535]
     def set_brightness(self, brightness, duration=0, rapid=False):
         """ brightness to set
             duration in ms"""
@@ -127,6 +129,7 @@ class Light(Device):
         except WorkflowException as e:
             print(e)
 
+    # kelvin in range [2500 - 9000]
     def set_colortemp(self, kelvin, duration=0, rapid=False):
         """ kelvin: color temperature to set
             duration in ms"""
