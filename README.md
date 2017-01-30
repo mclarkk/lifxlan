@@ -171,7 +171,7 @@ set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
 ```
 
-Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.42")`.
+The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.42")`.
 
 #### LIFX LAN Protocol Implementation:
 
