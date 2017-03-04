@@ -1,9 +1,9 @@
 #multizonelight.py
 #Author: Scott Lusebrink
 
-from light import *
-from device import Device, WorkflowException
-from msgtypes import *
+from .light import *
+from .device import Device, WorkflowException
+from .msgtypes import *
 import math
 
 class MultiZoneLight(Light):

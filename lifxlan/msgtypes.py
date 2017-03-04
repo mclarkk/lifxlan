@@ -340,7 +340,6 @@ class LightSetColor(Message):
         color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         duration = little_endian(bitstring.pack("32", self.duration))
         payload = reserved_8 + color + duration
-        payloadUi = " ".join("{:02x}".format(ord(c)) for c in payload)
         return payload
 
 
@@ -357,14 +356,12 @@ class LightSetWaveform(Message):
     def get_payload(self):
         reserved_8 = little_endian(bitstring.pack("8", self.reserved))
         transient = little_endian(bitstring.pack("uint:8", self.transient))
-        color = "".join(little_endian(bitstring.pack("16", field)) for field in self.color)
+        color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         period = little_endian(bitstring.pack("uint:32", self.period))
         cycles = little_endian(bitstring.pack("float:32", self.cycles))
         duty_cycle = little_endian(bitstring.pack("int:16", self.duty_cycle))
         waveform = little_endian(bitstring.pack("uint:8", self.waveform))
         payload = reserved_8 + transient + color + period + cycles + duty_cycle + waveform
-
-        payloadUi = " ".join("{:02x}".format(ord(c)) for c in payload)
         return payload
 
 
