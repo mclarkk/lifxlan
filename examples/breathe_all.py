@@ -23,7 +23,7 @@ def main():
     print("Discovering lights...")
     original_powers = lifx.get_power_all_lights()
     original_colors = lifx.get_color_all_lights()
-    print original_colors
+    print(original_colors)
 
 
     half_period_ms = 2500

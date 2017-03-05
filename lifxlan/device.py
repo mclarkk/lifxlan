@@ -18,12 +18,12 @@
 # per device, and also to capture in real time when a service is down (port = 0).
 
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout, error
-from msgtypes import *
-from unpack import unpack_lifx_message
+from .msgtypes import *
+from .unpack import unpack_lifx_message
 from time import time, sleep
 from datetime import datetime
-from products import product_map
-from products import features_map
+from .products import product_map
+from .products import features_map
 
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5
@@ -113,9 +113,15 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
+        except:
+            return elg.label
+        try:
             self.label = response.label.replace("\x00", "")
         except:
-            pass
+            try:
+                self.label = response.label.decode().replace("\x00", "")
+            except:
+                pass
         return self.label
 
     def get_location(self):
