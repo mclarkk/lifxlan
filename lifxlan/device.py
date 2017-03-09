@@ -116,7 +116,7 @@ class Device(object):
             response = self.req_with_resp(GetLabel, StateLabel)
             self.label = response.label.replace("\x00", "")
         except:
-            pass
+            raise
         return self.label
 
     def get_label(self):
@@ -130,7 +130,7 @@ class Device(object):
             try:
                 self.label = response.label.decode().replace("\x00", "")
             except:
-                pass
+                raise
          return self.label
 
     def get_location(self):
@@ -138,7 +138,7 @@ class Device(object):
             response = self.req_with_resp(GetLocation, StateLocation)
             self.location = response.label.replace("\x00", "")
         except:
-            pass
+            raise
         return self.location
 
     def get_group(self):
@@ -146,7 +146,7 @@ class Device(object):
             response = self.req_with_resp(GetGroup, StateGroup)
             self.group = response.label.replace("\x00", "")
         except:
-            pass
+            raise
         return self.group
 
     def set_label(self, label):
@@ -159,7 +159,7 @@ class Device(object):
             response = self.req_with_resp(GetPower, StatePower)
             self.power_level = response.power_level
         except:
-            pass
+            raise
         return self.power_level
 
     def set_power(self, power, rapid=False):
@@ -182,7 +182,7 @@ class Device(object):
             build = response.build
             version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
         except:
-            pass
+            raise
         return build, version
 
     def get_host_firmware_build_timestamp(self):
@@ -203,7 +203,7 @@ class Device(object):
             tx = response.tx
             rx = response.rx
         except:
-            pass
+            raise
         return signal, tx, rx
 
     def get_wifi_signal_mw(self):
@@ -226,7 +226,7 @@ class Device(object):
             build = response.build
             version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
         except:
-            pass
+            raise
         return build, version
 
     def get_wifi_firmware_build_timestamp(self):
@@ -247,7 +247,7 @@ class Device(object):
             product = response.product
             version = response.version
         except:
-            pass
+            raise
         return vendor, product, version
 
     def get_product_name(self):
@@ -287,7 +287,7 @@ class Device(object):
             label = response.label.replace("\x00", "")
             updated_at = response.updated_at
         except:
-            pass
+            raise
         return self.location, label, updated_at
 
     def get_location_label(self):
@@ -305,7 +305,7 @@ class Device(object):
             label = response.label.replace("\x00", "")
             updated_at = response.updated_at
         except:
-            pass
+            raise
         return self.group, label, updated_at
 
     def get_group_label(self):
@@ -326,7 +326,7 @@ class Device(object):
             uptime = response.uptime
             downtime = response.downtime
         except:
-            pass
+            raise
         return time, uptime, downtime
 
     def get_time(self):
