@@ -111,8 +111,8 @@ get_downtime()
 You can get Light objects automatically though LAN-based discovery (takes a few seconds), or by creating Light objects using a known MAC address and IP address:
 
 ```
-lights = lan.get_lights()
-light = Light("12:34:56:78:9a:bc", "192.168.1.42")
+lights = lan.get_lights()                              # Option 1: Discovery
+light = Light("12:34:56:78:9a:bc", "192.168.1.42")     # Option 2: Direct
 ```
 
 The Light API provides everything in the Device API, as well as:
