@@ -31,6 +31,7 @@ You can do several things with this library:
 * **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
 * **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
 * **light.py** - Provides the Light API. Subclass of Device.
+* **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
 
 ##### LifxLAN API
 
@@ -175,7 +176,7 @@ The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but t
 
 #### LIFX LAN Protocol Implementation:
 
-The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.)
+The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.) You can also set the verbose flag if creating a Light or MultiZoneLight object directly.
 
 The files that deal with LIFX packet construction and representation are:
 
