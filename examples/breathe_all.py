@@ -14,7 +14,7 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     lifx = LifxLAN(num_lights)
     bulbs = lifx.get_lights()
@@ -23,14 +23,14 @@ def main():
     print("Discovering lights...")
     original_powers = lifx.get_power_all_lights()
     original_colors = lifx.get_color_all_lights()
-    print original_colors
+    print(original_colors)
 
 
     half_period_ms = 2500
     duration_mins = 20
     duration_secs = duration_mins*60
     print("Breathing...")
-    try:    
+    try:
         start_time = time()
         while True:
             for bulb, color in original_colors:

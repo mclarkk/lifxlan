@@ -1,8 +1,8 @@
 # light.py
 # Author: Meghan Clark
 
-from device import Device, WorkflowException
-from msgtypes import *
+from .device import Device, WorkflowException
+from .msgtypes import *
 
 RED = [65535, 65535, 65535, 3500]
 ORANGE = [5525, 65535, 65535, 3500]
@@ -36,7 +36,7 @@ class Light(Device):
             response = self.req_with_resp(LightGetPower, LightStatePower)
             self.power_level = response.power_level
         except WorkflowException as e:
-            print(e)
+            pass
         return self.power_level
 
     def set_power(self, power, duration=0, rapid=False):
