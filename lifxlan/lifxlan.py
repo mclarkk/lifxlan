@@ -10,6 +10,7 @@ from .msgtypes import *
 from .unpack import unpack_lifx_message
 from random import randint
 from time import time, sleep
+from .errors import WorkflowException, InvalidParameterException
 
 class LifxLAN:
     def __init__(self, num_lights=None, verbose=False):
@@ -50,8 +51,8 @@ class LifxLAN:
                 try:
                     responses = self.broadcast_with_resp(GetService, StateService)
                 except WorkflowException as e:
-                    print ("Exception: {}".format(e))
-                    return None
+                    raise
+                    #return None
             for r in responses:
                 device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 if device.supports_multizone():
@@ -111,9 +112,9 @@ class LifxLAN:
             elif power_level in off and rapid:
                 self.broadcast_fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=5)
             else:
-                print("{} is not a valid power level.".format(power_level))
+                raise InvalidParameterException("{} is not a valid power level.".format(power_level))
         except WorkflowException as e:
-            print(e)
+            raise
 
     def get_color_all_lights(self):
         responses = self.broadcast_with_resp(LightGet, LightState)
@@ -132,9 +133,9 @@ class LifxLAN:
                 else:
                     self.broadcast_with_ack(LightSetColor, {"color": color, "duration": duration})
             except WorkflowException as e:
-                print(e)
+                raise
         else:
-            print("{} is not a valid color.".format(color))
+            raise InvalidParameterException("{} is not a valid color.".format(color))
 
     def set_waveform_all_lights(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
         if len(color) == 4:
@@ -144,9 +145,9 @@ class LifxLAN:
                 else:
                     self.broadcast_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
             except WorkflowException as e:
-                print(e)
+                raise
         else:
-            print("{} is not a valid color.".format(color))
+            raise InvalidParameterException("{} is not a valid color.".format(color))
 
     ############################################################################
     #                                                                          #
@@ -198,7 +199,7 @@ class LifxLAN:
         while(sent_msg_count < num_repeats):
             self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
             if self.verbose:
-                        print("SEND: " + str(msg))
+                print("SEND: " + str(msg))
             sent_msg_count += 1
             sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket()

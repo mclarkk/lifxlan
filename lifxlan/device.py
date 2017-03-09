@@ -24,6 +24,7 @@ from time import time, sleep
 from datetime import datetime
 from .products import product_map
 from .products import features_map
+from .errors import WorkflowException, InvalidParameterException
 
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5
@@ -514,19 +515,6 @@ class Device(object):
 
     def close_socket(self):
         self.sock.close()
-
-
-################################################################################
-#                                                                              #
-#                              Custom Exceptions                               #
-#                                                                              #
-################################################################################
-
-class WorkflowException(Exception):
-    def __init__(self, message):
-        super(WorkflowException, self).__init__(message)
-
-
 
 ################################################################################
 #                                                                              #

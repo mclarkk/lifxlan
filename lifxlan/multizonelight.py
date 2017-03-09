@@ -55,7 +55,7 @@ class MultiZoneLight(Light):
                                       {"start_index": start_index, "end_index": end_index, "color": color,
                                        "duration": duration, "apply": apply})
             except WorkflowException as e:
-                print(e)
+                raise
 
     # Sets colors for all zones given a list of HSVK colors
     def set_zone_colors(self, colors, duration=0, rapid=False):
