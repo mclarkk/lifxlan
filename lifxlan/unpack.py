@@ -94,12 +94,12 @@ def unpack_lifx_message(packed_message):
         message = GetLabel(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[SetLabel]:
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[0:32])]))
+        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[0:32])])).replace(b'\x00', b'')
         payload = {"label": label}
         message = SetLabel(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[StateLabel]:
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[0:32])]))
+        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[0:32])])).replace(b'\x00', b'')
         payload = {"label": label}
         message = StateLabel(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
@@ -108,7 +108,7 @@ def unpack_lifx_message(packed_message):
 
     elif message_type == MSG_IDS[StateLocation]:
         location = [b for b in struct.unpack("B"*16, payload_str[0:16])]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])]))
+        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])])).replace(b'\x00', b'')
         updated_at = struct.unpack("Q", payload_str[48:56])[0]
         payload = {"location": location, "label": label, "updated_at": updated_at}
         message = StateLocation(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
@@ -118,7 +118,7 @@ def unpack_lifx_message(packed_message):
 
     elif message_type == MSG_IDS[StateGroup]:
         group = [b for b in struct.unpack("B"*16, payload_str[0:16])]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])]))
+        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[16:48])])).replace(b'\x00', b'')
         updated_at = struct.unpack("Q", payload_str[48:56])[0]
         payload = {"group": group, "label": label, "updated_at": updated_at}
         message = StateGroup(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
@@ -171,7 +171,7 @@ def unpack_lifx_message(packed_message):
         color = struct.unpack("H"*4, payload_str[0:8])
         reserved1 = struct.unpack("H", payload_str[8:10])[0]
         power_level = struct.unpack("H", payload_str[10:12])[0]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[12:44])]))
+        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("b"*32, payload_str[12:44])])).replace(b'\x00', b'')
         reserved2 = struct.unpack("Q", payload_str[44:52])[0]
         payload = {"color": color, "reserved1": reserved1, "power_level": power_level, "label": label, "reserved2": reserved2}
         message = LightState(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
