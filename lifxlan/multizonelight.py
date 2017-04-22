@@ -1,10 +1,13 @@
-#multizonelight.py
-#Author: Scott Lusebrink
+# coding=utf-8
+# multizonelight.py
+# Author: Scott Lusebrink
 
-from .light import *
-from .device import Device, WorkflowException
-from .msgtypes import *
 import math
+
+from .device import WorkflowException
+from .light import Light
+from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
+
 
 class MultiZoneLight(Light):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=0, verbose=False):

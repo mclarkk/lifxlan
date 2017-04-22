@@ -1,3 +1,4 @@
+# coding=utf-8
 # Custom exceptions
 
 class WorkflowException(Exception):

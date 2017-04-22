@@ -1,8 +1,18 @@
+# coding=utf-8
 # unpack.py
 # Author: Meghan Clark
 
-from .msgtypes import *
 import binascii
+import struct
+
+from .message import HEADER_SIZE_BYTES, Message
+from .msgtypes import Acknowledgement, EchoRequest, EchoResponse, GetGroup, GetHostFirmware, GetHostInfo, GetInfo, \
+    GetLabel, GetLocation, GetPower, GetService, GetVersion, GetWifiFirmware, GetWifiInfo, LightGet, LightGetInfrared, \
+    LightGetPower, LightSetColor, LightSetInfrared, LightSetPower, LightState, LightStateInfrared, LightStatePower, \
+    MSG_IDS, MultiZoneStateMultiZone, MultiZoneStateZone, SetLabel, SetPower, StateGroup, StateHostFirmware, \
+    StateHostInfo, StateInfo, StateLabel, StateLocation, StatePower, StateService, StateVersion, StateWifiFirmware, \
+    StateWifiInfo
+
 
 # Creates a LIFX Message out of packed binary data
 # If the message type is not one of the officially released ones above, it will create just a Message out of it
