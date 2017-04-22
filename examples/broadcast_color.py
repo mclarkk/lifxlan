@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+# coding=utf-8
 
-from lifxlan import *
 import sys
+
+from lifxlan import BLUE, COLD_WHITE, CYAN, GOLD, GREEN, LifxLAN, \
+    ORANGE, PINK, PURPLE, RED, WARM_WHITE, WHITE, YELLOW
 
 colors = {
     "red": RED, 

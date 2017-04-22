@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-from lifxlan import *
+# coding=utf-8
 import sys
 from copy import copy
 from time import sleep, time
+
+from lifxlan import LifxLAN
+
 
 def main():
     num_lights = None
