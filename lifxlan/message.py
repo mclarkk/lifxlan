@@ -1,10 +1,10 @@
+# coding=utf-8
 # message.py
 # Author: Meghan Clark
 
 import struct
+
 import bitstring
-import binascii
-import sys
 
 BROADCAST_MAC = "00:00:00:00:00:00"
 BROADCAST_SOURCE_ID = 0

@@ -1,7 +1,12 @@
-from lifxlan import *
-from time import sleep
-from random import randrange
+#!/usr/bin/env python
+# coding=utf-8
+import sys
 from copy import deepcopy
+from random import randrange
+from time import sleep
+
+from lifxlan import LifxLAN
+
 
 def main():
     num_lights = None

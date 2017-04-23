@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# coding=utf-8
 
-from lifxlan import *
+from lifxlan import LifxLAN
 
 lifxlan = LifxLAN()
 

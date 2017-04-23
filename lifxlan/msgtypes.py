@@ -1,3 +1,4 @@
+# coding=utf-8
 # msgtypes.py
 # Author: Meghan Clark
 
@@ -5,10 +6,10 @@
 # Need to look into assert-type frameworks or something, there has to be a tool for that.
 # Also need to make custom errors possibly, though tool may have those.
 
-from .message import Message, BROADCAST_MAC, HEADER_SIZE_BYTES, little_endian
 import bitstring
-import sys
-import struct
+
+from .message import BROADCAST_MAC, Message, little_endian
+
 
 ##### DEVICE MESSAGES #####
 
