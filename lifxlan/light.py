@@ -1,9 +1,12 @@
+# coding=utf-8
 # light.py
 # Author: Meghan Clark
 
 from .device import Device
-from .msgtypes import *
-from .errors import WorkflowException, InvalidParameterException
+from .errors import InvalidParameterException, WorkflowException
+from .msgtypes import LightGet, LightGetInfrared, LightGetPower,\
+                      LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform,\
+                      LightState, LightStateInfrared, LightStatePower
 
 RED = [65535, 65535, 65535, 3500]
 ORANGE = [5525, 65535, 65535, 3500]

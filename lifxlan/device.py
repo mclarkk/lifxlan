@@ -1,3 +1,4 @@
+# coding=utf-8
 # device.py
 # Author: Meghan Clark
 # This file contains a Device object that exposes a high-level API for interacting
@@ -17,14 +18,16 @@
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout, error
-from .msgtypes import *
-from .unpack import unpack_lifx_message
-from time import time, sleep
 from datetime import datetime
-from .products import product_map
-from .products import features_map
-from .errors import WorkflowException, InvalidParameterException
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
+from time import sleep, time
+
+from .errors import WorkflowException
+from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
+    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
+    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+from .products import features_map, product_map
+from .unpack import unpack_lifx_message
 
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5

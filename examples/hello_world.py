@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-from lifxlan import *
+# coding=utf-8
 import sys
+
+from lifxlan import LifxLAN
+
 
 def main():
     num_lights = None

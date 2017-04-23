@@ -1,16 +1,20 @@
+# coding=utf-8
 # lifxlan.py
 # Author: Meghan Clark
 
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_REUSEADDR, SO_BROADCAST, timeout
-from .message import BROADCAST_MAC, BROADCAST_SOURCE_ID
-from .device import Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT, DEFAULT_TIMEOUT, DEFAULT_ATTEMPTS
-from .light import *
-from .multizonelight import *
-from .msgtypes import *
-from .unpack import unpack_lifx_message
 from random import randint
-from time import time, sleep
-from .errors import WorkflowException, InvalidParameterException
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
+from time import sleep, time
+
+from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT
+from .errors import InvalidParameterException, WorkflowException
+from .light import Light
+from .message import BROADCAST_MAC
+from .msgtypes import Acknowledgement, GetService, LightGet, LightGetPower, LightSetColor, LightSetPower, \
+    LightSetWaveform, LightState, LightStatePower, StateService
+from .multizonelight import MultiZoneLight
+from .unpack import unpack_lifx_message
+
 
 class LifxLAN:
     def __init__(self, num_lights=None, verbose=False):

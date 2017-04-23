@@ -1,6 +1,10 @@
 #!/usr/bin/env python
-from lifxlan import *
+# coding=utf-8
 import sys
+from time import sleep
+
+from lifxlan import BLUE, GREEN, LifxLAN
+
 
 def main():
     num_lights = None
