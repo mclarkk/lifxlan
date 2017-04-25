@@ -11,6 +11,7 @@ BROADCAST_SOURCE_ID = 0
 
 HEADER_SIZE_BYTES = 36
 
+
 class Message(object):
     def __init__(self, msg_type, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
 
@@ -38,9 +39,12 @@ class Message(object):
         self.message_type = msg_type                                    # 16 bits/uint16
         self.reserved = 0                                               # 16 bits/uint16, all zero
 
-        self.payload_fields = [] # tuples of ("label", value)
+        self.payload_fields = []  # tuples of ("label", value)
 
         self.packed_message = self.generate_packed_message()
+
+        self.payload = None
+        self.header = None
 
     def generate_packed_message(self):
         self.payload = self.get_payload()
@@ -50,7 +54,7 @@ class Message(object):
 
     # frame (and thus header) needs to be generated after payload (for size field)
     def get_header(self):
-        if self.size == None:
+        if self.size is None:
             self.size = self.get_msg_size()
         frame_addr = self.get_frame_addr()
         frame = self.get_frame()
@@ -118,9 +122,10 @@ class Message(object):
             s += "\n" + indent*2 + "<empty>"
         s += "\n"
         s += indent + "Bytes:\n"
-        s += indent*2 + str([hex(b) for b in struct.unpack("B"*(len(self.packed_message)),self.packed_message)])
+        s += indent*2 + str([hex(b) for b in struct.unpack("B"*(len(self.packed_message)), self.packed_message)])
         s += "\n"
         return s
+
 
 # reverses bytes for little endian, then converts to int
 def convert_MAC_to_int(addr):
@@ -128,6 +133,7 @@ def convert_MAC_to_int(addr):
     reverse_bytes_str.reverse()
     addr_str = "".join(reverse_bytes_str)
     return int(addr_str, 16)
+
 
 def little_endian(bs):
     shifts = [i*8 for i in range(int(len(bs)/8))]
