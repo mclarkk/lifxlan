@@ -18,12 +18,13 @@ from .unpack import unpack_lifx_message
 
 class LifxLAN:
     def __init__(self, num_lights=None, verbose=False):
-        self.source_id = randint(0, (2**32)-1)
+        self.source_id = randint(0, (2 ** 32) - 1)
         self.num_devices = num_lights
         self.num_lights = num_lights
         self.devices = None
         self.lights = None
         self.verbose = verbose
+        self.sock = None
 
     ############################################################################
     #                                                                          #
@@ -46,17 +47,17 @@ class LifxLAN:
     #   return self.devices
 
     def get_lights(self):
-        if self.lights == None:
+        if self.lights is None:
             self.lights = []
             self.devices = []
-            if self.num_lights == None:
+            if self.num_lights is None:
                 responses = self.discover()
             else:
                 try:
                     responses = self.broadcast_with_resp(GetService, StateService)
                 except WorkflowException as e:
                     raise
-                    #return None
+                    # return None
             for r in responses:
                 device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 if device.supports_multizone():
@@ -195,21 +196,21 @@ class LifxLAN:
         self.close_socket()
         return responses
 
-    def broadcast_fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
+    def broadcast_fire_and_forget(self, msg_type, payload=None, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
         self.initialize_socket(timeout_secs)
         msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
         sent_msg_count = 0
         sleep_interval = 0.05 if num_repeats > 20 else 0
-        while(sent_msg_count < num_repeats):
+        while sent_msg_count < num_repeats:
             self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
-            sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
+            sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
         self.close_socket()
 
-    def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
-        if self.lights == None:
+    def broadcast_with_resp(self, msg_type, response_type, payload=None, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        if self.lights is None:
             self.get_lights()
         success = False
         self.initialize_socket(timeout_secs)
@@ -249,18 +250,18 @@ class LifxLAN:
                 elapsed_time = time() - start_time
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
-        if success == False:
+        if not success:
             self.close_socket()
             raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
         else:
             self.close_socket()
         return responses
 
-    def broadcast_with_ack(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT+0.5, max_attempts=DEFAULT_ATTEMPTS):
+    def broadcast_with_ack(self, msg_type, payload=None, timeout_secs=DEFAULT_TIMEOUT + 0.5, max_attempts=DEFAULT_ATTEMPTS):
         self.broadcast_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
-    def broadcast_with_ack_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT+0.5, max_attempts=DEFAULT_ATTEMPTS):
+    def broadcast_with_ack_resp(self, msg_type, response_type, payload=None, timeout_secs=DEFAULT_TIMEOUT + 0.5, max_attempts=DEFAULT_ATTEMPTS):
         pass
 
     ############################################################################
@@ -279,9 +280,3 @@ class LifxLAN:
 
     def close_socket(self):
         self.sock.close()
-
-def test():
-    pass
-
-if __name__=="__main__":
-    test()
