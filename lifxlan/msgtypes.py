@@ -386,7 +386,7 @@ class LightState(Message):
         color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         reserved1 = little_endian(bitstring.pack("16", self.reserved1))
         power_level = little_endian(bitstring.pack("16", self.power_level))
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
         label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         reserved2 = little_endian(bitstring.pack("64", self.reserved1))
