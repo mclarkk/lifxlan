@@ -182,7 +182,7 @@ class LifxLAN:
                     response.ip_addr = ip_addr
                     if self.verbose:
                         print("RECV: " + str(response))
-                    if type(response) == StateService and response.origin == 1 and response.source_id == self.source_id:
+                    if type(response) == StateService and response.origin != 0 and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
                             num_devices_seen += 1
@@ -237,7 +237,7 @@ class LifxLAN:
                     response.ip_addr = ip_addr
                     if self.verbose:
                         print("RECV: " + str(response))
-                    if type(response) == response_type and response.origin == 1 and response.source_id == self.source_id:
+                    if type(response) == response_type and response.origin != 0 and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
                             addr_seen.append(response.target_addr)
                             num_devices_seen += 1
