@@ -475,7 +475,7 @@ class Device(object):
                     if self.verbose:
                         print("RECV: " + str(response))
                     if type(response) in response_type:
-                        if response.origin != 0 and response.source_id == self.source_id and response.target_addr == self.mac_addr:
+                        if response.source_id == self.source_id and response.target_addr == self.mac_addr:
                             response_seen = True
                             device_response = response
                             self.ip_addr = ip_addr
