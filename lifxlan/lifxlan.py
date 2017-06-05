@@ -96,11 +96,11 @@ class LifxLAN:
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
         responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
-        power_states = []
+        power_states = {}
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
-                    power_states.append((light, response.power_level))
+                    power_states[light] = response.power_level
         return power_states
 
     def set_power_all_lights(self, power_level, duration=0, rapid=False):
@@ -122,11 +122,11 @@ class LifxLAN:
 
     def get_color_all_lights(self):
         responses = self.broadcast_with_resp(LightGet, LightState)
-        colors = []
+        colors = {}
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
-                    colors.append((light, response.color))
+                    colors[light] = response.color
         return colors
 
     def set_color_all_lights(self, color, duration=0, rapid=False):
