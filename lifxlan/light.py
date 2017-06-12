@@ -9,8 +9,8 @@ from .msgtypes import LightGet, LightGetInfrared, LightGetPower,\
                       LightState, LightStateInfrared, LightStatePower
 
 RED = [65535, 65535, 65535, 3500]
-ORANGE = [5525, 65535, 65535, 3500]
-YELLOW = [7000, 65535, 65535, 3500]
+ORANGE = [6500, 65535, 65535, 3500]
+YELLOW = [9000, 65535, 65535, 3500]
 GREEN = [16173, 65535, 65535, 3500]
 CYAN = [29814, 65535, 65535, 3500]
 BLUE = [43634, 65535, 65535, 3500]
