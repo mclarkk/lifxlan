@@ -40,7 +40,7 @@ class MultiZoneLight(Light):
             lower_8_aligned = start - (start % 8)
             upper_8_aligned = end - (end % 8)
             #for i in range(int(math.ceil(upper_8_aligned / 8.0))+1):
-            for i in range(((upper_8_aligned - lower_8_aligned) / 8) + 1):
+            for i in range(int((upper_8_aligned - lower_8_aligned) / 8) + 1):
                 response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":lower_8_aligned+(i*8), "end_index":lower_8_aligned+7+(i*8)})
                 all_zones += response.color
             self.color = all_zones[(start % 8):((start % 8)+total_requested_zones)]
