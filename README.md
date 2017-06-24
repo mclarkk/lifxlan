@@ -52,6 +52,9 @@ LifxLAN objects have the following methods:
 # arguments in [square brackets] are optional
 
 get_lights()                                                                                 # returns list of Light objects
+get_color_lights()                                                                           # returns list of Light objects that support color functionality
+get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
+get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
 set_power_all_lights(power, [duration], [rapid])                                             # set power for all lights on LAN
 set_color_all_lights_color(color, [duration], [rapid])                                       # set color for all lights on LAN
 set_waveform_all_lights(is_transient, color, period, cycles, duty_cycle, waveform, [rapid])  # see the Light API for more details
