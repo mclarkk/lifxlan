@@ -14,6 +14,7 @@ from .msgtypes import Acknowledgement, GetService, LightGet, LightGetPower, Ligh
     LightSetWaveform, LightState, LightStatePower, StateService
 from .multizonelight import MultiZoneLight
 from .unpack import unpack_lifx_message
+from .group import Group
 
 
 class LifxLAN:
@@ -119,10 +120,20 @@ class LifxLAN:
         return devices
 
     def get_devices_by_group(self, group):
-        pass
+        devices = []
+        all_devices = self.get_devices()
+        for d in all_devices:
+            if d.get_group() == group:
+                devices.append(d)
+        return Group(devices)
 
     def get_devices_by_location(self, location):
-        pass
+        devices = []
+        all_devices = self.get_devices()
+        for d in all_devices:
+            if d.get_location() == location:
+                devices.append(d)
+        return Group(devices)
 
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
