@@ -26,7 +26,7 @@ from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
-from .products import features_map, product_map
+from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
 DEFAULT_TIMEOUT = 0.5
@@ -343,6 +343,11 @@ class Device(object):
     def get_downtime(self):
         time, uptime, downtime = self.get_info_tuple()
         return downtime
+
+    def is_light(self):
+        if self.product == None:
+            self.vendor, self.product, self.version = self.get_version_tuple()
+        return self.product in light_products
 
     def supports_color(self):
         if self.product_features == None:
