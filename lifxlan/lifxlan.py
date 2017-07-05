@@ -57,11 +57,12 @@ class LifxLAN:
                 #return None
         for r in responses:
             device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-            if device.supports_multizone():
-                device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-            else:
-                device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-            self.lights.append(device)
+            if device.is_light():
+                if device.supports_multizone():
+                    device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                else:
+                    device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                self.lights.append(device)
             self.devices.append(device)
         self.num_lights = len(self.lights)
         self.num_devices = len(self.lights)
