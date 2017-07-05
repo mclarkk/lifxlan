@@ -31,43 +31,39 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    # This is shuttered until it becomes clear how to distinguish between Lights and non-Light Devices
-    # def get_devices(self):
-    #   if self.num_devices == None:
-    #       responses = self.discover()
-    #   else:
-    #       responses = self.broadcast_with_resp(GetService, StateService)
-    #   for r in responses:
-    #       mac = r.target_addr
-    #       service = r.service
-    #       port = r.port
-    #       self.devices.append(Device(mac, service, port, self.source_id, self.verbose))
-    #   self.num_devices = len(self.devices)
-    #   return self.devices
+    def get_devices(self):
+        if self.devices == None:
+            self.discover_devices()
+        return self.devices
 
     def get_lights(self):
         if self.lights == None:
-            self.lights = []
-            self.devices = []
-            if self.num_lights == None:
-                responses = self.discover()
-            else:
-                try:
-                    responses = self.broadcast_with_resp(GetService, StateService)
-                except WorkflowException as e:
-                    raise
-                    #return None
-            for r in responses:
-                device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                if device.supports_multizone():
-                    device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                else:
-                    device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                self.lights.append(device)
-                self.devices.append(device)
-            self.num_lights = len(self.lights)
-            self.num_devices = len(self.lights)
+            self.discover_devices()
         return self.lights
+
+    # more of an internal helper function
+    # forces a refresh of the internal list of available devices
+    def discover_devices(self):
+        self.lights = []
+        self.devices = []
+        if self.num_lights == None:
+            responses = self.discover()
+        else:
+            try:
+                responses = self.broadcast_with_resp(GetService, StateService)
+            except WorkflowException as e:
+                raise
+                #return None
+        for r in responses:
+            device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+            if device.supports_multizone():
+                device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+            else:
+                device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+            self.lights.append(device)
+            self.devices.append(device)
+        self.num_lights = len(self.lights)
+        self.num_devices = len(self.lights)
 
     def get_multizone_lights(self):
         multizone_lights = []
@@ -92,6 +88,41 @@ class LifxLAN:
             if l.supports_color():
                 color_lights.append(l)
         return color_lights
+
+    def get_device_by_name(self, name):
+        device = None
+        all_devices = self.get_devices()
+        for d in all_devices:
+            if d.get_label() == name:
+                device = d
+        if device == None:               # didn't find it?
+            self.discover_devices()      # update list in case it is out of date
+            all_devices = self.get_devices()
+            for d in all_devices:            # and try again
+                if d.get_label() == name:
+                    device = d
+        return device
+
+    # takes in list of strings, returns list of devices
+    def get_devices_by_name(self, names):
+        devices = []
+        all_devices = self.get_devices()
+        for d in all_devices:
+            if d.get_label() in names:
+                devices.append(d)
+        if len(devices) != len(names):  # didn't find everything?
+            self.discover_devices()     # update list in case it is out of date
+            all_devices = self.get_devices()
+            for d in all_devices:       # and try again
+                if d.get_label() in names:
+                    devices.append(d)
+        return devices
+
+    def get_devices_by_group(self, group):
+        pass
+
+    def get_devices_by_location(self, location):
+        pass
 
     # returns dict of Light: power_level pairs
     def get_power_all_lights(self):
