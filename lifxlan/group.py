@@ -1,4 +1,5 @@
 import thread
+from .lifxlan import LifxLAN
 
 class Group(object):
 
@@ -9,7 +10,11 @@ class Group(object):
     def add_device(self, device_object):
         self.devices.append(device_object)
 
-    #def add_device_by_name(self, device_name):
+    # relies on discovery, so will be slow if you haven't run discovery yet
+    def add_device_by_name(self, device_name):
+       lan = LifxLAN()
+       d = lan.get_device_by_name(device_name)
+       self.devices.append(d)
 
     def remove_device(self, device_object):
         new_devices = []
@@ -18,7 +23,12 @@ class Group(object):
                 new_devices.append(d)
         self.devices = new_devices
 
-    #def remove_device_by_name(self, device_name):
+    def remove_device_by_name(self, device_name):
+        new_devices = []
+        for d in self.devices:
+            if d.get_name() != device_name:
+                new_devices.append(d)
+        self.devices = new_devices
 
     def set_power(self, power, duration=0, rapid=False):
         for d in self.devices:
