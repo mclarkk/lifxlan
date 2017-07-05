@@ -12,6 +12,12 @@ product_map = {1: "Original 1000",
                30: "LIFX+ BR30",
                31: "LIFX Z"
                }
+               
+# Identifies which products are lights.
+# Currently all LIFX products that speak the LAN protocol are lights.
+# However, the protocol was written to allow addition of other kinds
+# of devices, so it's important to be able to differentiate.
+light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31]
 
 features_map = {1: {"color": True,
                     "infrared": False,
