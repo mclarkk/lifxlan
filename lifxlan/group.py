@@ -26,6 +26,9 @@ class Group(object):
                 new_devices.append(d)
         self.devices = new_devices
 
+    def get_device_list(self):
+        return self.devices
+
     def set_power(self, power, duration=0, rapid=False):
         threads = []
         for d in self.devices:
