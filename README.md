@@ -189,7 +189,7 @@ The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but t
 
 ##### Group API
 
-A Group is a collection of devices. Under the covers, a Group is just a list of device objects (like Devices, Lights, MultiZoneLights) and a set of functions that send multi-threaded commands to the applicable devices in the group. The multi-threading allows changes to be made more or less simultaneously. At the very least, it is certainly faster than if you looped through each individual light one at a time. You can get a Group by group or location via the LifxLAN API as described above. However, you can also instantiate a Group with any arbitrary list of device objects. Here are some ways to create groups:
+A Group is a collection of devices. Under the covers, a Group is just a list of device objects (like Devices, Lights, MultiZoneLights) and a set of functions that send multi-threaded commands to the applicable devices in the group. The multi-threading allows changes to be made more or less simultaneously. At the very least, it is certainly faster than if you looped through each individual light one at a time. You can get a Group by group, location, or device names via the LifxLAN API. However, you can also instantiate a Group with any arbitrary list of device objects. Here are some ways to create groups:
 
 ```
 # The following methods use discovery and are thus slow
@@ -203,7 +203,7 @@ right = Light("12:34:56:78:9a:bc", "192.168.0.2")
 left = Light("cb:a9:87:65:43:21", "192.168.0.3")
 g = Group([right, left])
 ```
-
+Almost all of the Group API methods are commands. Commands will only be sent to the devices in the group that support that capability. If you want to get state information from the devices, you will need to access the list of devices and call their get methods directly.
 ```
 # device_object is a Device or any of its subclasses like Light and MultiZoneLight.
 # device_name is a string name of a device, like "Right Lamp"
