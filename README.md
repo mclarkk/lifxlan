@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification. Supports white, color, multizone (LIFX Z strips), and infrared (LIFX+) capabilities.
+**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification. Supports white, color, multizone (LIFX Z strips), and infrared (LIFX+) capabilities. Also supports group-based control.
 
 ## How to Install
 
@@ -32,6 +32,7 @@ You can do several things with this library:
 * **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
 * **light.py** - Provides the Light API. Subclass of Device.
 * **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
+* **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
 
 ##### LifxLAN API
 
@@ -50,11 +51,19 @@ LifxLAN objects have the following methods:
 # rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
+# name is the string label for the light, such as "Right Lamp"
+# names is a list of name strings, such as ["Left Lamp", "Right Lamp"]
+# group is a string label for a group, such as "Living Room"
+# location is the string label for a location, such as "My Home"
 
 get_lights()                                                                                 # returns list of Light objects
 get_color_lights()                                                                           # returns list of Light objects that support color functionality
 get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
 get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
+get_device_by_name(name)                                                                     # returns a Device object (instantiated as the most specific Device subclass possible, such as MultiZoneLight)
+get_devices_by_name(names)                                                                   # returns a Group object
+get_devices_by_group(group)                                                                  # returns a Group object
+get_devices_by_location(location)                                                            # returns a Group object
 set_power_all_lights(power, [duration], [rapid])                                             # set power for all lights on LAN
 set_color_all_lights_color(color, [duration], [rapid])                                       # set color for all lights on LAN
 set_waveform_all_lights(is_transient, color, period, cycles, duty_cycle, waveform, [rapid])  # see the Light API for more details
@@ -177,6 +186,49 @@ set_zone_colors(colors, [duration], [rapid])                       # colors is a
 ```
 
 The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.42")`.
+
+##### Group API
+
+A Group is a collection of devices. Under the covers, a Group is just a list of device objects (like Devices, Lights, MultiZoneLights) and a set of functions that send multi-threaded commands to the applicable devices in the group. The multi-threading allows changes to be made more or less simultaneously. At the very least, it is certainly faster than if you looped through each individual light one at a time. You can get a Group by group or location via the LifxLAN API as described above. However, you can also instantiate a Group with any arbitrary list of device objects. Here are some ways to create groups:
+
+```
+# The following methods use discovery and are thus slow
+lan = LifxLAN()
+g = lan.get_devices_by_name(["Left Lamp", "Right Lamp"])
+g = lan.get_devices_by_group("Living Room")
+g = lan.get_devices_by_location("My Home")
+
+# This method is fast
+right = Light("12:34:56:78:9a:bc", "192.168.0.2")
+left = Light("cb:a9:87:65:43:21", "192.168.0.3")
+g = Group([right, left])
+```
+
+```
+# device_object is a Device or any of its subclasses like Light and MultiZoneLight.
+# device_name is a string name of a device, like "Right Lamp"
+# power can be "on"/"off", True/False, 0/1, or 0/65535
+# color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
+# infrared_brightness is an integer between 0 and 65535.
+# duration is the transition time in milliseconds
+# rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
+# start and end refer to zone indices (inclusive).
+# apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+
+add_device(device_object)
+remove_device(device_object)
+remove_device_by_name(device_name)
+get_device_list()
+set_power(power, [duration], [rapid])
+set_color(color, [duration], [rapid])
+set_hue(hue, [duration], [rapid])
+set_brightness(brightness, [duration], [rapid])
+set_saturation(saturation, [duration], [rapid])
+set_colortemp(kelvin, [duration], [rapid])
+set_infrared(infrared_brightness)
+set_zone_color(start, end, color, [duration], [rapid], [apply])
+set_zone_colors(colors, [duration], [rapid])
+```
 
 #### LIFX LAN Protocol Implementation:
 
