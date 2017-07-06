@@ -95,7 +95,7 @@ class Message(object):
         return protocol_header
 
     def get_msg_size(self):
-        payload_size_bytes = len(self.payload)/8
+        payload_size_bytes = len(self.payload)
         return HEADER_SIZE_BYTES + payload_size_bytes
 
     def __str__(self):
