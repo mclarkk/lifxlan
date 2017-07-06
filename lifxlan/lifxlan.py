@@ -105,7 +105,7 @@ class LifxLAN:
                     device = d
         return device
 
-    # takes in list of strings, returns list of devices
+    # takes in list of strings, returns Group of devices
     def get_devices_by_name(self, names):
         devices = []
         all_devices = self.get_devices()
@@ -118,7 +118,7 @@ class LifxLAN:
             for d in all_devices:       # and try again
                 if d.get_label() in names:
                     devices.append(d)
-        return devices
+        return Group(devices)
 
     def get_devices_by_group(self, group):
         devices = []
