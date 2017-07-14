@@ -305,7 +305,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
             self.group = response.group
-            label = response.label.replace("\x00", "")
+            label = response.label.decode('utf-8')
             updated_at = response.updated_at
         except:
             raise
