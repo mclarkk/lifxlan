@@ -174,7 +174,7 @@ class SetLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
         padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
@@ -188,7 +188,7 @@ class StateLabel(Message):
     def get_payload(self):
         self.payload_fields.append(("Label", self.label))
         field_len_bytes = 32
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
         padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(field_len_bytes-len(self.label)))
         payload = label + padding
         return payload
@@ -256,7 +256,7 @@ class StateLocation(Message):
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
         location = b"".join(little_endian(bitstring.pack("8", b)) for b in self.location)
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
         label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
@@ -280,7 +280,7 @@ class StateGroup(Message):
         self.payload_fields.append(("Label ", self.label))
         self.payload_fields.append(("Updated At ", self.updated_at))
         group = b"".join(little_endian(bitstring.pack("8", b)) for b in self.group)
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
         label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
@@ -341,7 +341,6 @@ class LightSetColor(Message):
         color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         duration = little_endian(bitstring.pack("32", self.duration))
         payload = reserved_8 + color + duration
-        #payloadUi = " ".join("{:02x}".format(ord(c)) for c in payload)
         return payload
 
 
@@ -364,7 +363,6 @@ class LightSetWaveform(Message):
         duty_cycle = little_endian(bitstring.pack("int:16", self.duty_cycle))
         waveform = little_endian(bitstring.pack("uint:8", self.waveform))
         payload = reserved_8 + transient + color + period + cycles + duty_cycle + waveform
-        #payloadUi = b" ".join("{:02x}".format(ord(c)) for c in payload)
         return payload
 
 
@@ -386,7 +384,7 @@ class LightState(Message):
         color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         reserved1 = little_endian(bitstring.pack("16", self.reserved1))
         power_level = little_endian(bitstring.pack("16", self.power_level))
-        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.decode('utf-8'))
+        label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label)
         label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         reserved2 = little_endian(bitstring.pack("64", self.reserved1))
