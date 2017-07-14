@@ -117,7 +117,7 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label.replace("\x00", "")
+            self.label = response.label
         except:
             raise
         return self.label
@@ -128,18 +128,15 @@ class Device(object):
          except:
              return self.label
          try:
-             self.label = response.label.replace("\x00", "")
+             self.label = response.label
          except:
-            try:
-                self.label = response.label.decode().replace("\x00", "")
-            except:
-                raise
+            raise
          return self.label
 
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
-            self.location = response.label.replace(b"\x00", b"")
+            self.location = response.label
         except:
             raise
         return self.location
@@ -147,7 +144,7 @@ class Device(object):
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.label.replace(b"\x00", b"")
+            self.group = response.label
         except:
             raise
         return self.group
@@ -287,7 +284,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
             self.location = response.location
-            label = response.label.replace("\x00", "")
+            label = response.label
             updated_at = response.updated_at
         except:
             raise
@@ -305,7 +302,7 @@ class Device(object):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
             self.group = response.group
-            label = response.label.replace("\x00", "")
+            label = response.label
             updated_at = response.updated_at
         except:
             raise
