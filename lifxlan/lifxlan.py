@@ -318,7 +318,13 @@ class LifxLAN:
         self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.sock.settimeout(timeout)
         port = UDP_BROADCAST_PORT
-        self.sock.bind(("", port))
+        success = False
+        while not success:
+            try:
+                self.sock.bind(("", port))
+                success = True
+            except: # address (port) already in use, maybe another client on the same computer...
+                port += 1
 
     def close_socket(self):
         self.sock.close()
