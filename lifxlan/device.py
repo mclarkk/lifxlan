@@ -19,7 +19,7 @@
 # per device, and also to capture in real time when a service is down (port = 0).
 
 from datetime import datetime
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, gethostname
 from time import sleep, time
 
 from .errors import WorkflowException
@@ -32,10 +32,17 @@ from .unpack import unpack_lifx_message
 DEFAULT_TIMEOUT = 0.5
 DEFAULT_ATTEMPTS = 5
 
-UDP_BROADCAST_IP = "255.255.255.255"
-UDP_BROADCAST_PORT = 56700
-
 VERBOSE = False
+
+def get_broadcast_addr():
+    local_ip = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l][0][0]
+    ip_parts = local_ip.split(".")
+    ip_parts[-1] = "255"
+    local_broadcast = ".".join(ip_parts)
+    return local_broadcast
+
+UDP_BROADCAST_IP = get_broadcast_addr()
+UDP_BROADCAST_PORT = 56700
 
 class Device(object):
     # mac_addr is a string, with the ":" and everything.
