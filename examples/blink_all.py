@@ -16,7 +16,7 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     lifx = LifxLAN(num_lights)
 
@@ -52,14 +52,14 @@ def main():
     toggle_all_lights_color(lifx, 1)
 
     print("Restoring original color to all lights...")
-    for light, color in original_colors:
-        light.set_color(color)
+    for light in original_colors:
+        light.set_color(original_colors[light])
 
     sleep(1)
 
     print("Restoring original power to all lights...")
-    for light, power in original_powers:
-        light.set_power(power)
+    for light in original_powers:
+        light.set_power(original_powers[light])
 
 
 
