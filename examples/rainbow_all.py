@@ -16,7 +16,7 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
     lifx = LifxLAN(num_lights)
@@ -35,14 +35,14 @@ def main():
     rainbow(lifx, 1, smooth=True)
 
     print("Restoring original color to all lights...")
-    for light, color in original_colors:
-        light.set_color(color)
+    for light in original_colors:
+        light.set_color(original_colors[light])
 
     sleep(1)
 
     print("Restoring original power to all lights...")
-    for light, power in original_powers:
-        light.set_power(power)
+    for light in original_powers:
+        light.set_power(original_powers[light])
 
 def rainbow(lan, duration_secs=0.5, smooth=False):
     colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]
