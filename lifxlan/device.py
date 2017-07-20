@@ -21,6 +21,7 @@
 from datetime import datetime
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, gethostname
 from time import sleep, time
+import platform
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
@@ -35,11 +36,16 @@ DEFAULT_ATTEMPTS = 5
 VERBOSE = False
 
 def get_broadcast_addr():
-    local_ip = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l][0][0]
-    ip_parts = local_ip.split(".")
-    ip_parts[-1] = "255"
-    local_broadcast = ".".join(ip_parts)
-    return local_broadcast
+    # This fix exists for Windows machines that can't handle 255.255.255.255
+    # It tries to get the local subnet's broadcast address (192.168.1.255, 10.0.0.255, etc.)
+    if platform.system() == 'Windows':
+        local_ip = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l][0][0]
+        ip_parts = local_ip.split(".")
+        ip_parts[-1] = "255"
+        broadcast = ".".join(ip_parts)
+    else:
+        broadcast = "255.255.255.255"
+    return broadcast
 
 UDP_BROADCAST_IP = get_broadcast_addr()
 UDP_BROADCAST_PORT = 56700
