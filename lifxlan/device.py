@@ -449,7 +449,10 @@ class Device(object):
         sent_msg_count = 0
         sleep_interval = 0.05 if num_repeats > 20 else 0
         while(sent_msg_count < num_repeats):
-            self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
+            if self.ip_addr:
+                self.sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+            else:
+                self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
