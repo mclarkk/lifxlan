@@ -2,7 +2,7 @@ from distutils.core import setup
 #from setuptools import setup
 
 setup(name='lifxlan',
-      version='1.1.4',
+      version='1.1.5',
       description='API for local communication with LIFX devices over a LAN.',
       url='http://github.com/mclarkk/lifxlan',
       author='Meghan Clark',
