@@ -10,14 +10,26 @@ product_map = {1: "Original 1000",
                28: "LIFX BR30",
                29: "LIFX+ A19",
                30: "LIFX+ BR30",
-               31: "LIFX Z"
+               31: "LIFX Z",
+               30: "LIFX+ BR30",
+               31: "LIFX Z",
+               36: "LIFX Downlight",
+               37: "LIFX Downlight",
+               43: "LIFX A19",
+               44: "LIFX BR30",
+               45: "LIFX+ A19",
+               46: "LIFX+ BR30",
+               49: "LIFX Mini",
+               50: "LIFX Mini White",
+               51: "LIFX Mini Day and Dusk",
+               52: "LIFX GU10" 
                }
                
 # Identifies which products are lights.
 # Currently all LIFX products that speak the LAN protocol are lights.
 # However, the protocol was written to allow addition of other kinds
 # of devices, so it's important to be able to differentiate.
-light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31]
+light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52]
 
 features_map = {1: {"color": True,
                     "infrared": False,
@@ -54,5 +66,35 @@ features_map = {1: {"color": True,
                      "multizone": False},
                 31: {"color": True,
                      "infrared": False,
-                     "multizone": True}
+                     "multizone": True},
+                36: {"color": True,
+                     "infrared": False,
+                     "multizone": False},
+                37: {"color": True,
+                     "infrared": False,
+                     "multizone": False},
+                43: {"color": True,
+                     "infrared": False,
+                     "multizone": False},
+                44: {"color": True,
+                     "infrared": False,
+                     "multizone": False},
+                45: {"color": True,
+                     "infrared": True,
+                     "multizone": False},
+                46: {"color": True,
+                     "infrared": True,
+                     "multizone": False},
+                49: {"color": True,
+                     "infrared": False,
+                     "multizone": False},
+                50: {"color": False,
+                     "infrared": False,
+                     "multizone": False},
+                51: {"color": False,
+                     "infrared": False,
+                     "multizone": False},
+                52: {"color": True,
+                     "infrared": False,
+                     "multizone": False}
                 }
