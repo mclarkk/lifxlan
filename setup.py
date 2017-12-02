@@ -9,6 +9,7 @@ setup(name='lifxlan',
       author_email='mclarkk@umich.edu',
       license='MIT',
       packages=['lifxlan'],
+      package_data={"": ["products.json"]},
       install_requires=[
         "bitstring",
         ],
