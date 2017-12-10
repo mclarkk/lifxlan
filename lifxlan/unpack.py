@@ -6,12 +6,7 @@ import binascii
 import struct
 
 from .message import HEADER_SIZE_BYTES, Message
-from .msgtypes import Acknowledgement, EchoRequest, EchoResponse, GetGroup, GetHostFirmware, GetHostInfo, GetInfo, \
-    GetLabel, GetLocation, GetPower, GetService, GetVersion, GetWifiFirmware, GetWifiInfo, LightGet, LightGetInfrared, \
-    LightGetPower, LightSetColor, LightSetInfrared, LightSetPower, LightState, LightStateInfrared, LightStatePower, \
-    MSG_IDS, MultiZoneStateMultiZone, MultiZoneStateZone, SetLabel, SetPower, StateGroup, StateHostFirmware, \
-    StateHostInfo, StateInfo, StateLabel, StateLocation, StatePower, StateService, StateVersion, StateWifiFirmware, \
-    StateWifiInfo
+from .msgtypes import *
 
 
 # Creates a LIFX Message out of packed binary data
@@ -217,6 +212,14 @@ def unpack_lifx_message(packed_message):
         infrared_brightness = struct.unpack("H", payload_str[0:2])[0]
         payload = {"infrared_brightness": infrared_brightness}
         message = LightSetInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[MultiZoneGetColorZones]: #502
+        start_index = struct.unpack("c", payload_str[0:1])[0]
+        start_index = ord(start_index) # 8 bit
+        end_index = struct.unpack("c", payload_str[1:2])[0]
+        end_index = ord(end_index) #8 bit
+        payload = {"start_index": start_index, "end_index": end_index}
+        message = MultiZoneGetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[MultiZoneStateZone]: #503
         count = struct.unpack("c", payload_str[0:1])[0]
