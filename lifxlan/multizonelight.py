@@ -3,6 +3,7 @@
 # Author: Scott Lusebrink
 
 import math
+import os
 
 from .device import WorkflowException
 from .light import Light
@@ -10,7 +11,7 @@ from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneS
 
 
 class MultiZoneLight(Light):
-    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=0, verbose=False):
+    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
         super(MultiZoneLight, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
 
     # 0 indexed, inclusive
