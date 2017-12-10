@@ -213,6 +213,18 @@ def unpack_lifx_message(packed_message):
         payload = {"infrared_brightness": infrared_brightness}
         message = LightSetInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
+    elif message_type == MSG_IDS[MultiZoneSetColorZones]: #501
+        start_index = struct.unpack("c", payload_str[0:1])[0]
+        start_index = ord(start_index) # 8 bit
+        end_index = struct.unpack("c", payload_str[1:2])[0]
+        end_index = ord(end_index) #8 bit
+        color = struct.unpack("H" * 4, payload_str[2:10])
+        duration = struct.unpack("I", payload_str[10:14])[0]
+        apply = struct.unpack("c", payload_str[14:15])[0]
+        apply = ord(apply) #8 bit
+        payload = {"start_index": start_index, "end_index": end_index, "color": color, "duration": duration, "apply": apply}
+        message = MultiZoneSetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
     elif message_type == MSG_IDS[MultiZoneGetColorZones]: #502
         start_index = struct.unpack("c", payload_str[0:1])[0]
         start_index = ord(start_index) # 8 bit
