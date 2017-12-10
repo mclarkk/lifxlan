@@ -46,7 +46,7 @@ def get_broadcast_addrs():
         broadcast_addrs.append(broadcast)
     return broadcast_addrs
 
-UDP_BROADCAST_IP_ADDRS_ADDRS = get_broadcast_addrs()
+UDP_BROADCAST_IP_ADDRS = get_broadcast_addrs()
 UDP_BROADCAST_PORT = 56700
 
 class Device(object):
