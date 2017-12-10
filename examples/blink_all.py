@@ -33,8 +33,8 @@ def main():
     toggle_all_lights_power(lifx, 0.2)
 
     print("Restoring power to all lights...")
-    for light, power in original_powers:
-        light.set_power(power)
+    for light in original_powers:
+        light.set_power(original_powers[light])
 
 
     # test color control
