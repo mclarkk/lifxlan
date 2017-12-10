@@ -35,19 +35,18 @@ DEFAULT_ATTEMPTS = 5
 
 VERBOSE = False
 
-def get_broadcast_addr():
-    # This fix exists for Windows machines that can't handle 255.255.255.255
-    # It tries to get the local subnet's broadcast address (192.168.1.255, 10.0.0.255, etc.)
-    if platform.system() == 'Windows':
-        local_ip = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l][0][0]
+def get_broadcast_addrs():
+    broadcast_addrs = []
+    local_ips = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l]
+    for local_ip in local_ips:
+        local_ip = local_ip[0]
         ip_parts = local_ip.split(".")
         ip_parts[-1] = "255"
         broadcast = ".".join(ip_parts)
-    else:
-        broadcast = "255.255.255.255"
-    return broadcast
+        broadcast_addrs.append(broadcast)
+    return broadcast_addrs
 
-UDP_BROADCAST_IP = get_broadcast_addr()
+UDP_BROADCAST_IP_ADDRS_ADDRS = get_broadcast_addrs()
 UDP_BROADCAST_PORT = 56700
 
 class Device(object):
@@ -452,7 +451,8 @@ class Device(object):
             if self.ip_addr:
                 self.sock.sendto(msg.packed_message, (self.ip_addr, self.port))
             else:
-                self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
+                for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                    self.sock.sendto(msg.packed_message, (ip_addr, self.port))
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
@@ -483,7 +483,8 @@ class Device(object):
             timedout = False
             while not response_seen and not timedout:
                 if not sent:
-                    self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
+                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                        self.sock.sendto(msg.packed_message, (ip_addr, self.port))
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))

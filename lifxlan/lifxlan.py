@@ -7,7 +7,7 @@ from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, 
 from time import sleep, time
 import os
 
-from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP, UDP_BROADCAST_PORT
+from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
 from .errors import InvalidParameterException, WorkflowException
 from .light import Light
 from .message import BROADCAST_MAC
@@ -216,7 +216,8 @@ class LifxLAN:
             timedout = False
             while not timedout:
                 if not sent:
-                    self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
+                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                        self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
@@ -245,7 +246,8 @@ class LifxLAN:
         sent_msg_count = 0
         sleep_interval = 0.05 if num_repeats > 20 else 0
         while(sent_msg_count < num_repeats):
-            self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
+            for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
@@ -271,7 +273,8 @@ class LifxLAN:
             timedout = False
             while num_devices_seen < self.num_devices and not timedout:
                 if not sent:
-                    self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, UDP_BROADCAST_PORT))
+                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                        self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
