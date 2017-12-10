@@ -36,24 +36,28 @@ def main():
     try:
         start_time = time()
         while True:
-            for bulb, color in original_colors:
+            for bulb in original_colors:
+                color = original_colors[bulb]
                 dim = list(copy(color))
                 half_bright = int(dim[2]/2)
                 dim[2] = half_bright if half_bright >= 1900 else 1900
                 bulb.set_color(dim, half_period_ms, rapid=True)
                 sleep(half_period_ms/1000.0)
-            for bulb, color in original_colors:
+            for bulb in original_colors:
+                color = original_colors[bulb]
                 bulb.set_color(color, half_period_ms, rapid=True)
                 sleep(half_period_ms/1000.0)
             if time() - start_time > duration_secs:
                 raise KeyboardInterrupt
     except KeyboardInterrupt:
         print("Restoring original color to all lights...")
-        for light, color in original_colors:
+        for light in original_colors:
+            color = original_colors[light]
             light.set_color(color)
 
         print("Restoring original power to all lights...")
-        for light, power in original_powers:
+        for light in original_powers:
+            power = original_powers[light]
             light.set_power(power)
 
 if __name__=="__main__":
