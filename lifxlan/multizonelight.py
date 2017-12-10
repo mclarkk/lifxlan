@@ -12,7 +12,7 @@ from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneS
 
 class MultiZoneLight(Light):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
-        super(MultiZoneLight, self).__init__(mac_addr, ip_addr)
+        super(MultiZoneLight, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
 
     # 0 indexed, inclusive
     def get_color_zones(self, start=0, end=255):
