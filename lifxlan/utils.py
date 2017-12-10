@@ -9,39 +9,39 @@
 ### Convert an RGB colour definition to HSBK
 # Author : BHCunningham
 # Input: (Red, Green, Blue), Temperature
-# Colours = 0 -> 255 
+# Colours = 0 -> 255
 # Temperature 2500-9000 K, 3500 is default.
 # Output: (Hue, Saturation, Brightness, Temperature)
 
-def RGBtoHSBK (RGB, Temperature = 3500):
+def RGBtoHSBK (RGB, temperature = 3500):
     cmax = max(RGB)
     cmin = min(RGB)
     cdel = cmax - cmin
-    
-    Brightness = int((cmax/255) * 65535)
+
+    brightness = int((cmax/255) * 65535)
 
     if cdel != 0:
-        Saturation = int(((cdel) / cmax) * 65535)
+        saturation = int(((cdel) / cmax) * 65535)
 
         redc = (cmax - RGB[0]) / (cdel)
         greenc = (cmax - RGB[1]) / (cdel)
         bluec = (cmax - RGB[2]) / (cdel)
-        
+
         if RGB[0] == cmax:
-            Hue = bluec - greenc
+            hue = bluec - greenc
         else:
             if RGB[1] == cmax:
-                Hue = 2 + redc - bluec    
+                hue = 2 + redc - bluec
             else:
-                Hue = 4 + greenc - redc
-                
-        Hue = Hue / 6
-        if Hue < 0:
-            Hue = Hue + 1 
-            
-        Hue = int(Hue*65535)        
+                hue = 4 + greenc - redc
+
+        hue = hue / 6
+        if hue < 0:
+            hue = hue + 1
+
+        hue = int(hue*65535)
     else:
-        Saturation = 0
-        Hue = 0
-    
-    return (Hue, Saturation, Brightness, Temperature)
+        saturation = 0
+        hue = 0
+
+    return (hue, saturation, brightness, temperature)
