@@ -48,7 +48,6 @@ def get_broadcast_addrs():
             pass
     #local_ips = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l]
     for local_ip in local_ips:
-        local_ip = local_ip[0]
         ip_parts = local_ip.split(".")
         ip_parts[-1] = "255"
         broadcast = ".".join(ip_parts)
