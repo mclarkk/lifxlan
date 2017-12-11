@@ -22,6 +22,7 @@ from datetime import datetime
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, gethostname
 from time import sleep, time
 import platform
+import netifaces as ni
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
@@ -37,7 +38,15 @@ VERBOSE = False
 
 def get_broadcast_addrs():
     broadcast_addrs = []
-    local_ips = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l]
+    local_ips = []
+    for iface in ni.interfaces():
+        try:
+            ip = ni.ifaddresses(iface)[ni.AF_INET][0]['addr']
+            if ip != '127.0.0.1':
+                local_ips.append(ip)
+        except:
+            pass
+    #local_ips = [l for l in ([ip for ip in gethostbyname_ex(gethostname())[2] if not ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket(AF_INET, SOCK_DGRAM)]][0][1]]) if l]
     for local_ip in local_ips:
         local_ip = local_ip[0]
         ip_parts = local_ip.split(".")
