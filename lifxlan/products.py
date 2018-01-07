@@ -11,8 +11,7 @@ product_map = {1: "Original 1000",
                29: "LIFX+ A19",
                30: "LIFX+ BR30",
                31: "LIFX Z",
-               30: "LIFX+ BR30",
-               31: "LIFX Z",
+               32: "LIFX Z 2",
                36: "LIFX Downlight",
                37: "LIFX Downlight",
                43: "LIFX A19",
@@ -29,7 +28,7 @@ product_map = {1: "Original 1000",
 # Currently all LIFX products that speak the LAN protocol are lights.
 # However, the protocol was written to allow addition of other kinds
 # of devices, so it's important to be able to differentiate.
-light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52]
+light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52]
 
 features_map = {1: {"color": True,
                     "infrared": False,
@@ -65,6 +64,9 @@ features_map = {1: {"color": True,
                      "infrared": True,
                      "multizone": False},
                 31: {"color": True,
+                     "infrared": False,
+                     "multizone": True},
+                32: {"color": True,
                      "infrared": False,
                      "multizone": True},
                 36: {"color": True,
