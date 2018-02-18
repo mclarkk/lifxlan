@@ -38,19 +38,13 @@ VERBOSE = False
 
 def get_broadcast_addrs():
     broadcast_addrs = []
-    local_ips = []
     for iface in ni.interfaces():
         try:
-            ip = ni.ifaddresses(iface)[ni.AF_INET][0]['addr']
-            if ip != '127.0.0.1':
-                local_ips.append(ip)
+            ifaddr = ni.ifaddresses(iface)[ni.AF_INET][0]
+            if ifaddr['addr'] != '127.0.0.1':
+                broadcast_addrs.append(ifaddr['broadcast'])
         except: # for interfaces that don't support ni.AF_INET
             pass
-    for local_ip in local_ips:
-        ip_parts = local_ip.split(".")
-        ip_parts[-1] = "255"
-        broadcast = ".".join(ip_parts)
-        broadcast_addrs.append(broadcast)
     return broadcast_addrs
 
 UDP_BROADCAST_IP_ADDRS = get_broadcast_addrs()
