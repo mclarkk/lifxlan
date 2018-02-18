@@ -484,8 +484,11 @@ class Device(object):
             timedout = False
             while not response_seen and not timedout:
                 if not sent:
-                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                        self.sock.sendto(msg.packed_message, (ip_addr, self.port))
+                    if self.ip_addr:
+                        self.sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+                    else:
+                        for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                            self.sock.sendto(msg.packed_message, (ip_addr, self.port))
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
