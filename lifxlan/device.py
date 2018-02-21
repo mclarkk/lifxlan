@@ -31,7 +31,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
-DEFAULT_TIMEOUT = 0.5
+DEFAULT_TIMEOUT = 1 #second
 DEFAULT_ATTEMPTS = 5
 
 VERBOSE = False
