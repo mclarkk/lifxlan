@@ -38,19 +38,13 @@ VERBOSE = False
 
 def get_broadcast_addrs():
     broadcast_addrs = []
-    local_ips = []
     for iface in ni.interfaces():
         try:
-            ip = ni.ifaddresses(iface)[ni.AF_INET][0]['addr']
-            if ip != '127.0.0.1':
-                local_ips.append(ip)
+            ifaddr = ni.ifaddresses(iface)[ni.AF_INET][0]
+            if ifaddr['addr'] != '127.0.0.1':
+                broadcast_addrs.append(ifaddr['broadcast'])
         except: # for interfaces that don't support ni.AF_INET
             pass
-    for local_ip in local_ips:
-        ip_parts = local_ip.split(".")
-        ip_parts[-1] = "255"
-        broadcast = ".".join(ip_parts)
-        broadcast_addrs.append(broadcast)
     return broadcast_addrs
 
 UDP_BROADCAST_IP_ADDRS = get_broadcast_addrs()
@@ -495,8 +489,11 @@ class Device(object):
             timedout = False
             while not response_seen and not timedout:
                 if not sent:
-                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                        self.sock.sendto(msg.packed_message, (ip_addr, self.port))
+                    if self.ip_addr:
+                        self.sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+                    else:
+                        for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                            self.sock.sendto(msg.packed_message, (ip_addr, self.port))
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
@@ -538,14 +535,10 @@ class Device(object):
         self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.sock.settimeout(timeout)
-        port = UDP_BROADCAST_PORT
-        success = False
-        while not success:
-            try:
-                self.sock.bind(("", port))
-                success = True
-            except: # address (port) already in use, maybe another client on the same computer...
-                port += 1
+        try:
+            self.sock.bind(("", 0))  # allow OS to assign next available source port
+        except Exception as err:
+            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
 
     def close_socket(self):
         self.sock.close()
