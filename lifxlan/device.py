@@ -31,7 +31,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
-DEFAULT_TIMEOUT = 0.5
+DEFAULT_TIMEOUT = 1 #second
 DEFAULT_ATTEMPTS = 5
 
 VERBOSE = False
@@ -363,6 +363,11 @@ class Device(object):
         if self.product_features == None:
             self.product_features = self.get_product_features()
         return self.product_features['color']
+
+    def supports_temperature(self):
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['temperature']
 
     def supports_multizone(self):
         if self.product_features == None:

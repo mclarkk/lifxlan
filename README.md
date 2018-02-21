@@ -118,6 +118,11 @@ get_info_tuple()                    # returns (time (current timestamp in ns), u
 get_time()
 get_uptime()
 get_downtime()
+is_light()                          # returns True if device is some kind of light product
+supports_color()                    # returns True if product features include color
+supports_temperature()              # returns True if product features include white color temperature
+supports_multizone()                # returns True if product features include multizone functionality
+supports_infrared()                 # returns True if product features include infrared functionality
 ```
 
 ##### Light API
@@ -149,8 +154,6 @@ The Light API provides everything in the Device API, as well as:
 # infrared_brightness (0-65535) - is the maximum infrared brightness when the lamp automatically turns on infrared (0 = off)
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# NOTE: currently is_transient=1 results in bulbs staying on the last color of the waveform instead of original color.
-# 99.9% sure that this is a LIFX problem and will likely fix itself with firmware updates when SetWaveform becomes an official part of the protocol.
 
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
