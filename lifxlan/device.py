@@ -370,6 +370,11 @@ class Device(object):
             self.product_features = self.get_product_features()
         return self.product_features['color']
 
+    def supports_temperature(self):
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['temperature']
+
     def supports_multizone(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
