@@ -118,6 +118,11 @@ get_info_tuple()                    # returns (time (current timestamp in ns), u
 get_time()
 get_uptime()
 get_downtime()
+is_light()                          # returns True if device is some kind of light product
+supports_color()                    # returns True if product features include color
+supports_temperature()              # returns True if product features include white color temperature
+supports_multizone()                # returns True if product features include multizone functionality
+supports_infrared()                 # returns True if product features include infrared functionality
 ```
 
 ##### Light API
