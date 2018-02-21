@@ -8,7 +8,7 @@
 
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 
-from lifxlan import UDP_BROADCAST_IP, UDP_BROADCAST_PORT, unpack_lifx_message
+from lifxlan import UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT, unpack_lifx_message
 
 
 class Sniffer(object):
@@ -21,7 +21,7 @@ class Sniffer(object):
             self.initialize_socket()
             try:
                 while(True):
-                    try: 
+                    try:
                         data = self.sock.recv(1024)
                         request = unpack_lifx_message(data)
                         print("\nRECV:"),
