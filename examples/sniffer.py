@@ -37,7 +37,8 @@ class Sniffer(object):
         msg.origin = 1
         print("SEND:"),
         print(msg)
-        self.sock.sendto(msg.packed_message, (UDP_BROADCAST_IP, self.port))
+        for broadcast_addr in UDP_BROADCAST_IP_ADDRS:
+            self.sock.sendto(msg.packed_message, (broadcast_addr, self.port))
 
     def initialize_socket(self):
         self.sock = socket(AF_INET, SOCK_DGRAM)
