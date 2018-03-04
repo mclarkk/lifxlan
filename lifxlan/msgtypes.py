@@ -534,6 +534,36 @@ class MultiZoneGetColorZones(Message):
         payload = start_index + end_index
         return payload
 
+class GetDeviceChain(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(GetDeviceChain, self).__init__(MSG_IDS[GetDeviceChain], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class StateDeviceChain(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(StateDeviceChain, self).__init__(MSG_IDS[StateDeviceChain], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class SetUserPosition(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(SetUserPosition, self).__init__(MSG_IDS[SetUserPosition], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class GetTileState64(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(GetTileState64, self).__init__(MSG_IDS[GetTileState64], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class StateTileState64(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(StateTileState64, self).__init__(MSG_IDS[StateTileState64], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class SetTileState64(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        target_addr = BROADCAST_MAC
+        super(SetTileState64, self).__init__(MSG_IDS[SetTileState64], target_addr, source_id, seq_num, ack_requested, response_requested)
+
 
 MSG_IDS = {     GetService: 2,
                 StateService: 3,
@@ -575,7 +605,14 @@ MSG_IDS = {     GetService: 2,
                 MultiZoneSetColorZones: 501,
                 MultiZoneGetColorZones: 502,
                 MultiZoneStateZone: 503,
-                MultiZoneStateMultiZone: 506}
+                MultiZoneStateMultiZone: 506,
+                #
+                GetDeviceChain: 701,
+                StateDeviceChain: 702,
+                SetUserPosition: 703,
+                GetTileState64: 707,
+                StateTileState64: 711,
+                SetTileState64: 715}
 
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
