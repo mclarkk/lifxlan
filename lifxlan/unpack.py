@@ -254,6 +254,54 @@ def unpack_lifx_message(packed_message):
         payload = {"count": count, "index": index, "color": colors}
         message = MultiZoneStateMultiZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
+    elif message_type == MSG_IDS[GetDeviceChain]: #701
+        pass
+
+    elif message_type == MSG_IDS[StateDeviceChain]: #702
+        pass
+
+    elif message_type == MSG_IDS[SetUserPosition]: #703
+        pass
+
+    elif message_type == MSG_IDS[GetTileState64]: #707
+        tile_index = struct.unpack("B", payload_str[0:1])[0]
+        length = struct.unpack("B", payload_str[1:2])[0]
+        reserved = struct.unpack("B", payload_str[2:3])[0]
+        x = struct.unpack("B", payload_str[3:4])[0]
+        y = struct.unpack("B", payload_str[4:5])[0]
+        width = struct.unpack("B", payload_str[5:6])[0]
+        payload = {"tile_index": tile_index, "length": length, "reserved": reserved, "x": x, "y": y, "width": width}
+        message = GetTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[StateTileState64]: #711
+        tile_index = struct.unpack("B", payload_str[0:1])[0]
+        reserved = struct.unpack("B", payload_str[1:2])[0]
+        x = struct.unpack("B", payload_str[2:3])[0]
+        y = struct.unpack("B", payload_str[3:4])[0]
+        width = struct.unpack("B", payload_str[4:5])[0]
+        colors = []
+        for i in range(64):
+            color = struct.unpack("H" * 4, payload_str[5+(i*8):13+(i*8)])
+            colors.append(color)
+        payload = {"tile_index": tile_index, "reserved": reserved, "x": x, "y": y, "width": width, "colors": colors}
+        message = StateTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[SetTileState64]: #715
+        tile_index = struct.unpack("B", payload_str[0:1])[0]
+        length = struct.unpack("B", payload_str[1:2])[0]
+        reserved = struct.unpack("B", payload_str[2:3])[0]
+        x = struct.unpack("B", payload_str[3:4])[0]
+        y = struct.unpack("B", payload_str[4:5])[0]
+        width = struct.unpack("B", payload_str[5:6])[0]
+        duration = struct.unpack("I", payload_str[6:10])[0]
+        colors = []
+        for i in range(64):
+            color = struct.unpack("H" * 4, payload_str[10+(i*8):18+(i*8)])
+            colors.append(color)
+        payload = {"tile_index": tile_index, "length": length, "reserved": reserved, "x": x, "y": y, "width": width, "duration": duration, "colors": colors}
+        message = SetTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+
     else:
         message = Message(message_type, target_addr, source_id, seq_num, ack_requested, response_requested)
 
