@@ -133,7 +133,6 @@ class TileChain(Light):
         canvas_y = int(y_tilespan * tile_height)
         return (canvas_x, canvas_y)
 
-    # THIS DOESN'T WORK WITH GAPS
     def get_tile_map(self, num_tiles):
         tile_width = 8 #TO DO: get these programmatically for each light from the tile info
         tile_height = 8 #TO DO: get these programmatically for each light from the tile info
