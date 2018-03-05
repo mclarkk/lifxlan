@@ -14,6 +14,7 @@ from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetService, LightGet, LightGetPower, LightSetColor, LightSetPower, \
     LightSetWaveform, LightState, LightStatePower, StateService
 from .multizonelight import MultiZoneLight
+from .tilechain import TileChain
 from .unpack import unpack_lifx_message
 from .group import Group
 
@@ -61,6 +62,8 @@ class LifxLAN:
             if device.is_light():
                 if device.supports_multizone():
                     device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                elif device.supports_chain():
+                    device = TileChain(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 else:
                     device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(device)
@@ -91,6 +94,14 @@ class LifxLAN:
             if l.supports_color():
                 color_lights.append(l)
         return color_lights
+
+    def get_tilechain_lights(self):
+        chain_lights = []
+        all_lights = self.get_lights()
+        for l in all_lights:
+            if l.supports_chain():
+                chain_lights.append(l)
+        return chain_lights
 
     def get_device_by_name(self, name):
         device = None
