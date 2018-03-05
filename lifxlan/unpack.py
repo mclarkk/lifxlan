@@ -259,7 +259,7 @@ def unpack_lifx_message(packed_message):
 
     elif message_type == MSG_IDS[StateDeviceChain]: #702
         start_index = struct.unpack("B", payload_str[0:1])[0]
-        total_count = struct.unpack("B", payload_str[1:2])[0] & 0x0F
+        total_count = struct.unpack("B", payload_str[1:2])[0]
         tile_devices = []
         tilesize_bytes = 55
         for i in range(16):
@@ -285,7 +285,12 @@ def unpack_lifx_message(packed_message):
         message = StateDeviceChain(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[SetUserPosition]: #703
-        pass
+        tile_index = struct.unpack("B", payload_str[0:1])[0]
+        reserved = struct.unpack("H", payload_str[1:3])[0]
+        user_x = struct.unpack("f", payload_str[3:7])[0]
+        user_y = struct.unpack("f", payload_str[7:11])[0]
+        payload = {"tile_index": tile_index, "reserved": reserved, "user_x": user_x, "user_y": user_y}
+        message = SetUserPosition(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[GetTileState64]: #707
         tile_index = struct.unpack("B", payload_str[0:1])[0]
