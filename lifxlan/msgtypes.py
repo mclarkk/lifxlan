@@ -541,7 +541,6 @@ class GetDeviceChain(Message):
         target_addr = BROADCAST_MAC
         super(GetDeviceChain, self).__init__(MSG_IDS[GetDeviceChain], target_addr, source_id, seq_num, ack_requested, response_requested)
 
-# TO DO
 class StateDeviceChain(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         target_addr = BROADCAST_MAC
@@ -592,7 +591,7 @@ class SetUserPosition(Message):
         self.payload_fields.append(("User X", self.user_x))
         self.payload_fields.append(("User Y", self.user_y))
         tile_index = little_endian(bitstring.pack("uint:8", self.tile_index))
-        reserved = little_endian(bitstring.pack("unint:16", self.reserved))
+        reserved = little_endian(bitstring.pack("uint:16", self.reserved))
         user_x = little_endian(bitstring.pack("float:32", self.user_x))
         user_y = little_endian(bitstring.pack("float:32", self.user_y))
         payload = tile_index + reserved + user_x + user_y
