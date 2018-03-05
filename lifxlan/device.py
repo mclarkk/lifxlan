@@ -28,6 +28,7 @@ from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
@@ -503,7 +504,7 @@ class Device(object):
                     if self.verbose:
                         print("RECV: " + str(response))
                     if type(response) in response_type:
-                        if response.source_id == self.source_id and response.target_addr == self.mac_addr:
+                        if response.source_id == self.source_id and (response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
                             response_seen = True
                             device_response = response
                             self.ip_addr = ip_addr
