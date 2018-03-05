@@ -545,7 +545,37 @@ class GetDeviceChain(Message):
 class StateDeviceChain(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         target_addr = BROADCAST_MAC
+        self.start_index = payload["start_index"]
+        self.total_count = payload["total_count"]
+        self.tile_devices = payload["tile_devices"]
         super(StateDeviceChain, self).__init__(MSG_IDS[StateDeviceChain], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Start Index", self.start_index))
+        self.payload_fields.append(("Total Count", self.total_count))
+        self.payload_fields.append(("Tile Devices", self.tile_devices))
+        start_idex = little_endian(bitstring.pack("uint:8", self.start_index))
+        total_count = little_endian(bitstring.pack("uint:8", self.total_count))
+        payload = start_idex + total_count
+        for tile in self.tile_devices:
+            reserved1 = little_endian(bitstring.pack("int:16", tile['reserved1']))
+            reserved2 = little_endian(bitstring.pack("int:16", tile['reserved2']))
+            reserved3 = little_endian(bitstring.pack("int:16", tile['reserved3']))
+            reserved4 = little_endian(bitstring.pack("int:16", tile['reserved4']))
+            user_x = little_endian(bitstring.pack("float:32", tile['user_x']))
+            user_y = little_endian(bitstring.pack("float:32", tile['user_y']))
+            width = little_endian(bitstring.pack("uint:8", tile['width']))
+            height = little_endian(bitstring.pack("uint:8", tile['height']))
+            reserved5 = little_endian(bitstring.pack("uint:8", tile['reserved5']))
+            device_version_vendor = little_endian(bitstring.pack("uint:32", tile['device_version_vendor']))
+            device_version_product = little_endian(bitstring.pack("uint:32", tile['device_version_product']))
+            device_version_version = little_endian(bitstring.pack("uint:32", tile['device_version_version']))
+            firmware_build = little_endian(bitstring.pack("uint:64", tile['firmware_build']))
+            reserved6 = little_endian(bitstring.pack("uint:64", tile['reserved6']))
+            firmware_version = little_endian(bitstring.pack("uint:32", tile['firmware_version']))
+            reserved7 = little_endian(bitstring.pack("uint:32", tile['reserved7']))
+            payload += reserved1 + reserved2 + reserved3 + reserved4 + user_x + user_y + width + height + reserved5 + device_version_vendor + device_version_product + device_version_version + firmware_build + reserved6 + firmware_version + reserved7
+        return payload
 
 class SetUserPosition(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
