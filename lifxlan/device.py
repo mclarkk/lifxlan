@@ -380,6 +380,11 @@ class Device(object):
             self.product_features = self.get_product_features()
         return self.product_features['infrared']
 
+    def supports_chain(self):
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['chain']
+
     ############################################################################
     #                                                                          #
     #                            String Formatting                             #
