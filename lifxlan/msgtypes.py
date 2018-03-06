@@ -554,8 +554,7 @@ class StateDeviceChain(Message):
         self.payload_fields.append(("Total Count", self.total_count))
         self.payload_fields.append(("Tile Devices", self.tile_devices))
         start_idex = little_endian(bitstring.pack("uint:8", self.start_index))
-        total_count = little_endian(bitstring.pack("uint:8", self.total_count))
-        payload = start_idex + total_count
+        payload = start_idex
         for tile in self.tile_devices:
             reserved1 = little_endian(bitstring.pack("int:16", tile['reserved1']))
             reserved2 = little_endian(bitstring.pack("int:16", tile['reserved2']))
@@ -574,6 +573,8 @@ class StateDeviceChain(Message):
             firmware_version = little_endian(bitstring.pack("uint:32", tile['firmware_version']))
             reserved7 = little_endian(bitstring.pack("uint:32", tile['reserved7']))
             payload += reserved1 + reserved2 + reserved3 + reserved4 + user_x + user_y + width + height + reserved5 + device_version_vendor + device_version_product + device_version_version + firmware_build + reserved6 + firmware_version + reserved7
+        total_count = little_endian(bitstring.pack("uint:8", self.total_count))
+        payload += total_count
         return payload
 
 class SetUserPosition(Message):

@@ -259,28 +259,28 @@ def unpack_lifx_message(packed_message):
 
     elif message_type == MSG_IDS[StateDeviceChain]: #702
         start_index = struct.unpack("B", payload_str[0:1])[0]
-        total_count = struct.unpack("B", payload_str[1:2])[0]
         tile_devices = []
         tilesize_bytes = 55
         for i in range(16):
-            offset = (i * tilesize_bytes) - 1
-            tile = {"reserved1": struct.unpack("h", payload_str[2+offset:4+offset])[0],
-                    "reserved2": struct.unpack("h", payload_str[4+offset:6+offset])[0],
-                    "reserved3": struct.unpack("h", payload_str[6+offset:8+offset])[0],
-                    "reserved4": struct.unpack("h", payload_str[8+offset:10+offset])[0],
-                    "user_x": struct.unpack("f", payload_str[10+offset:14+offset])[0],
-                    "user_y": struct.unpack("f", payload_str[14+offset:18+offset])[0],
-                    "width": struct.unpack("B", payload_str[18+offset:19+offset])[0],
-                    "height": struct.unpack("B", payload_str[19+offset:20+offset])[0],
-                    "reserved5": struct.unpack("B", payload_str[20+offset:21+offset])[0],
-                    "device_version_vendor": struct.unpack("I", payload_str[21+offset:25+offset])[0],
-                    "device_version_product": struct.unpack("I", payload_str[25+offset:29+offset])[0],
-                    "device_version_version": struct.unpack("I", payload_str[29+offset:33+offset])[0],
-                    "firmware_build": struct.unpack("Q", payload_str[33+offset:41+offset])[0],
-                    "reserved6": struct.unpack("Q", payload_str[41+offset:49+offset])[0],
-                    "firmware_version": struct.unpack("I", payload_str[49+offset:53+offset])[0],
-                    "reserved7": struct.unpack("I", payload_str[53+offset:57+offset])[0]}
+            offset = (i * tilesize_bytes)
+            tile = {"reserved1": struct.unpack("h", payload_str[1+offset:3+offset])[0],
+                    "reserved2": struct.unpack("h", payload_str[3+offset:5+offset])[0],
+                    "reserved3": struct.unpack("h", payload_str[5+offset:7+offset])[0],
+                    "reserved4": struct.unpack("h", payload_str[7+offset:9+offset])[0],
+                    "user_x": struct.unpack("f", payload_str[9+offset:13+offset])[0],
+                    "user_y": struct.unpack("f", payload_str[13+offset:17+offset])[0],
+                    "width": struct.unpack("B", payload_str[17+offset:18+offset])[0],
+                    "height": struct.unpack("B", payload_str[18+offset:19+offset])[0],
+                    "reserved5": struct.unpack("B", payload_str[19+offset:20+offset])[0],
+                    "device_version_vendor": struct.unpack("I", payload_str[20+offset:24+offset])[0],
+                    "device_version_product": struct.unpack("I", payload_str[24+offset:28+offset])[0],
+                    "device_version_version": struct.unpack("I", payload_str[28+offset:32+offset])[0],
+                    "firmware_build": struct.unpack("Q", payload_str[32+offset:40+offset])[0],
+                    "reserved6": struct.unpack("Q", payload_str[40+offset:48+offset])[0],
+                    "firmware_version": struct.unpack("I", payload_str[48+offset:52+offset])[0],
+                    "reserved7": struct.unpack("I", payload_str[52+offset:56+offset])[0]}
             tile_devices.append(tile)
+        total_count = struct.unpack("B", [payload_str[-1]])[0]
         payload = {"start_index": start_index, "total_count": total_count, "tile_devices": tile_devices}
         message = StateDeviceChain(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
