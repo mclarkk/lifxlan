@@ -50,13 +50,18 @@ class LifxLAN:
         responses = self.broadcast_with_resp(GetService, StateService,)
         for r in responses:
             device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-            if device.is_light():
-                if device.supports_multizone():
-                    device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                elif device.supports_chain():
-                    device = TileChain(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                else:
-                    device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+            try:
+                if device.is_light():
+                    if device.supports_multizone():
+                        device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                    elif device.supports_chain():
+                        device = TileChain(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                    else:
+                        device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                    self.lights.append(device)
+            except WorkflowException:
+                # cheating -- it just so happens that all LIFX devices are lights right now
+                device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(device)
             self.devices.append(device)
 
