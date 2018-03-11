@@ -1,6 +1,6 @@
 import os
 
-from .device import WorkflowException
+from .errors import WorkflowException, InvalidParameterException
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, SetUserPosition
 from threading import Thread
@@ -92,7 +92,7 @@ class TileChain(Light):
         for (tile_index, (user_x, user_y)) in enumerate(centered_coordinates):
             self.set_tile_coordinates(tile_index, user_x, user_y)
 
-    def project_matrix(self, hsvk_matrix, duration = 0, default_color = (0, 0, 0, 0), rapid=False):
+    def project_matrix(self, hsvk_matrix, duration = 0, rapid=False):
         num_tiles = self.get_tile_count()
         canvas_x, canvas_y = self.get_canvas_dimensions()
         matrix_x = len(hsvk_matrix[0])
@@ -102,6 +102,7 @@ class TileChain(Light):
 
         tile_width = 8 # hardcoded, argh
         tile_height = 8
+        default_color = (0, 0, 0, 0)
         tile_map = self.get_tile_map()
         tile_colors = [[default_color for i in range(tile_width * tile_height)] for j in range(num_tiles)]
 
