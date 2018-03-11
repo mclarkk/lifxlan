@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol V2](https://github.com/LIFX/lifx-protocol-docs) specification. Supports white, color, multizone (LIFX Z strips), and infrared (LIFX+) capabilities. Also supports group-based control.
+**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control.
 
 ## How to Install
 
@@ -16,9 +16,7 @@ However, to be guaranteed to get the most recent features and fixes you can inst
 
 See the `examples` folder for example scripts that use **lifxlan**.  
 
-Many of the examples perform device discovery in the beginning in order to find indvidual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
-
-**Note:** Programs that use automatic discovery to find lights must be run on the same subnet as the lights, since discovery relies on the local broadcast address.
+To be as generic as possible, the examples use automatic device discovery to find individual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
 
 ## Overview
 
@@ -26,7 +24,7 @@ You can do several things with this library:
 
 * Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
 * Build your own high-level API on top of the low-level networking messages.
-* Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, Wemo, etc).
+* Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
 
 #### High-Level API:
 
@@ -34,6 +32,7 @@ You can do several things with this library:
 * **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
 * **light.py** - Provides the Light API. Subclass of Device.
 * **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
+* **tilechain.py** - Provides the TileChain API. Subclass of Light.
 * **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
 
 ##### LifxLAN API
@@ -62,6 +61,7 @@ get_lights()                                                                    
 get_color_lights()                                                                           # returns list of Light objects that support color functionality
 get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
 get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
+get_tilechain_lights()                                                                       # returns a list of TileChain objects that support chain functionality
 get_device_by_name(name)                                                                     # returns a Device object (instantiated as the most specific Device subclass possible, such as MultiZoneLight)
 get_devices_by_name(names)                                                                   # returns a Group object
 get_devices_by_group(group)                                                                  # returns a Group object
@@ -190,7 +190,41 @@ set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
 ```
 
-The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.42")`.
+The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`.
+
+##### TileChain API
+
+TileChain lights, such as the LIFX Tile, have all the same methods as the Light API, and also add the following:
+
+```
+# refresh_cache is a binary value. If True, send the query directly to the light to get the answer, and update the locally stored information (slower). If False, return the locally stored answer from a previous query (faster). Should almost always be False, unless the configuration of the Tiles is expected to change while the program is running (an unusual concern for most programs).
+# tile_count is the number of tiles on which to replicate the command, starting from the start_index tile.
+# x, y, and width will probably not be used. They allow the user to specify a rectangle of LEDs on the specified tile. The (x, y) coordinate gives the starting LED, and the width gives the width of the desired rectangle. The default values of these ((0, 0) and 8) specify the whole tile, and will probably not need to be changed.
+# colors is a list of 64 HSVK tuples.
+# tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
+# hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
+
+get_tile_info([refresh_cache])                                  # returns a list of Tile objects
+get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
+get_tile_colors(start_index, [tile_count], [x], [y], [width])   # returns colors for the specified tile(s).
+set_tile_colors(start_index, colors, [duration], [tile_count], [x], [y], [width], [rapid]) # sets the colors on the specified tile(s). For tile_count > 1, the colors will be duplicated.
+get_tilechain_colors()                                          # returns tilechain_colors
+set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
+project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
+get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
+```
+
+Here are some other available methods that you are much less likely to use:
+
+```
+# x and y below are in units of tile length, not LED rows/cols. In other words, the x and y below are not the same as the x and y above.
+
+recenter_coordinates()                  # This will permanently shift all the tile coordinates so that they are centered around a tile at (0, 0). Sometimes the app will result in a particular axis being off (e.g., the origin tile is (0, -0.5), so all the tile coordinates are shifted by -0.5). This method isn't necessary for any functionality, but makes the tile_info a little more human-readable.
+set_tile_coordinates(tile_index, x, y)  # Permanently sets the specified tile's coordinates to x and y (in tile length units) relative to the central tile. Tile coordinates are generally set through the LIFX app, and it is unlikely you will need to ever use this method unless you're doing something pretty weird. (If so, drop me a line!)
+get_tile_map([refresh_cache])           # Returns a 2D list with canvas_dimensions rows and cols where each element contains either a (tile_index, color_index) tuple or 0. This maps a pixel on the canvas to the tile number and LED number on that tile that the pixel corresponds to, or 0 if there is no tile in that location.
+```
+
+A LIFX Tile light can be instantiated as either a Light or TileChain object, but to use the TileChain API you'll need to instantiate it as a TileChain. Just like with more generic Light objects, you can instantiate a TileChain directly with `light = TileChain("12:34:56:78:9a:bc", "192.168.1.23")`.
 
 ##### Group API
 
@@ -237,7 +271,7 @@ set_zone_colors(colors, [duration], [rapid])
 
 #### LIFX LAN Protocol Implementation:
 
-The LIFX LAN protocol V2 specification is officially documented [here](https://github.com/LIFX/lifx-protocol-docs). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.) You can also set the verbose flag if creating a Light or MultiZoneLight object directly.
+The LIFX LAN protocol specification is officially documented [here](https://lan.developer.lifx.com/). In lifxlan, you can see the underlying stream of packets being sent and received at any time by initializing the LifxLAN object with the verbose flag set: `lifx = LifxLAN(verbose = True)`. (See `examples/verbose_lan.py`.) You can also set the verbose flag if creating a Light or MultiZoneLight object directly.
 
 The files that deal with LIFX packet construction and representation are:
 
