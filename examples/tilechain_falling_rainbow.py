@@ -9,24 +9,23 @@ def main():
         t = lan.get_tilechain_lights()[0] #grab the first tilechain
         #t = lan.get_device_by_name("Glider")
         #t = TileChain("d0:73:d5:33:14:4c", "10.0.0.8", verbose=False)
-        num_tiles = 5 #depends on light, hardcoded for now
-        (cols, rows) = t.get_canvas_dimensions(num_tiles)
+        (cols, rows) = t.get_canvas_dimensions()
         hue = 0
         rainbow_colors = []
         for row in range(rows):
             color_row = []
             for col in range(cols):
-                color_row.append((hue, 65535, 1000, 4500))
+                color_row.append((hue, 65535, 65535, 4500))
                 hue += int(65535.0/(cols*rows))
             rainbow_colors.append(color_row)
 
-        t.project_matrix(rainbow_colors, num_tiles)
+        t.project_matrix(rainbow_colors)
 
         duration_ms = 500
 
         while(True):
             rainbow_colors = cycle_row(rainbow_colors)
-            t.project_matrix(rainbow_colors, num_tiles, duration_ms)
+            t.project_matrix(rainbow_colors, duration_ms)
             sleep(duration_ms/2000.0)
     else:
         print("No TileChain lights found.")

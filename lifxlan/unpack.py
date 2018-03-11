@@ -280,7 +280,7 @@ def unpack_lifx_message(packed_message):
                     "firmware_version": struct.unpack("I", payload_str[48+offset:52+offset])[0],
                     "reserved7": struct.unpack("I", payload_str[52+offset:56+offset])[0]}
             tile_devices.append(tile)
-        total_count = struct.unpack("B", [payload_str[-1]])[0]
+        total_count = struct.unpack("B", payload_str[881:882])[0] 
         payload = {"start_index": start_index, "total_count": total_count, "tile_devices": tile_devices}
         message = StateDeviceChain(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 

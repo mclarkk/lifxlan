@@ -63,7 +63,7 @@ class TileChain(Light):
 
     def project_matrix(self, hsvk_matrix, duration = 0, default_color = (0, 0, 0, 0)):
         num_tiles = self.get_tile_count()
-        canvas_x, canvas_y = self.get_canvas_dimensions(num_tiles)
+        canvas_x, canvas_y = self.get_canvas_dimensions()
         matrix_x = len(hsvk_matrix[0])
         matrix_y = len(hsvk_matrix)
         if (matrix_x != canvas_x) or (matrix_y != canvas_y):
@@ -71,7 +71,7 @@ class TileChain(Light):
 
         tile_width = 8 # hardcoded, argh
         tile_height = 8
-        tile_map = self.get_tile_map(num_tiles)
+        tile_map = self.get_tile_map()
         tile_colors = [[default_color for i in range(tile_width * tile_height)] for j in range(num_tiles)]
 
         rows = canvas_y
@@ -118,8 +118,7 @@ class TileChain(Light):
         return axis_vals
 
     def get_canvas_dimensions(self):
-        num_tiles = self.get_tile_count()
-        x_vals, y_vals = self.get_xy_vals(num_tiles)
+        x_vals, y_vals = self.get_xy_vals()
         min_x = min(x_vals)
         max_x = max(x_vals)
         min_y = min(y_vals)
@@ -136,12 +135,12 @@ class TileChain(Light):
         num_tiles = self.get_tile_count()
         tile_width = 8 #TO DO: get these programmatically for each light from the tile info
         tile_height = 8 #TO DO: get these programmatically for each light from the tile info
-        (x, y) = self.get_canvas_dimensions(num_tiles)
+        (x, y) = self.get_canvas_dimensions()
         #print(x, y)
         tile_map = [[0 for i in range(x)] for j in range(y)]
 
         tiles = self.get_tile_info()
-        x_vals, y_vals = self.get_xy_vals(num_tiles)
+        x_vals, y_vals = self.get_xy_vals()
         x_vals = self.shift_axis_upper_left(x_vals)
         y_vals = self.shift_axis_upper_left(y_vals, is_y=True)
 
