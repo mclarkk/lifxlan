@@ -7,8 +7,8 @@ def main():
     tilechain_lights = lan.get_tilechain_lights()
     if len(tilechain_lights) != 0:
         t = lan.get_tilechain_lights()[0] #grab the first tilechain
-        #t = lan.get_device_by_name("Glider")
-        #t = TileChain("d0:73:d5:33:14:4c", "10.0.0.8", verbose=False)
+        print("Selected TileChain light: {}".format(t.get_label()))
+        original_colors = t.get_tilechain_colors()
         (cols, rows) = t.get_canvas_dimensions()
         hue = 0
         rainbow_colors = []
@@ -21,12 +21,16 @@ def main():
 
         t.project_matrix(rainbow_colors)
 
-        duration_ms = 500
+        duration_ms = 100
 
-        while(True):
-            rainbow_colors = cycle_row(rainbow_colors)
-            t.project_matrix(rainbow_colors, duration_ms)
-            sleep(duration_ms/2000.0)
+        try:
+            while(True):
+                rainbow_colors = cycle_row(rainbow_colors)
+                t.project_matrix(rainbow_colors, duration_ms, rapid=True)
+                sleep(max(duration_ms/2000.0, 0.05))
+        except KeyboardInterrupt:
+            t.set_tilechain_colors(original_colors)
+            print("Done.")
     else:
         print("No TileChain lights found.")
 
