@@ -35,13 +35,11 @@ class LifxLAN:
     ############################################################################
 
     def get_devices(self):
-        if self.devices == None:
-            self.discover_devices()
+        self.discover_devices()
         return self.devices
 
     def get_lights(self):
-        if self.lights == None:
-            self.discover_devices()
+        self.discover_devices()
         return self.lights
 
     # more of an internal helper function
@@ -49,14 +47,7 @@ class LifxLAN:
     def discover_devices(self):
         self.lights = []
         self.devices = []
-        if self.num_lights == None:
-            responses = self.discover()
-        else:
-            try:
-                responses = self.broadcast_with_resp(GetService, StateService)
-            except WorkflowException as e:
-                raise
-                #return None
+        responses = self.broadcast_with_resp(GetService, StateService,)
         for r in responses:
             device = Device(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
             if device.is_light():
@@ -68,8 +59,6 @@ class LifxLAN:
                     device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(device)
             self.devices.append(device)
-        self.num_lights = len(self.lights)
-        self.num_devices = len(self.lights)
 
     def get_multizone_lights(self):
         multizone_lights = []
@@ -214,43 +203,6 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    def discover(self, timeout_secs=DEFAULT_TIMEOUT, num_repeats=3):
-        self.initialize_socket(timeout_secs)
-        msg = GetService(BROADCAST_MAC, self.source_id, seq_num=0, payload={}, ack_requested=False, response_requested=True)
-        responses = []
-        addr_seen = []
-        num_devices_seen = 0
-        attempts = 0
-        while attempts < num_repeats:
-            sent = False
-            start_time = time()
-            timedout = False
-            while not timedout:
-                if not sent:
-                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                        self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
-                    sent = True
-                    if self.verbose:
-                        print("SEND: " + str(msg))
-                try:
-                    data, (ip_addr, port) = self.sock.recvfrom(1024)
-                    response = unpack_lifx_message(data)
-                    response.ip_addr = ip_addr
-                    if self.verbose:
-                        print("RECV: " + str(response))
-                    if type(response) == StateService and response.source_id == self.source_id:
-                        if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
-                            addr_seen.append(response.target_addr)
-                            num_devices_seen += 1
-                            responses.append(response)
-                except timeout:
-                    pass
-                elapsed_time = time() - start_time
-                timedout = True if elapsed_time > timeout_secs else False
-            attempts += 1
-        self.close_socket()
-        return responses
-
     def broadcast_fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
         self.initialize_socket(timeout_secs)
         msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
@@ -266,9 +218,6 @@ class LifxLAN:
         self.close_socket()
 
     def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
-        if self.lights == None:
-            self.get_lights()
-        success = False
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
             msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
@@ -278,11 +227,11 @@ class LifxLAN:
         addr_seen = []
         num_devices_seen = 0
         attempts = 0
-        while num_devices_seen < self.num_devices and attempts < max_attempts:
+        while (self.num_devices == None or num_devices_seen < self.num_devices) and attempts < max_attempts:
             sent = False
             start_time = time()
             timedout = False
-            while num_devices_seen < self.num_devices and not timedout:
+            while (self.num_devices == None or num_devices_seen < self.num_devices) and not timedout:
                 if not sent:
                     for ip_addr in UDP_BROADCAST_IP_ADDRS:
                         self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
@@ -300,18 +249,12 @@ class LifxLAN:
                             addr_seen.append(response.target_addr)
                             num_devices_seen += 1
                             responses.append(response)
-                            if num_devices_seen >= self.num_devices:
-                                success = True
                 except timeout:
                     pass
                 elapsed_time = time() - start_time
                 timedout = True if elapsed_time > timeout_secs else False
             attempts += 1
-        if success == False:
-            self.close_socket()
-            raise WorkflowException("Did not receive {} in response to {}".format(str(response_type), str(msg_type)))
-        else:
-            self.close_socket()
+        self.close_socket()
         return responses
 
     def broadcast_with_ack(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT+0.5, max_attempts=DEFAULT_ATTEMPTS):
