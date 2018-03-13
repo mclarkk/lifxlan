@@ -1,6 +1,5 @@
 # coding=utf-8
 # multizonelight.py
-# Author: Scott Lusebrink
 
 import math
 import os
