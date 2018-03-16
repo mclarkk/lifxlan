@@ -159,11 +159,11 @@ class LifxLAN:
             if power_level in on and not rapid:
                 self.broadcast_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
             elif power_level in on and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=5)
+                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=1)
             elif power_level in off and not rapid:
                 self.broadcast_with_ack(LightSetPower, {"power_level": 0, "duration": duration})
             elif power_level in off and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=5)
+                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=1)
             else:
                 raise InvalidParameterException("{} is not a valid power level.".format(power_level))
         except WorkflowException as e:
@@ -182,7 +182,7 @@ class LifxLAN:
         if len(color) == 4:
             try:
                 if rapid:
-                    self.broadcast_fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=5)
+                    self.broadcast_fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=1)
                 else:
                     self.broadcast_with_ack(LightSetColor, {"color": color, "duration": duration})
             except WorkflowException as e:
@@ -194,7 +194,7 @@ class LifxLAN:
         if len(color) == 4:
             try:
                 if rapid:
-                    self.broadcast_fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=5)
+                    self.broadcast_fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=1)
                 else:
                     self.broadcast_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
             except WorkflowException as e:
