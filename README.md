@@ -68,7 +68,7 @@ get_devices_by_name(names)                                                      
 get_devices_by_group(group)                                                                  # returns a Group object
 get_devices_by_location(location)                                                            # returns a Group object
 set_power_all_lights(power, [duration], [rapid])                                             # set power for all lights on LAN
-set_color_all_lights_color(color, [duration], [rapid])                                       # set color for all lights on LAN
+set_color_all_lights(color, [duration], [rapid])                                             # set color for all lights on LAN
 set_waveform_all_lights(is_transient, color, period, cycles, duty_cycle, waveform, [rapid])  # see the Light API for more details
 get_power_all_lights()                                                                       # returns dict of Light, power pairs
 get_color_all_lights()                                                                       # returns dict of Light, color pairs

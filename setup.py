@@ -1,13 +1,17 @@
 from distutils.core import setup
 #from setuptools import setup
+import re
+
+with open("lifxlan/__init__.py") as meta_file:
+    metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", meta_file.read()))
 
 setup(name='lifxlan',
-      version='1.2.2',
-      description='API for local communication with LIFX devices over a LAN.',
-      url='http://github.com/mclarkk/lifxlan',
-      author='Meghan Clark',
-      author_email='mclarkk@berkeley.edu',
-      license='MIT',
+      version=metadata['version'],
+      description=metadata['description'],
+      url=metadata['url'],
+      author=metadata['author'],
+      author_email=metadata['authoremail'],
+      license=metadata['license'],
       packages=['lifxlan'],
       install_requires=[
         "bitstring",
