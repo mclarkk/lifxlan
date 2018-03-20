@@ -51,11 +51,11 @@ class Light(Device):
             if power in on and not rapid:
                 self.req_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
             elif power in on and rapid:
-                self.fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration}, num_repeats=1)
             elif power in off and not rapid:
                 self.req_with_ack(LightSetPower, {"power_level": 0, "duration": duration})
             elif power in off and rapid:
-                self.fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=1)
             else:
                 raise InvalidParameterException("{} is not a valid power level.".format(power))
         except WorkflowException as e:
@@ -66,7 +66,7 @@ class Light(Device):
         if len(color) == 4:
             try:
                 if rapid:
-                    self.fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=5)
+                    self.fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=1)
                 else:
                     self.req_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
             except WorkflowException as e:
@@ -77,7 +77,7 @@ class Light(Device):
         if len(color) == 4:
             try:
                 if rapid:
-                    self.fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=5)
+                    self.fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=1)
                 else:
                     self.req_with_ack(LightSetColor, {"color": color, "duration": duration})
             except WorkflowException as e:
@@ -101,7 +101,7 @@ class Light(Device):
         color2 = (hue, color[1], color[2], color[3])
         try:
             if rapid:
-                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=1)
             else:
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
@@ -115,7 +115,7 @@ class Light(Device):
         color2 = (color[0], saturation, color[2], color[3])
         try:
             if rapid:
-                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=1)
             else:
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
@@ -129,7 +129,7 @@ class Light(Device):
         color2 = (color[0], color[1], brightness, color[3])
         try:
             if rapid:
-                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=1)
             else:
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
@@ -143,7 +143,7 @@ class Light(Device):
         color2 = (color[0], color[1], color[2], kelvin)
         try:
             if rapid:
-                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=5)
+                self.fire_and_forget(LightSetColor, {"color": color2, "duration": duration}, num_repeats=1)
             else:
                 self.req_with_ack(LightSetColor, {"color": color2, "duration": duration})
         except WorkflowException as e:
@@ -163,7 +163,7 @@ class Light(Device):
     def set_infrared(self, infrared_brightness, rapid=False):
         try:
             if rapid:
-                self.fire_and_forget(LightSetInfrared, {"infrared_brightness": infrared_brightness}, num_repeats=5)
+                self.fire_and_forget(LightSetInfrared, {"infrared_brightness": infrared_brightness}, num_repeats=1)
             else:
                 self.req_with_ack(LightSetInfrared, {"infrared_brightness": infrared_brightness})
         except WorkflowException as e:
