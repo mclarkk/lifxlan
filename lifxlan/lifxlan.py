@@ -146,6 +146,8 @@ class LifxLAN:
     def get_power_all_lights(self):
         responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
         power_states = {}
+        if self.lights == None:
+            self.lights = self.get_lights()
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
@@ -172,6 +174,8 @@ class LifxLAN:
     def get_color_all_lights(self):
         responses = self.broadcast_with_resp(LightGet, LightState)
         colors = {}
+        if self.lights == None:
+            self.lights = self.get_lights()
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
