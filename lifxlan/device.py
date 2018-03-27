@@ -141,17 +141,6 @@ class Device(object):
             raise
         return self.label
 
-    def get_label(self):
-         try:
-             response = self.req_with_resp(GetLabel, StateLabel)
-         except:
-             return self.label
-         try:
-             self.label = response.label
-         except:
-            raise
-         return self.label
-
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
