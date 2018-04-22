@@ -20,14 +20,11 @@ def main():
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     lifx = LifxLAN(num_lights)
-    bulbs = lifx.get_lights()
 
     # test power control
     print("Discovering lights...")
     original_powers = lifx.get_power_all_lights()
     original_colors = lifx.get_color_all_lights()
-    print(original_colors)
-
 
     half_period_ms = 2500
     duration_mins = 20
@@ -39,14 +36,13 @@ def main():
             for bulb in original_colors:
                 color = original_colors[bulb]
                 dim = list(copy(color))
-                half_bright = int(dim[2]/2)
-                dim[2] = half_bright if half_bright >= 1900 else 1900
+                dim[2] = 1900
                 bulb.set_color(dim, half_period_ms, rapid=True)
-                sleep(half_period_ms/1000.0)
+            sleep(half_period_ms/1000.0)
             for bulb in original_colors:
                 color = original_colors[bulb]
                 bulb.set_color(color, half_period_ms, rapid=True)
-                sleep(half_period_ms/1000.0)
+            sleep(half_period_ms/1000.0)
             if time() - start_time > duration_secs:
                 raise KeyboardInterrupt
     except KeyboardInterrupt:
