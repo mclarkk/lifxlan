@@ -136,7 +136,9 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label
+            self.label = response.label.encode('utf-8')
+            if type(self.label).__name__ == 'bytes': # Python 3
+                self.label = self.label.decode('utf-8')
         except:
             raise
         return self.label
@@ -144,7 +146,9 @@ class Device(object):
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
-            self.location = response.label
+            self.location = response.label.encode('utf-8')
+            if type(self.location).__name__ == 'bytes': # Python 3
+                self.location = self.location.decode('utf-8')
         except:
             raise
         return self.location
@@ -152,7 +156,9 @@ class Device(object):
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.label
+            self.group = response.label.encode('utf-8')
+            if type(self.group).__name__ == 'bytes': # Python 3
+                self.group = self.group.decode('utf-8')
         except:
             raise
         return self.group
