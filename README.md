@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control.
+**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
 
 ## How to Install
 
@@ -231,13 +231,13 @@ A LIFX Tile light can be instantiated as either a Light or TileChain object, but
 A Group is a collection of devices. Under the covers, a Group is just a list of device objects (like Devices, Lights, MultiZoneLights) and a set of functions that send multi-threaded commands to the applicable devices in the group. The multi-threading allows changes to be made more or less simultaneously. At the very least, it is certainly faster than if you looped through each individual light one at a time. You can get a Group by group, location, or device names via the LifxLAN API. However, you can also instantiate a Group with any arbitrary list of device objects. Here are some ways to create groups:
 
 ```
-# The following methods use discovery and are thus slow
+# The following methods use discovery
 lan = LifxLAN()
 g = lan.get_devices_by_name(["Left Lamp", "Right Lamp"])
 g = lan.get_devices_by_group("Living Room")
 g = lan.get_devices_by_location("My Home")
 
-# This method is fast
+# This method is fastest
 right = Light("12:34:56:78:9a:bc", "192.168.0.2")
 left = Light("cb:a9:87:65:43:21", "192.168.0.3")
 g = Group([right, left])
