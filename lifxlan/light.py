@@ -169,6 +169,18 @@ class Light(Device):
         except WorkflowException as e:
             raise
 
+    # minimum color temperature supported by lightbulb
+    def get_min_kelvin(self):
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['min_kelvin']
+
+    # maximum color temperature supported by lightbulb
+    def get_max_kelvin(self):
+        if self.product_features == None:
+            self.product_features = self.get_product_features()
+        return self.product_features['max_kelvin']
+
     ############################################################################
     #                                                                          #
     #                            String Formatting                             #
