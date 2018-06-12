@@ -23,11 +23,12 @@ from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, 
 from time import sleep, time
 import platform
 import netifaces as ni
+import uuid
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
-    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
-    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, SetGroup, StateGroup, StateHostFirmware, StateInfo, \
+    StateLabel, StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
@@ -162,6 +163,13 @@ class Device(object):
         except:
             raise
         return self.group
+
+    def set_group(self, label):
+        guid = uuid.uuid3(uuid.NAMESPACE_DNS, label).bytes
+        if len(label) > 32:
+            label = label[:32]
+        updated_at = int(time())*1000000000
+        self.req_with_ack(SetGroup, {"group": guid, "label": label, "updated_at": updated_at})
 
     def set_label(self, label):
         if len(label) > 32:

@@ -276,6 +276,27 @@ class GetGroup(Message):
     def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
         super(GetGroup, self).__init__(MSG_IDS[GetGroup], target_addr, source_id, seq_num, ack_requested, response_requested)
 
+class SetGroup(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.group = payload["group"]
+        self.label = payload["label"]
+        self.updated_at = payload["updated_at"]
+        super(SetGroup, self).__init__(MSG_IDS[SetGroup], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Group", self.group))
+        self.payload_fields.append(("Label", self.label))
+        self.payload_fields.append(("Updated At", self.updated_at))
+        group = b"".join(little_endian(bitstring.pack("8", b)) for b in self.group)
+        try:
+            label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label.encode('utf-8'))
+        except ValueError: # because of differences in Python 2 and 3
+            label = b"".join(little_endian(bitstring.pack("8", ord(c))) for c in self.label.encode('utf-8'))
+        label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
+        label += label_padding
+        updated_at = little_endian(bitstring.pack("64", self.updated_at))
+        payload = group + label + updated_at
+        return payload
 
 class StateGroup(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
@@ -727,6 +748,7 @@ MSG_IDS = {     GetService: 2,
                 GetLocation: 48,
                 StateLocation: 50,
                 GetGroup: 51,
+                SetGroup: 52,
                 StateGroup: 53,
                 EchoRequest: 58,
                 EchoResponse: 59,
