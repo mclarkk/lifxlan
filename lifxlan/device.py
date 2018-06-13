@@ -27,8 +27,8 @@ import uuid
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
-    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, SetGroup, StateGroup, StateHostFirmware, StateInfo, \
-    StateLabel, StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, SetGroup, SetLocation, StateGroup, StateHostFirmware, \
+    StateInfo, StateLabel, StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
@@ -153,6 +153,13 @@ class Device(object):
         except:
             raise
         return self.location
+
+    def set_location(self, label):
+        guid = uuid.uuid3(uuid.NAMESPACE_DNS, label).bytes
+        if len(label) > 32:
+            label = label[:32]
+        updated_at = int(time())*1000000000
+        self.req_with_ack(SetLocation, {"location": guid, "label": label, "updated_at": updated_at})
 
     def get_group(self):
         try:
