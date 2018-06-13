@@ -260,7 +260,7 @@ class SetLocation(Message):
         self.payload_fields.append(("Location", self.location))
         self.payload_fields.append(("Label", self.label))
         self.payload_fields.append(("Updated At", self.updated_at))
-        group = b"".join(little_endian(bitstring.pack("8", b)) for b in self.group)
+        location = b"".join(little_endian(bitstring.pack("8", b)) for b in self.location)
         try:
             label = b"".join(little_endian(bitstring.pack("8", c)) for c in self.label.encode('utf-8'))
         except ValueError: # because of differences in Python 2 and 3
@@ -268,7 +268,7 @@ class SetLocation(Message):
         label_padding = b"".join(little_endian(bitstring.pack("8", 0)) for i in range(32-len(self.label)))
         label += label_padding
         updated_at = little_endian(bitstring.pack("64", self.updated_at))
-        payload = group + label + updated_at
+        payload = location + label + updated_at
         return payload
 
 
