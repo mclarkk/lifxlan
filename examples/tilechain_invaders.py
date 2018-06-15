@@ -12,11 +12,11 @@ def main():
         original_colors = t.get_tilechain_colors()
         num_tiles = t.get_tile_count()
 
-        duration_ms = 10
+        duration_ms = 5
         DIM_BLUE = BLUE
         DIM_BLUE[2] = DIM_BLUE[2]/3
-        palette = {0: [0,0,0,0],
-                   1: DIM_BLUE
+        palette = {0: YELLOW,
+                   1: BLUE#DIM_BLUE
                     }
 
         num_frames = 2
@@ -47,7 +47,7 @@ def main():
                         for y in range(8):
                                 sprite.append(palette[invader_matrix[frame][x][y]])
                     for index in range(num_tiles):
-                        t.set_tile_colors(index, sprite, duration_ms)
+                        t.set_tile_colors(index, sprite, duration_ms, rapid=True)
                     sleep(1)
         except KeyboardInterrupt:
                 t.set_tilechain_colors(original_colors)
