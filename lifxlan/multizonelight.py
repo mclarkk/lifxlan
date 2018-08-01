@@ -64,7 +64,7 @@ class MultiZoneLight(Light):
             except WorkflowException as e:
                 raise
 
-    # Sets colors for all zones given a list of HSVK colors
+    # Sets colors for all zones given a list of HSBK colors
     def set_zone_colors(self, colors, duration=0, rapid=False):
         for (i, color) in enumerate(colors):
             apply = 0
