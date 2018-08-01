@@ -92,11 +92,11 @@ class TileChain(Light):
         for (tile_index, (user_x, user_y)) in enumerate(centered_coordinates):
             self.set_tile_coordinates(tile_index, user_x, user_y)
 
-    def project_matrix(self, hsvk_matrix, duration = 0, rapid=False):
+    def project_matrix(self, hsbk_matrix, duration = 0, rapid=False):
         num_tiles = self.get_tile_count()
         canvas_x, canvas_y = self.get_canvas_dimensions()
-        matrix_x = len(hsvk_matrix[0])
-        matrix_y = len(hsvk_matrix)
+        matrix_x = len(hsbk_matrix[0])
+        matrix_y = len(hsbk_matrix)
         if (matrix_x != canvas_x) or (matrix_y != canvas_y):
             raise InvalidParameterException("Warning: TileChain canvas wants a {} x {} matrix, but given matrix is {} x {}.".format(canvas_x, canvas_y, matrix_x, matrix_y))
 
@@ -112,7 +112,7 @@ class TileChain(Light):
             for col in range(cols):
                 if tile_map[row][col] != 0:
                     (tile_num, color_num) = tile_map[row][col]
-                    tile_colors[tile_num][color_num] = hsvk_matrix[row][col]
+                    tile_colors[tile_num][color_num] = hsbk_matrix[row][col]
 
         threads = []
         for (i, tile_color) in enumerate(tile_colors):
