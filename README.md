@@ -200,9 +200,9 @@ TileChain lights, such as the LIFX Tile, have all the same methods as the Light 
 # refresh_cache is a binary value. If True, send the query directly to the light to get the answer, and update the locally stored information (slower). If False, return the locally stored answer from a previous query (faster). Should almost always be False, unless the configuration of the Tiles is expected to change while the program is running (an unusual concern for most programs).
 # tile_count is the number of tiles on which to replicate the command, starting from the start_index tile.
 # x, y, and width will probably not be used. They allow the user to specify a rectangle of LEDs on the specified tile. The (x, y) coordinate gives the starting LED, and the width gives the width of the desired rectangle. The default values of these ((0, 0) and 8) specify the whole tile, and will probably not need to be changed.
-# colors is a list of 64 HSVK tuples.
-# tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
-# hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
+# colors is a list of 64 HSBK tuples.
+# tilechain_colors is a list of tile_count x 64 HSBK tuples, used for getting and setting the entire TileChain's colors at once.
+# hsbk_matrix is a 2D list of HSBK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
 
 get_tile_info([refresh_cache])                                  # returns a list of Tile objects
 get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
@@ -210,7 +210,7 @@ get_tile_colors(start_index, [tile_count], [x], [y], [width])   # returns colors
 set_tile_colors(start_index, colors, [duration], [tile_count], [x], [y], [width], [rapid]) # sets the colors on the specified tile(s). For tile_count > 1, the colors will be duplicated.
 get_tilechain_colors()                                          # returns tilechain_colors
 set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
-project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
+project_matrix(hsbk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
 get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
 ```
 
