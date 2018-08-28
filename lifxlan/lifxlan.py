@@ -241,7 +241,8 @@ class LifxLAN:
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
-            sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
+            if sent_msg_count < num_repeats:
+                sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket()
 
     def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
