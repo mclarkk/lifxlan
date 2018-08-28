@@ -26,7 +26,7 @@ def main():
     print("Found {} lights:".format(len(devices)))
 
     for d in devices:
-        print("{} ({}) HSBK: {}".format(d.get_label(), d.mac_addr, d.get_color()))
+        print("{} ({}) P: {} (HSBK): {}".format(d.get_label(), d.mac_addr, d.get_power()/65535, d.get_color()))
 
 if __name__=="__main__":
     main()
