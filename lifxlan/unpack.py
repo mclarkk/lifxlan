@@ -171,8 +171,9 @@ def unpack_lifx_message(packed_message):
         message = LightGet(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[LightSetColor]:
-        color = struct.unpack("<" + ("H"*4), payload_str[0:8])
-        duration = struct.unpack("<I", payload_str[8:12])[0]
+        reserved = struct.unpack("<B", payload_str[0:1])[0]
+        color = struct.unpack("<" + ("H"*4), payload_str[1:9])
+        duration = struct.unpack("<I", payload_str[9:13])[0]
         payload = {"color": color, "duration": duration}
         message = LightSetColor(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
