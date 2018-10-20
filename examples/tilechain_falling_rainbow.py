@@ -1,5 +1,5 @@
 from lifxlan import *
-from random import randint
+from random import randint, betavariate
 from time import sleep
 
 def main():
@@ -39,9 +39,6 @@ def cycle_row(matrix):
     for row in matrix[:-1]:
         new_matrix.append(row)
     return new_matrix
-
-def get_random_color():
-    return (randint(0,65535), randint(0,65535), randint(0,65535), randint(2500,9000))
 
 if __name__=="__main__":
     main()
