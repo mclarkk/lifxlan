@@ -93,17 +93,17 @@ get_service()                       # returns int, 1 = UDP
 get_port()                          
 get_label()         
 get_power()                         # returns 0 for off, 65535 for on
-get_host_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
+get_host_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
 get_host_firmware_build_timestamp()
 get_host_firmware_version()
-get_wifi_info_tuple()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
+get_wifi_info()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
 get_wifi_signal_mw()
 get_wifi_tx_bytes()
 get_wifi_rx_bytes()         
-get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
+get_wifi_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
 get_wifi_firmware_build_timestamp()
 get_wifi_firmware_version()
-get_version_tuple()                 # returns (vendor, product, version)
+get_version_info()                 # returns (vendor, product, version)
 get_location()                      # Returns location id (bytearray length 16)
 get_location_tuple()                # Returns a tuple of location(bytearray lenght 16), location_label(string), and location_updated_at(unsigned 64 bit epoch timestamp)
 get_location_label()                # Returns location_label string
@@ -115,12 +115,12 @@ get_group_updated_at                # Returns group_updated_at unsigned 64 bit i
 get_vendor()
 get_product()
 get_version()
-get_info_tuple()                    # returns (time (current timestamp in ns), uptime (in ns), downtime (in ns, +/- 5 seconds))
+get_time_info()                    # returns (time (current timestamp in ns), uptime (in ns), downtime (in ns, +/- 5 seconds))
 get_time()
 get_uptime()
 get_downtime()
 is_light()                          # returns True if device is some kind of light product
-supports_color()                    # returns True if product features include color
+supports_color                    # returns True if product features include color
 supports_temperature()              # returns True if product features include white color temperature
 supports_multizone()                # returns True if product features include multizone functionality
 supports_infrared()                 # returns True if product features include infrared functionality

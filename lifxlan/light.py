@@ -5,9 +5,9 @@
 import os
 from .device import Device
 from .errors import InvalidParameterException, WorkflowException
-from .msgtypes import LightGet, LightGetInfrared, LightGetPower,\
-                      LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform,\
-                      LightState, LightStateInfrared, LightStatePower
+from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
+    LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
+    LightState, LightStateInfrared, LightStatePower
 
 RED = [65535, 65535, 65535, 3500]
 ORANGE = [6500, 65535, 65535, 3500]
@@ -21,6 +21,7 @@ WHITE = [58275, 0, 65535, 5500]
 COLD_WHITE = [58275, 0, 65535, 9000]
 WARM_WHITE = [58275, 0, 65535, 3200]
 GOLD = [58275, 0, 65535, 2500]
+
 
 class Light(Device):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
@@ -66,9 +67,13 @@ class Light(Device):
         if len(color) == 4:
             try:
                 if rapid:
-                    self.fire_and_forget(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=1)
+                    self.fire_and_forget(LightSetWaveform,
+                                         {"transient": is_transient, "color": color, "period": period, "cycles": cycles,
+                                          "duty_cycle": duty_cycle, "waveform": waveform}, num_repeats=1)
                 else:
-                    self.req_with_ack(LightSetWaveform, {"transient": is_transient, "color": color, "period": period, "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
+                    self.req_with_ack(LightSetWaveform,
+                                      {"transient": is_transient, "color": color, "period": period, "cycles": cycles,
+                                       "duty_cycle": duty_cycle, "waveform": waveform})
             except WorkflowException as e:
                 raise
 
@@ -151,7 +156,7 @@ class Light(Device):
 
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
-        if self.supports_infrared():
+        if self.supports_infrared:
             try:
                 response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
                 self.infrared_brightness = response.infrared_brightness
@@ -171,14 +176,14 @@ class Light(Device):
 
     # minimum color temperature supported by lightbulb
     def get_min_kelvin(self):
-        if self.product_features == None:
-            self.product_features = self.get_product_features()
+        if self.product_features is None:
+            self.get_product_features()
         return self.product_features['min_kelvin']
 
     # maximum color temperature supported by lightbulb
     def get_max_kelvin(self):
-        if self.product_features == None:
-            self.product_features = self.get_product_features()
+        if self.product_features is None:
+            self.get_product_features()
         return self.product_features['max_kelvin']
 
     ############################################################################

@@ -32,7 +32,7 @@ class Sniffer(object):
                 self.sock.close()
 
     def send(self, msg):
-        if self.sock == None:
+        if self.sock is None:
             self.initialize_socket()
         msg.origin = 1
         print("SEND:"),

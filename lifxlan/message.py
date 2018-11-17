@@ -50,7 +50,7 @@ class Message(object):
 
     # frame (and thus header) needs to be generated after payload (for size field)
     def get_header(self):
-        if self.size == None:
+        if self.size is None:
             self.size = self.get_msg_size()
         frame_addr = self.get_frame_addr()
         frame = self.get_frame()

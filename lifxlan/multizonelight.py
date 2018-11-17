@@ -18,7 +18,7 @@ class MultiZoneLight(Light):
         response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":0, "end_index":255})
         total_zones = response.count
         # validate indices
-        if start != None and end != None:
+        if start is not None and end is not None:
             # automatically truncate if the end is too large
             if end > total_zones:
                 end = total_zones
@@ -26,7 +26,7 @@ class MultiZoneLight(Light):
                 raise ValueError("In the function get_color_zones, starting index is greater than the total available zones (provided start = {}, end = {} for a device with {} total zones).".format(start, end, total_zones))
             if end <= start:
                 raise ValueError("In the function get_color_zones, end must be greater than start (provided start = {}, end = {}).".format(start, end, total_zones))
-        if (start != None and end == None) or (start == None and end != None):
+        if (start is not None and end is None) or (start is None and end is not None):
             raise ValueError("In the function get_color_zones, start and end indices must both be provided, or neither provided.")
 
         # get all zones
@@ -45,7 +45,7 @@ class MultiZoneLight(Light):
             all_zones[first_included_zone:last_included_zone+1] = response.color[:last_index+1]
         self.color = all_zones
 
-        if start != None and end != None:
+        if start is not None and end is not None:
             self.color = all_zones[start:end]
 
         return self.color

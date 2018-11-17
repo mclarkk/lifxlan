@@ -39,7 +39,7 @@ class Group(object):
             t.join()
 
     def set_power_helper(self, device, power, duration, rapid):
-        if device.is_light():
+        if device.is_light:
             device.set_power(power, duration, rapid) # Light::set_power(power, [duration], [rapid])
         else:
             device.set_power(power, rapid) # Device::set_power(power, [rapid])
