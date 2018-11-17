@@ -25,7 +25,7 @@ from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, 
 from time import sleep, time
 import platform
 import netifaces as ni
-from typing import NamedTuple
+from typing import NamedTuple, Optional, Dict
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
@@ -36,7 +36,7 @@ from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
 DEFAULT_TIMEOUT = 1  # second
-DEFAULT_ATTEMPTS = 1
+DEFAULT_ATTEMPTS = 2
 
 VERBOSE = False
 
@@ -386,6 +386,14 @@ class Device(object):
     #                            Workflow Methods                              #
     #                                                                          #
     ############################################################################
+
+    def _send_set_message(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
+                          max_attempts=DEFAULT_ATTEMPTS, *, rapid: bool):
+        args = msg_type, payload, timeout_secs
+        if rapid:
+            self.fire_and_forget(*args, num_repeats=max_attempts)
+        else:
+            self.req_with_ack(*args)
 
     # Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
     def fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):

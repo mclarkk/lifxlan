@@ -4,9 +4,9 @@ import lifxlan
 def __main():
     lan = lifxlan.LifxLAN(100)
     lan.discover_devices()
-    d = lan.devices[0]
-    print(len(lan.devices))
-    print(lan.lights)
+    l = lan.lights[0]
+    print(l.color)
+    print(l.get_power())
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from random import randint
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
 import os
-from typing import Union, List, Callable
+from typing import Union, List, Callable, Optional, Dict
 
 from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
 from .errors import InvalidParameterException, WorkflowException
@@ -32,9 +32,10 @@ class LifxLAN:
     def __init__(self, num_lights=None, verbose=False):
         self.source_id = os.getpid()
         self.num_devices = num_lights
-        self.devices: List[Device] = []
+        self.devices: List[Light] = []
         self.verbose = verbose
         self._pool = ThreadPoolExecutor(40)
+        self.discover_devices()
 
     ############################################################################
     #                                                                          #
@@ -43,7 +44,7 @@ class LifxLAN:
     ############################################################################
 
     @property
-    def lights(self):
+    def lights(self) -> List[Light]:
         return [d for d in self.devices if d.is_light]
 
     def get_devices(self):
@@ -69,8 +70,6 @@ class LifxLAN:
                                                 self.verbose)
                     elif device.supports_chain:
                         device = TileChain(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
-                    else:
-                        device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
             self.devices.append(device)
             futures.append(self._pool.submit(device.refresh))
         wait(futures)
@@ -247,8 +246,9 @@ class LifxLAN:
             sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
         self.close_socket()
 
-    def broadcast_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT,
+    def broadcast_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
                             max_attempts=DEFAULT_ATTEMPTS):
+        payload = payload or {}
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
             msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True,
