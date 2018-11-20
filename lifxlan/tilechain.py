@@ -75,10 +75,7 @@ class TileChain(Light):
                    "x": x,
                    "y": y,
                    "width": width}
-        if not rapid:
-            self.req_with_ack(SetTileState64, payload)
-        else:
-            self.fire_and_forget(SetTileState64, payload, num_repeats=1)
+        self._send_set_message(SetTileState64, payload, rapid=rapid)
 
     def set_tilechain_colors(self, tilechain_colors, duration=0, rapid=False):
         threads = []

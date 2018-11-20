@@ -11,9 +11,11 @@ BROADCAST_SOURCE_ID = 0
 
 HEADER_SIZE_BYTES = 36
 
+
 class Message(object):
     def __init__(self, msg_type, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
 
+        # @formatter:off
         # Frame
         self.frame_format = ["16", "2, 1, 1, 12", "32"]
         self.size = None                                                # 16 bits/uint16
@@ -37,8 +39,9 @@ class Message(object):
         self.reserved = 0                                               # 64 bits/uint64, all zero
         self.message_type = msg_type                                    # 16 bits/uint16
         self.reserved = 0                                               # 16 bits/uint16, all zero
+        # @formatter:on
 
-        self.payload_fields = [] # tuples of ("label", value)
+        self.payload_fields = []  # tuples of ("label", value)
 
         self.packed_message = self.generate_packed_message()
 
@@ -79,7 +82,8 @@ class Message(object):
         seq_num_format = self.frame_addr_format[3]
         mac_addr = little_endian(bitstring.pack(mac_addr_format, convert_MAC_to_int(self.target_addr)))
         reserved_48 = little_endian(bitstring.pack(reserved_48_format, self.reserved))
-        response_flags = little_endian(bitstring.pack(response_flags_format, self.reserved, self.ack_requested, self.response_requested))
+        response_flags = little_endian(
+            bitstring.pack(response_flags_format, self.reserved, self.ack_requested, self.response_requested))
         seq_num = little_endian(bitstring.pack(seq_num_format, self.seq_num))
         frame_addr = mac_addr + reserved_48 + response_flags + seq_num
         return frame_addr
@@ -113,14 +117,15 @@ class Message(object):
         s += indent + "Message Type: {}\n".format(self.message_type)
         s += indent + "Payload:"
         for field in self.payload_fields:
-            s += "\n" + indent*2 + "{}: {}".format(field[0], field[1])
+            s += "\n" + indent * 2 + "{}: {}".format(field[0], field[1])
         if len(self.payload_fields) == 0:
-            s += "\n" + indent*2 + "<empty>"
+            s += "\n" + indent * 2 + "<empty>"
         s += "\n"
         s += indent + "Bytes:\n"
-        s += indent*2 + str([hex(b) for b in struct.unpack("B"*(len(self.packed_message)),self.packed_message)])
+        s += indent * 2 + str([hex(b) for b in struct.unpack("B" * (len(self.packed_message)), self.packed_message)])
         s += "\n"
         return s
+
 
 # reverses bytes for little endian, then converts to int
 def convert_MAC_to_int(addr):
@@ -129,8 +134,9 @@ def convert_MAC_to_int(addr):
     addr_str = "".join(reverse_bytes_str)
     return int(addr_str, 16)
 
+
 def little_endian(bs):
-    shifts = [i*8 for i in range(int(len(bs)/8))]
+    shifts = [i * 8 for i in range(int(len(bs) / 8))]
     int_bytes_little_endian = [int(bs.uintbe >> i & 0xff) for i in shifts]
     packed_message_little_endian = b""
     for b in int_bytes_little_endian:

@@ -3,11 +3,11 @@
 # Author: Meghan Clark
 
 import os
-from enum import Enum
 from typing import NamedTuple
 
+from lifxlan import PowerSettings
 from .device import Device
-from .errors import InvalidParameterException, WorkflowException
+from .errors import WorkflowException
 from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
     LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared, LightStatePower
@@ -32,19 +32,6 @@ WHITE = Color(58275, 0, 65535, 5500)
 COLD_WHITE = Color(58275, 0, 65535, 9000)
 WARM_WHITE = Color(58275, 0, 65535, 3200)
 GOLD = Color(58275, 0, 65535, 2500)
-
-
-class PowerSettings(Enum):
-    on = (True, 1, "on", 65535)
-    off = (False, 0, "off")
-
-    @classmethod
-    def validate(cls, value) -> int:
-        if value in cls.on:
-            return 65535
-        elif value in cls.off:
-            return 0
-        raise InvalidParameterException(f'{value} is not a valid power level.')
 
 
 class Light(Device):
@@ -126,13 +113,8 @@ class Light(Device):
 
     # Infrared set maximum brightness, infrared_brightness
     def set_infrared(self, infrared_brightness, rapid=False):
-        try:
-            if rapid:
-                self.fire_and_forget(LightSetInfrared, {"infrared_brightness": infrared_brightness}, num_repeats=1)
-            else:
-                self.req_with_ack(LightSetInfrared, {"infrared_brightness": infrared_brightness})
-        except WorkflowException as e:
-            raise
+        payload = dict(infrared_brightness=infrared_brightness)
+        self._send_set_message(LightSetInfrared, payload, rapid=rapid)
 
     # minimum color temperature supported by lightbulb
     def get_min_kelvin(self):

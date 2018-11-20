@@ -20,6 +20,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
+from enum import Enum
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, \
     gethostname
 from time import sleep, time
@@ -27,7 +28,7 @@ import platform
 import netifaces as ni
 from typing import NamedTuple, Optional, Dict
 
-from .errors import WorkflowException
+from .errors import WorkflowException, InvalidParameterException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
@@ -39,6 +40,19 @@ DEFAULT_TIMEOUT = 1  # second
 DEFAULT_ATTEMPTS = 2
 
 VERBOSE = False
+
+
+class PowerSettings(Enum):
+    on = (True, 1, "on", 65535)
+    off = (False, 0, "off")
+
+    @classmethod
+    def validate(cls, value) -> int:
+        if value in cls.on:
+            return 65535
+        elif value in cls.off:
+            return 0
+        raise InvalidParameterException(f'{value} is not a valid power level.')
 
 
 def get_broadcast_addrs():
@@ -172,11 +186,11 @@ class Device(object):
 
     @property
     def product_name(self):
-        return product_map.get(self._version_info.product, 'UNKNOWN')
+        return product_map.get(self.product, 'UNKNOWN')
 
     @property
     def product_features(self):
-        return features_map.get(self._version_info.product, 'UNKNOWN')
+        return features_map.get(self.product, 'UNKNOWN')
 
     # update the device's (relatively) persistent attributes
     def refresh(self):
@@ -223,16 +237,8 @@ class Device(object):
         return self.power_level
 
     def set_power(self, power, rapid=False):
-        on = [True, 1, "on"]
-        off = [False, 0, "off"]
-        if power in on and not rapid:
-            self.req_with_ack(SetPower, {"power_level": 65535})
-        elif power in off and not rapid:
-            self.req_with_ack(SetPower, {"power_level": 0})
-        elif power in on and rapid:
-            self.fire_and_forget(SetPower, {"power_level": 65535})
-        elif power in off and rapid:
-            self.fire_and_forget(SetPower, {"power_level": 0})
+        payload = dict(power_level=PowerSettings.validate(power))
+        self._send_set_message(SetPower, payload, rapid=rapid)
 
     def get_host_firmware_info(self) -> FirmwareInfo:
         response = self.req_with_resp(GetHostFirmware, StateHostFirmware)
@@ -389,6 +395,7 @@ class Device(object):
 
     def _send_set_message(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
                           max_attempts=DEFAULT_ATTEMPTS, *, rapid: bool):
+        """handle sending messages either rapidly or not"""
         args = msg_type, payload, timeout_secs
         if rapid:
             self.fire_and_forget(*args, num_repeats=max_attempts)
@@ -396,7 +403,9 @@ class Device(object):
             self.req_with_ack(*args)
 
     # Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
-    def fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
+    def fire_and_forget(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
+                        num_repeats=DEFAULT_ATTEMPTS):
+        payload = payload or {}
         socket_id = self.initialize_socket(timeout_secs)
         sock = self.socket_table[socket_id]
         msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False,
@@ -420,21 +429,19 @@ class Device(object):
         self.req_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
 
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
-    def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT,
+    def req_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
                       max_attempts=DEFAULT_ATTEMPTS):
-        # Need to put error checking here for aguments
-        if type(response_type) != type([]):
+        # Need to put error checking here for arguments
+        payload = payload or {}
+        if not isinstance(response_type, list):
             response_type = [response_type]
         success = False
         device_response = None
         socket_id = self.initialize_socket(timeout_secs)
         sock = self.socket_table[socket_id]
-        if len(response_type) == 1 and Acknowledgement in response_type:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True,
-                           response_requested=False)
-        else:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False,
-                           response_requested=True)
+        ack_requested = len(response_type) == 1 and Acknowledgement in response_type
+        msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=ack_requested,
+                       response_requested=not ack_requested)
         response_seen = False
         attempts = 0
         while not response_seen and attempts < max_attempts:

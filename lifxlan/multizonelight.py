@@ -5,7 +5,7 @@ import math
 import os
 
 from .device import WorkflowException
-from .light import Light
+from .light import Light, Color
 from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
 
 
@@ -50,19 +50,9 @@ class MultiZoneLight(Light):
 
         return self.color
 
-    def set_zone_color(self, start_index, end_index, color, duration=0, rapid=False, apply=1):
-        if len(color) == 4:
-            try:
-                if rapid:
-                    self.fire_and_forget(MultiZoneSetColorZones,
-                                         {"start_index": start_index, "end_index": end_index, "color": color,
-                                          "duration": duration, "apply": apply}, num_repeats=1)
-                else:
-                    self.req_with_ack(MultiZoneSetColorZones,
-                                      {"start_index": start_index, "end_index": end_index, "color": color,
-                                       "duration": duration, "apply": apply})
-            except WorkflowException as e:
-                raise
+    def set_zone_color(self, start_index, end_index, color: Color, duration=0, rapid=False, apply=1):
+        payload = dict(start_index=start_index, end_index=end_index, color=color, duration=duration, apply=apply)
+        self._send_set_message(MultiZoneSetColorZones, payload, rapid=rapid)
 
     # Sets colors for all zones given a list of HSVK colors
     def set_zone_colors(self, colors, duration=0, rapid=False):
