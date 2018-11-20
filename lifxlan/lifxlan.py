@@ -10,7 +10,7 @@ import os
 from typing import List, Optional, Dict
 
 from .settings import Color, PowerSettings
-from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
+from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT, Device
 from .errors import WorkflowException
 from .light import Light
 from .message import BROADCAST_MAC
@@ -27,6 +27,8 @@ class LifxLAN:
         self.source_id = os.getpid()
         self.num_devices = 13
         self.devices: List[Light] = []
+        # TODO: add this
+        # self._devices_by_mac_addr: Dict[str, Device] = {}
         self.verbose = verbose
         self._pool = ThreadPoolExecutor(40)
         self.refresh()
@@ -48,18 +50,23 @@ class LifxLAN:
         self.num_devices = 10000
         responses = self._broadcast_with_resp(GetService, StateService)
         for r in responses:
-            args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose
-            with suppress(WorkflowException):
-                device = Light(*args)
-                if device.is_light:
-                    if device.supports_multizone:
-                        device = MultiZoneLight(*args)
-                    elif device.supports_chain:
-                        device = TileChain(*args)
+            device = self._proc_device_response(r)
             self.devices.append(device)
+            # self._devices_by_mac_addr[device.mac_addr] = device
             futures.append(self._pool.submit(device.refresh))
         wait(futures)
         self.num_devices = len(self.devices)
+
+    def _proc_device_response(self, r):
+        args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose
+        with suppress(WorkflowException):
+            device = Light(*args)
+            if device.is_light:
+                if device.supports_multizone:
+                    device = MultiZoneLight(*args)
+                elif device.supports_chain:
+                    device = TileChain(*args)
+        return device
 
     def get_multizone_lights(self):
         return [l for l in self.lights if l.supports_multizone]
