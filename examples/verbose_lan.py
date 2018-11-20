@@ -21,10 +21,10 @@ def main():
     lifx = LifxLAN(num_lights, verbose=True)
 
     # get devices
-    devices = lifx.get_lights()
+    devices = lifx.lights
     labels = []
     for device in devices:
-        labels.append(device.get_label())
+        labels.append(device.label)
     print("Found Bulbs:")
     for label in labels:
         print("  " + str(label))

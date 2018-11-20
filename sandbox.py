@@ -2,11 +2,11 @@ import lifxlan
 
 
 def __main():
-    lan = lifxlan.LifxLAN(100)
-    lan.discover_devices()
+    lan = lifxlan.LifxLAN()
     l = lan.lights[0]
+    print(len(lan.lights))
     print(l.color)
-    print(l.get_power())
+    print(l.power_level)
 
 
 if __name__ == '__main__':

@@ -21,12 +21,12 @@ def main():
 
     # get devices
     print("Discovering lights...")
-    devices = lifx.get_lights()
+    devices = lifx.lights
 
     print("Found {} lights:".format(len(devices)))
 
     for d in devices:
-        print("{} ({}) HSBK: {}".format(d.get_label(), d.mac_addr, d.get_color()))
+        print("{} ({}) HSBK: {}".format(d.label, d.mac_addr, d.get_color()))
 
 if __name__=="__main__":
     main()

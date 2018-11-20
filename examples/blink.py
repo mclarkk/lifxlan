@@ -22,16 +22,16 @@ def main():
     lifx = LifxLAN(num_lights)
 
     # get devices
-    devices = lifx.get_lights()
+    devices = lifx.lights
     bulb = devices[0]
-    print("Selected {}".format(bulb.get_label()))
+    print("Selected {}".format(bulb.label))
 
     # get original state
-    original_power = bulb.get_power()
+    original_power = bulb.power_level
     original_color = bulb.get_color()
     bulb.set_power("on")
 
-    sleep(0.2) # to look pretty
+    sleep(0.2)  # to look pretty
 
     print("Toggling power...")
     toggle_device_power(bulb, 0.2)
@@ -44,13 +44,14 @@ def main():
     print("Restoring original color and power...")
     bulb.set_color(original_color)
 
-    sleep(1) # to look pretty.
+    sleep(1)  # to look pretty.
 
     # restore original power
     bulb.set_power(original_power)
 
-def toggle_device_power(device, interval=0.5, num_cycles=3): #TEST
-    original_power_state = device.get_power()
+
+def toggle_device_power(device, interval=0.5, num_cycles=3):  # TEST
+    original_power_state = device.power_level
     device.set_power("off")
     rapid = True if interval < 1 else False
     for i in range(num_cycles):
@@ -59,6 +60,7 @@ def toggle_device_power(device, interval=0.5, num_cycles=3): #TEST
         device.set_power("off", rapid)
         sleep(interval)
     device.set_power(original_power_state)
+
 
 def toggle_light_color(light, interval=0.5, num_cycles=3):
     original_color = light.get_color()
@@ -70,5 +72,6 @@ def toggle_light_color(light, interval=0.5, num_cycles=3):
         sleep(interval)
     light.set_color(original_color)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

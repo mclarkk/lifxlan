@@ -22,13 +22,13 @@ def main():
     lifx = LifxLAN(num_lights)
 
     # get devices
-    devices = lifx.get_lights()
+    devices = lifx.lights
     bulb = devices[0]
-    print("Selected {}".format(bulb.get_label()))
+    print("Selected {}".format(bulb.label))
 
     # get original state
     print("Turning on all lights...")
-    original_power = bulb.get_power()
+    original_power = bulb.power_level
     original_color = bulb.get_color()
     bulb.set_power("on")
 

@@ -7,7 +7,7 @@ def main():
     tilechain_lights = lan.get_tilechain_lights()
     if len(tilechain_lights) != 0:
         t = lan.get_tilechain_lights()[0] #grab the first tilechain
-        print("Selected TileChain light: {}".format(t.get_label()))
+        print("Selected TileChain light: {}".format(t.label))
         original_colors = t.get_tilechain_colors()
         (cols, rows) = t.get_canvas_dimensions()
         hue = 0

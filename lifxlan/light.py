@@ -3,22 +3,13 @@
 # Author: Meghan Clark
 
 import os
-from typing import NamedTuple
+from .settings import Color
 
-from lifxlan import PowerSettings
 from .device import Device
 from .errors import WorkflowException
 from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
     LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared, LightStatePower
-
-
-class Color(NamedTuple):
-    hue: int
-    saturation: int
-    brightness: int
-    kelvin: int
-
 
 RED = Color(65535, 65535, 65535, 3500)
 ORANGE = Color(6500, 65535, 65535, 3500)
@@ -57,8 +48,7 @@ class Light(Device):
         return self.power_level
 
     def set_power(self, power, duration=0, rapid=False):
-        payload = dict(power_level=PowerSettings.validate(power), duration=duration)
-        self._send_set_message(LightSetPower, payload, rapid=rapid)
+        self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
     # color is [Hue, Saturation, Brightness, Kelvin]
     def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform, rapid=False):
@@ -74,7 +64,7 @@ class Light(Device):
         self.label = response.label
         return self.color
 
-    def _update_color(self, color: Color, duration, rapid, **color_kwargs):
+    def _refresh_color(self, color: Color, duration, rapid, **color_kwargs):
         self.set_color(color._replace(**color_kwargs), duration, rapid)
 
     def set_color(self, color: Color, duration=0, rapid=False):
@@ -84,22 +74,22 @@ class Light(Device):
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
-        self._update_color(self.get_color(), duration, rapid, hue=hue)
+        self._refresh_color(self.get_color(), duration, rapid, hue=hue)
 
     def set_saturation(self, saturation, duration=0, rapid=False):
         """ saturation to set
             duration in ms"""
-        self._update_color(self.get_color(), duration, rapid, saturation=saturation)
+        self._refresh_color(self.get_color(), duration, rapid, saturation=saturation)
 
     def set_brightness(self, brightness, duration=0, rapid=False):
         """ brightness to set
             duration in ms"""
-        self._update_color(self.get_color(), duration, rapid, brightness=brightness)
+        self._refresh_color(self.get_color(), duration, rapid, brightness=brightness)
 
     def set_colortemp(self, kelvin, duration=0, rapid=False):
         """ kelvin: color temperature to set
             duration in ms"""
-        self._update_color(self.get_color(), duration, rapid, kelvin=kelvin)
+        self._refresh_color(self.get_color(), duration, rapid, kelvin=kelvin)
 
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
@@ -118,15 +108,11 @@ class Light(Device):
 
     # minimum color temperature supported by lightbulb
     def get_min_kelvin(self):
-        if self.product_features is None:
-            self.get_product_features()
-        return self.product_features['min_kelvin']
+        return self.product_features.get('min_kelvin', 'UNKNOWN')
 
     # maximum color temperature supported by lightbulb
     def get_max_kelvin(self):
-        if self.product_features is None:
-            self.get_product_features()
-        return self.product_features['max_kelvin']
+        return self.product_features.get('max_kelvin', 'UNKNOWN')
 
     ############################################################################
     #                                                                          #

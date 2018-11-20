@@ -28,7 +28,7 @@ def main():
 
     if len(multizone_lights) > 0:
         strip = multizone_lights[0]
-        print("Selecting " + strip.get_label())
+        print("Selecting " + strip.label)
         all_zones = strip.get_color_zones()
         original_zones = deepcopy(all_zones)
         zone_buff = all_zones

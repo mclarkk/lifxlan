@@ -5,7 +5,8 @@ import math
 import os
 
 from .device import WorkflowException
-from .light import Light, Color
+from .light import Light
+from .settings import Color
 from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
 
 

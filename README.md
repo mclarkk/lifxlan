@@ -58,7 +58,7 @@ LifxLAN objects have the following methods:
 # group is a string label for a group, such as "Living Room"
 # location is the string label for a location, such as "My Home"
 
-get_lights()                                                                                 # returns list of Light objects
+lights                                                                                 # returns list of Light objects
 get_color_lights()                                                                           # returns list of Light objects that support color functionality
 get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
 get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
@@ -91,8 +91,8 @@ get_mac_addr()
 get_ip_addr()
 get_service()                       # returns int, 1 = UDP
 get_port()                          
-get_label()         
-get_power()                         # returns 0 for off, 65535 for on
+label         
+power_level                         # returns 0 for off, 65535 for on
 get_host_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
 get_host_firmware_build_timestamp()
 get_host_firmware_version()
@@ -103,12 +103,12 @@ get_wifi_rx_bytes()
 get_wifi_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
 get_wifi_firmware_build_timestamp()
 get_wifi_firmware_version()
-get_version_info()                 # returns (vendor, product, version)
-get_location()                      # Returns location id (bytearray length 16)
+version_info                 # returns (vendor, product, version)
+location                      # Returns location id (bytearray length 16)
 get_location_tuple()                # Returns a tuple of location(bytearray lenght 16), location_label(string), and location_updated_at(unsigned 64 bit epoch timestamp)
 get_location_label()                # Returns location_label string
 get_location_updated_at             # Returns location_updated_at unsigned 64 bit int -> epoch timestamp
-get_group()                         # Returns group id (bytearray length 16)
+group                         # Returns group id (bytearray length 16)
 get_group_tuple()                   # Returns a tuple of group(bytearray lenght 16), group_label(string), and group_updated_at(unsigned 64 bit epoch timestamp)
 get_group_label()                   # Returns group_label(string)
 get_group_updated_at                # Returns group_updated_at unsigned 64 bit int -> epoch timestamp
@@ -131,7 +131,7 @@ supports_infrared()                 # returns True if product features include i
 You can get Light objects automatically though LAN-based discovery (takes a few seconds), or by creating Light objects using a known MAC address and IP address:
 
 ```
-lights = lan.get_lights()                              # Option 1: Discovery
+lights = lan.lights                              # Option 1: Discovery
 light = Light("12:34:56:78:9a:bc", "192.168.1.42")     # Option 2: Direct
 ```
 
@@ -158,7 +158,7 @@ The Light API provides everything in the Device API, as well as:
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
 set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
-get_power()                                                                 # returns 0 or 65535
+power_level                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
 get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
 set_infrared(infrared_brightness)

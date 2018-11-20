@@ -21,7 +21,7 @@ def main():
     lifx = LifxLAN(num_lights)
 
     # get devices
-    devices = lifx.get_lights()
+    devices = lifx.lights
     print("\nFound {} light(s):\n".format(len(devices)))
     for d in devices:
         try:

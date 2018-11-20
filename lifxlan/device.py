@@ -10,25 +10,18 @@
 # via UDP broadcast, but by including the device's MAC other LIFX devices will
 # ignore the packet.
 #
-# Import note: Every time you call a `get` method you are sending packets to the
-# real device. If you want to access the last known (cached) value of an attribute
-# just access the attribute directly, e.g., mydevice.label instead of mydevice.get_label()
-#
 # Currently service and port are set during initialization and never updated.
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import wait
 from datetime import datetime
-from enum import Enum
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, \
-    gethostname
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
-import platform
 import netifaces as ni
 from typing import NamedTuple, Optional, Dict
 
-from .errors import WorkflowException, InvalidParameterException
+from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
@@ -40,19 +33,6 @@ DEFAULT_TIMEOUT = 1  # second
 DEFAULT_ATTEMPTS = 2
 
 VERBOSE = False
-
-
-class PowerSettings(Enum):
-    on = (True, 1, "on", 65535)
-    off = (False, 0, "off")
-
-    @classmethod
-    def validate(cls, value) -> int:
-        if value in cls.on:
-            return 65535
-        elif value in cls.off:
-            return 0
-        raise InvalidParameterException(f'{value} is not a valid power level.')
 
 
 def get_broadcast_addrs():
@@ -127,9 +107,9 @@ class Device(object):
         self.location = None
         self.group = None
         self.power_level = None
-        self._host_firmware_info = FirmwareInfo()
-        self._wifi_firmware_info = FirmwareInfo()
-        self._version_info = VersionInfo()
+        self.host_firmware_info = FirmwareInfo()
+        self.wifi_firmware_info = FirmwareInfo()
+        self.version_info = VersionInfo()
 
         self._pool = ThreadPoolExecutor(12)
 
@@ -158,117 +138,125 @@ class Device(object):
 
     @property
     def host_firmware_build_timestamp(self):
-        return self._host_firmware_info.build_timestamp
+        return self.host_firmware_info.build_timestamp
 
     @property
     def host_firmware_version(self):
-        return self._host_firmware_info.version
+        return self.host_firmware_info.version
 
     @property
     def wifi_firmware_build_timestamp(self):
-        return self._wifi_firmware_info.build_timestamp
+        return self.wifi_firmware_info.build_timestamp
 
     @property
     def wifi_firmware_version(self):
-        return self._wifi_firmware_info.version
+        return self.wifi_firmware_info.version
 
     @property
     def vendor(self):
-        return self._version_info.vendor
+        return self.version_info.vendor
 
     @property
     def version(self):
-        return self._version_info.version
+        return self.version_info.version
 
     @property
     def product(self):
-        return self._version_info.product
+        return self.version_info.product
 
     @property
     def product_name(self):
-        return product_map.get(self.product, 'UNKNOWN')
+        return product_map.get(self.product)
 
     @property
     def product_features(self):
-        return features_map.get(self.product, 'UNKNOWN')
+        return features_map.get(self.product)
 
-    # update the device's (relatively) persistent attributes
+    # ==================================================================================================================
+    # SETTERS
+    # ==================================================================================================================
+
+    def set_label(self, label):
+        self.req_with_ack(SetLabel, dict(label=label[:32]))
+        self._refresh_label()
+
+    def set_power(self, power, rapid=False, **device_kwargs):
+        self._set_power(SetPower, power, rapid=rapid, **device_kwargs)
+
+    def _set_power(self, msg_type, power, rapid=False, **device_kwargs):
+        from lifxlan.settings import PowerSettings
+        payload = dict(power_level=PowerSettings.validate(power))
+        self._send_set_message(msg_type, payload, rapid=rapid, **device_kwargs)
+        self._refresh_power()
+
+    # ==================================================================================================================
+    # REFRESH LOCAL VALUES
+    # ==================================================================================================================
+
     def refresh(self):
-        funcs = (self.get_label,
-                 self.get_location,
-                 self.get_group,
-                 self.get_power,
-                 self.get_host_firmware_info,
-                 self.get_wifi_firmware_info,
-                 self.get_version_info,
-                 self.get_product_name,
-                 self.get_product_features)
+        """full refresh for all interesting values"""
+        funcs = (self._refresh_label,
+                 self._refresh_location,
+                 self._refresh_group,
+                 self._refresh_power,
+                 self._refresh_host_firmware_info,
+                 self._refresh_wifi_firmware_info,
+                 self._refresh_version_info)
         wait([self._pool.submit(f) for f in funcs])
 
-    def get_label(self):
+    def _refresh_label(self):
         response = self.req_with_resp(GetLabel, StateLabel)
         self.label = response.label.encode('utf-8')
         if type(self.label).__name__ == 'bytes':  # Python 3
             self.label = self.label.decode('utf-8')
-        return self.label
 
-    def get_location(self):
+    def _refresh_location(self):
         response = self.req_with_resp(GetLocation, StateLocation)
         self.location = response.label.encode('utf-8')
         if type(self.location).__name__ == 'bytes':  # Python 3
             self.location = self.location.decode('utf-8')
         return self.location
 
-    def get_group(self):
+    def _refresh_group(self):
         response = self.req_with_resp(GetGroup, StateGroup)
         self.group = response.label.encode('utf-8')
         if type(self.group).__name__ == 'bytes':  # Python 3
             self.group = self.group.decode('utf-8')
         return self.group
 
-    def set_label(self, label):
-        if len(label) > 32:
-            label = label[:32]
-        self.req_with_ack(SetLabel, {"label": label})
-
-    def get_power(self):
+    def _refresh_power(self):
         response = self.req_with_resp(GetPower, StatePower)
         self.power_level = response.power_level
-        return self.power_level
 
-    def set_power(self, power, rapid=False):
-        payload = dict(power_level=PowerSettings.validate(power))
-        self._send_set_message(SetPower, payload, rapid=rapid)
-
-    def get_host_firmware_info(self) -> FirmwareInfo:
+    def _refresh_host_firmware_info(self) -> FirmwareInfo:
         response = self.req_with_resp(GetHostFirmware, StateHostFirmware)
         build = response.build
         version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
-        t = self._host_firmware_info = FirmwareInfo(build, version)
+        t = self.host_firmware_info = FirmwareInfo(build, version)
+        return t
+
+    def _refresh_wifi_firmware_info(self) -> FirmwareInfo:
+        response = self.req_with_resp(GetWifiFirmware, StateWifiFirmware)
+        build = response.build
+        version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
+        t = self.wifi_firmware_info = FirmwareInfo(build, version)
+        return t
+
+    def _refresh_version_info(self) -> VersionInfo:
+        r = self.req_with_resp(GetVersion, StateVersion)
+        t = self.version_info = VersionInfo(r.vendor, r.product, r.version)
         return t
 
     def get_wifi_info(self) -> WifiInfo:
         response = self.req_with_resp(GetWifiInfo, StateWifiInfo)
         return WifiInfo(response.signal, response.tx, response.rx)
 
-    def get_wifi_firmware_info(self) -> FirmwareInfo:
-        response = self.req_with_resp(GetWifiFirmware, StateWifiFirmware)
-        build = response.build
-        version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
-        t = self._wifi_firmware_info = FirmwareInfo(build, version)
-        return t
-
-    def get_version_info(self) -> VersionInfo:
-        r = self.req_with_resp(GetVersion, StateVersion)
-        t = self._version_info = VersionInfo(r.vendor, r.product, r.version)
-        return t
-
-    def get_product_name(self):
-        self.get_version_info()
-        return self.product_name
+    # ==================================================================================================================
+    # GET DATA
+    # ==================================================================================================================
 
     def get_product_features(self):
-        self.get_version_info()
+        self._refresh_version_info()
         return self.product_features
 
     def get_location_tuple(self):
@@ -287,13 +275,10 @@ class Device(object):
         return updated_at
 
     def get_group_tuple(self):
-        try:
-            response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.group
-            label = response.label
-            updated_at = response.updated_at
-        except:
-            raise
+        response = self.req_with_resp(GetGroup, StateGroup)
+        self.group = response.group
+        label = response.label
+        updated_at = response.updated_at
         return self.group, label, updated_at
 
     def get_group_label(self):
@@ -311,12 +296,13 @@ class Device(object):
     @property
     def is_light(self) -> bool:
         if self.product is None:
-            self.get_version_info()
+            self._refresh_version_info()
         return self.product in light_products
 
     def _supports(self, feature: str) -> bool:
-        if self.product_features is None:
-            self.get_product_features()
+        if self.product is None:
+            self._refresh_version_info()
+
         return self.product_features[feature]
 
     supports_color = SupportsDesc()

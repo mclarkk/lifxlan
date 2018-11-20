@@ -4,15 +4,14 @@
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
-from enum import Enum
-from random import randint
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
 import os
-from typing import Union, List, Callable, Optional, Dict
+from typing import List, Optional, Dict
 
-from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
-from .errors import InvalidParameterException, WorkflowException
+from .settings import Color, PowerSettings
+from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
+from .errors import WorkflowException
 from .light import Light
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetService, LightGet, LightGetPower, LightSetColor, LightSetPower, \
@@ -23,19 +22,14 @@ from .unpack import unpack_lifx_message
 from .group import Group
 
 
-class DeviceType(Enum):
-    device = Device
-    light = Light
-
-
 class LifxLAN:
-    def __init__(self, num_lights=None, verbose=False):
+    def __init__(self, verbose=False):
         self.source_id = os.getpid()
-        self.num_devices = num_lights
+        self.num_devices = 13
         self.devices: List[Light] = []
         self.verbose = verbose
         self._pool = ThreadPoolExecutor(40)
-        self.discover_devices()
+        self.refresh()
 
     ############################################################################
     #                                                                          #
@@ -47,182 +41,114 @@ class LifxLAN:
     def lights(self) -> List[Light]:
         return [d for d in self.devices if d.is_light]
 
-    def get_devices(self):
-        self.discover_devices()
-        return self.devices
-
-    def get_lights(self):
-        self.discover_devices()
-        return self.lights
-
-    # more of an internal helper function
-    # forces a refresh of the internal list of available devices
-    def discover_devices(self):
+    def refresh(self):
+        """get available devices"""
         futures = []
         self.devices.clear()
-        responses = self.broadcast_with_resp(GetService, StateService)
+        self.num_devices = 10000
+        responses = self._broadcast_with_resp(GetService, StateService)
         for r in responses:
-            device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+            args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose
             with suppress(WorkflowException):
+                device = Light(*args)
                 if device.is_light:
                     if device.supports_multizone:
-                        device = MultiZoneLight(r.target_addr, r.ip_addr, r.service, r.port, self.source_id,
-                                                self.verbose)
+                        device = MultiZoneLight(*args)
                     elif device.supports_chain:
-                        device = TileChain(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
+                        device = TileChain(*args)
             self.devices.append(device)
             futures.append(self._pool.submit(device.refresh))
         wait(futures)
-
-    # def _get_by_predicate(self, pred: Callable[[], bool]) -> Union[Device, List[Device]]:
-    #     """return Device or Devices specified by predicate"""
+        self.num_devices = len(self.devices)
 
     def get_multizone_lights(self):
-        multizone_lights = []
-        all_lights = self.get_lights()
-        for l in all_lights:
-            if l.supports_multizone():
-                multizone_lights.append(l)
-        return multizone_lights
+        return [l for l in self.lights if l.supports_multizone]
 
     def get_infrared_lights(self):
-        infrared_lights = []
-        all_lights = self.get_lights()
-        for l in all_lights:
-            if l.supports_infrared():
-                infrared_lights.append(l)
-        return infrared_lights
+        return [l for l in self.lights if l.supports_infrared]
 
     def get_color_lights(self):
-        color_lights = []
-        all_lights = self.get_lights()
-        for l in all_lights:
-            if l.supports_color:
-                color_lights.append(l)
-        return color_lights
+        return [l for l in self.lights if l.supports_color]
 
     def get_tilechain_lights(self):
-        chain_lights = []
-        all_lights = self.get_lights()
-        for l in all_lights:
-            if l.supports_chain():
-                chain_lights.append(l)
-        return chain_lights
+        return [l for l in self.lights if l.supports_chain]
 
     def get_device_by_name(self, name):
         device = None
-        all_devices = self.get_devices()
+        all_devices = self.devices
         for d in all_devices:
-            if d.get_label() == name:
+            if d.label == name:
                 device = d
         if device is None:  # didn't find it?
-            self.discover_devices()  # update list in case it is out of date
-            all_devices = self.get_devices()
+            self.refresh()  # update list in case it is out of date
+            all_devices = self.devices
             for d in all_devices:  # and try again
-                if d.get_label() == name:
+                if d.label == name:
                     device = d
         return device
 
     # takes in list of strings, returns Group of devices
     def get_devices_by_name(self, names):
         devices = []
-        all_devices = self.get_devices()
+        all_devices = self.devices
         for d in all_devices:
-            if d.get_label() in names:
+            if d.label in names:
                 devices.append(d)
         if len(devices) != len(names):  # didn't find everything?
-            self.discover_devices()  # update list in case it is out of date
-            all_devices = self.get_devices()
+            self.refresh()  # update list in case it is out of date
+            all_devices = self.devices
             for d in all_devices:  # and try again
-                if d.get_label() in names:
+                if d.label in names:
                     devices.append(d)
         return Group(devices)
 
     def get_devices_by_group(self, group):
         devices = []
-        all_devices = self.get_devices()
+        all_devices = self.devices
         for d in all_devices:
-            if d.get_group() == group:
+            if d.group == group:
                 devices.append(d)
         return Group(devices)
 
     def get_devices_by_location(self, location):
         devices = []
-        all_devices = self.get_devices()
+        all_devices = self.devices
         for d in all_devices:
-            if d.get_location() == location:
+            if d.location == location:
                 devices.append(d)
         return Group(devices)
 
-    # returns dict of Light: power_level pairs
-    def get_power_all_lights(self):
-        responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
-        power_states = {}
-        if self.lights is None:
-            self.get_lights()
-        for light in self.lights:
-            for response in responses:
-                if light.mac_addr == response.target_addr:
-                    power_states[light] = response.power_level
-        return power_states
+    #
+    def _get_matched_by_by_addr(self, responses):
+        """return gen expr of (light, resp) matched by mac address"""
+        if not self.devices:
+            self.refresh()
+        lights_by_addr = {l.mac_addr: l for l in self.lights}
+        responses_by_addr = {r.target_addr: r for r in responses}
+        return ((lights_by_addr[addr], responses_by_addr[addr])
+                for addr in lights_by_addr.keys() & responses_by_addr.keys())
 
-    def set_power_all_lights(self, power_level, duration=0, rapid=False):
-        on = [True, 1, "on", 65535]
-        off = [False, 0, "off"]
-        try:
-            if power_level in on and not rapid:
-                self.broadcast_with_ack(LightSetPower, {"power_level": 65535, "duration": duration})
-            elif power_level in on and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 65535, "duration": duration},
-                                               num_repeats=1)
-            elif power_level in off and not rapid:
-                self.broadcast_with_ack(LightSetPower, {"power_level": 0, "duration": duration})
-            elif power_level in off and rapid:
-                self.broadcast_fire_and_forget(LightSetPower, {"power_level": 0, "duration": duration}, num_repeats=1)
-            else:
-                raise InvalidParameterException("{} is not a valid power level.".format(power_level))
-        except WorkflowException as e:
-            raise
+    def get_power_all_lights(self):
+        """return dict of light: power_level"""
+        responses = self._broadcast_with_resp(LightGetPower, LightStatePower)
+        return {l: r.power_level for l, r in self._get_matched_by_by_addr(responses)}
 
     def get_color_all_lights(self):
-        responses = self.broadcast_with_resp(LightGet, LightState)
-        colors = {}
-        if self.lights is None:
-            self.get_lights()
-        for light in self.lights:
-            for response in responses:
-                if light.mac_addr == response.target_addr:
-                    colors[light] = response.color
-        return colors
+        responses = self._broadcast_with_resp(LightGet, LightState)
+        return {l: Color(*r.color) for l, r in self._get_matched_by_by_addr(responses)}
 
-    def set_color_all_lights(self, color, duration=0, rapid=False):
-        if len(color) == 4:
-            try:
-                if rapid:
-                    self.broadcast_fire_and_forget(LightSetColor, {"color": color, "duration": duration}, num_repeats=1)
-                else:
-                    self.broadcast_with_ack(LightSetColor, {"color": color, "duration": duration})
-            except WorkflowException as e:
-                raise
-        else:
-            raise InvalidParameterException("{} is not a valid color.".format(color))
+    def set_power_all_lights(self, power_level, duration=0, rapid=False):
+        payload = dict(power_level=PowerSettings.validate(power_level), duration=duration)
+        self._send_bcast_set_message(LightSetPower, payload, rapid=rapid)
+
+    def set_color_all_lights(self, color: Color, duration=0, rapid=False):
+        payload = dict(color=color, duration=duration)
+        self._send_bcast_set_message(LightSetColor, payload, rapid=rapid)
 
     def set_waveform_all_lights(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
-        if len(color) == 4:
-            try:
-                if rapid:
-                    self.broadcast_fire_and_forget(LightSetWaveform,
-                                                   {"transient": is_transient, "color": color, "period": period,
-                                                    "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform},
-                                                   num_repeats=1)
-                else:
-                    self.broadcast_with_ack(LightSetWaveform,
-                                            {"transient": is_transient, "color": color, "period": period,
-                                             "cycles": cycles, "duty_cycle": duty_cycle, "waveform": waveform})
-            except WorkflowException as e:
-                raise
-        else:
-            raise InvalidParameterException("{} is not a valid color.".format(color))
+        payload = dict(transient=is_transient, color=color, period=period, cycles=cycles, duty_cycle=duty_cycle,
+                       waveform=waveform)
+        self._send_bcast_set_message(LightSetWaveform, payload, rapid=rapid)
 
     ############################################################################
     #                                                                          #
@@ -230,14 +156,24 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    def broadcast_fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT,
-                                  num_repeats=DEFAULT_ATTEMPTS):
+    def _send_bcast_set_message(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
+                                max_attempts=DEFAULT_ATTEMPTS, *, rapid: bool):
+        """handle sending messages either rapidly or not"""
+        args = msg_type, payload or {}, timeout_secs
+        if rapid:
+            self._broadcast_fire_and_forget(*args, num_repeats=max_attempts)
+        else:
+            self.broadcast_with_ack(*args, max_attempts=max_attempts)
+
+    def _broadcast_fire_and_forget(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
+                                   num_repeats=DEFAULT_ATTEMPTS):
+        payload = payload or {}
         self.initialize_socket(timeout_secs)
         msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False,
                        response_requested=False)
         sent_msg_count = 0
         sleep_interval = 0.05 if num_repeats > 20 else 0
-        while (sent_msg_count < num_repeats):
+        while sent_msg_count < num_repeats:
             for ip_addr in UDP_BROADCAST_IP_ADDRS:
                 self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
             if self.verbose:
@@ -246,8 +182,9 @@ class LifxLAN:
             sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
         self.close_socket()
 
-    def broadcast_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
-                            max_attempts=DEFAULT_ATTEMPTS):
+    def _broadcast_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None,
+                             timeout_secs=DEFAULT_TIMEOUT,
+                             max_attempts=DEFAULT_ATTEMPTS):
         payload = payload or {}
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
@@ -292,12 +229,12 @@ class LifxLAN:
 
     def broadcast_with_ack(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT + 0.5,
                            max_attempts=DEFAULT_ATTEMPTS):
-        self.broadcast_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
+        self._broadcast_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
     def broadcast_with_ack_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT + 0.5,
                                 max_attempts=DEFAULT_ATTEMPTS):
-        pass
+        raise NotImplementedError
 
     ############################################################################
     #                                                                          #
