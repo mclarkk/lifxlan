@@ -4,9 +4,9 @@ from time import sleep
 
 def main():
     lan = LifxLAN()
-    tilechain_lights = lan.get_tilechain_lights()
+    tilechain_lights = lan.tilechain_lights
     if len(tilechain_lights) != 0:
-        t = lan.get_tilechain_lights()[0] #grab the first tilechain
+        t = lan.tilechain_lights[0] #grab the first tilechain
         print("Selected TileChain light: {}".format(t.label))
         original_colors = t.get_tilechain_colors()
         (cols, rows) = t.get_canvas_dimensions()
@@ -24,7 +24,7 @@ def main():
         duration_ms = 100
 
         try:
-            while(True):
+            while 1:
                 rainbow_colors = cycle_row(rainbow_colors)
                 t.project_matrix(rainbow_colors, duration_ms, rapid=True)
                 sleep(max(duration_ms/2000.0, 0.05))

@@ -23,7 +23,7 @@ def main():
     lifx = LifxLAN(num_lights,False)
 
     # get devices
-    multizone_lights = lifx.get_multizone_lights()
+    multizone_lights = lifx.multizone_lights
 
     if len(multizone_lights) > 0:
         strip = multizone_lights[0]

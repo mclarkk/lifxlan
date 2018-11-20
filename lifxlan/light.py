@@ -23,6 +23,7 @@ WHITE = Color(58275, 0, 65535, 5500)
 COLD_WHITE = Color(58275, 0, 65535, 9000)
 WARM_WHITE = Color(58275, 0, 65535, 3200)
 GOLD = Color(58275, 0, 65535, 2500)
+YALE_BLUE = Color.from_hex(0xf4d92, 9000)
 
 
 class Light(Device):
@@ -38,6 +39,10 @@ class Light(Device):
     #                                                                          #
     ############################################################################
 
+    @property
+    def _refresh_funcs(self):
+        return super()._refresh_funcs + (self.get_color,)
+
     # GetPower - power level
     def get_power(self):
         try:
@@ -52,10 +57,9 @@ class Light(Device):
 
     # color is [Hue, Saturation, Brightness, Kelvin]
     def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform, rapid=False):
-        if len(color) == 4:
-            self._send_set_message(LightSetWaveform,
-                                   dict(transient=is_transient, color=color, period=period, cycles=cycles,
-                                        duty_cycle=duty_cycle, waveform=waveform), rapid=rapid)
+        self._send_set_message(LightSetWaveform,
+                               dict(transient=is_transient, color=color, period=period, cycles=cycles,
+                                    duty_cycle=duty_cycle, waveform=waveform), rapid=rapid)
 
     def get_color(self) -> Color:
         response = self.req_with_resp(LightGet, LightState)
@@ -64,32 +68,31 @@ class Light(Device):
         self.label = response.label
         return self.color
 
-    def _refresh_color(self, color: Color, duration, rapid, **color_kwargs):
+    def _replace_color(self, color: Color, duration, rapid, **color_kwargs):
         self.set_color(color._replace(**color_kwargs), duration, rapid)
 
     def set_color(self, color: Color, duration=0, rapid=False):
-        if len(color) == 4:
-            self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
+        self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
 
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
-        self._refresh_color(self.get_color(), duration, rapid, hue=hue)
+        self._replace_color(self.get_color(), duration, rapid, hue=hue)
 
     def set_saturation(self, saturation, duration=0, rapid=False):
         """ saturation to set
             duration in ms"""
-        self._refresh_color(self.get_color(), duration, rapid, saturation=saturation)
+        self._replace_color(self.get_color(), duration, rapid, saturation=saturation)
 
     def set_brightness(self, brightness, duration=0, rapid=False):
         """ brightness to set
             duration in ms"""
-        self._refresh_color(self.get_color(), duration, rapid, brightness=brightness)
+        self._replace_color(self.get_color(), duration, rapid, brightness=brightness)
 
     def set_colortemp(self, kelvin, duration=0, rapid=False):
         """ kelvin: color temperature to set
             duration in ms"""
-        self._refresh_color(self.get_color(), duration, rapid, kelvin=kelvin)
+        self._replace_color(self.get_color(), duration, rapid, kelvin=kelvin)
 
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):

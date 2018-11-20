@@ -13,19 +13,19 @@
 # Currently service and port are set during initialization and never updated.
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
-from concurrent.futures.thread import ThreadPoolExecutor
+import netifaces as ni
 from concurrent.futures import wait
+from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
-import netifaces as ni
 from typing import NamedTuple, Optional, Dict
 
 from .errors import WorkflowException
+from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
-from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
 
@@ -192,17 +192,19 @@ class Device(object):
     # ==================================================================================================================
     # REFRESH LOCAL VALUES
     # ==================================================================================================================
+    @property
+    def _refresh_funcs(self):
+        return (self._refresh_label,
+                self._refresh_location,
+                self._refresh_group,
+                self._refresh_power,
+                self._refresh_host_firmware_info,
+                self._refresh_wifi_firmware_info,
+                self._refresh_version_info)
 
     def refresh(self):
         """full refresh for all interesting values"""
-        funcs = (self._refresh_label,
-                 self._refresh_location,
-                 self._refresh_group,
-                 self._refresh_power,
-                 self._refresh_host_firmware_info,
-                 self._refresh_wifi_firmware_info,
-                 self._refresh_version_info)
-        wait([self._pool.submit(f) for f in funcs])
+        wait([self._pool.submit(f) for f in self._refresh_funcs])
 
     def _refresh_label(self):
         response = self.req_with_resp(GetLabel, StateLabel)

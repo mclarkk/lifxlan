@@ -61,8 +61,8 @@ LifxLAN objects have the following methods:
 lights                                                                                 # returns list of Light objects
 get_color_lights()                                                                           # returns list of Light objects that support color functionality
 get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
-get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
-get_tilechain_lights()                                                                       # returns a list of TileChain objects that support chain functionality
+multizone_lights                                                                       # returns list of MultiZoneLight objects that support multizone functionality
+tilechain_lights                                                                       # returns a list of TileChain objects that support chain functionality
 get_device_by_name(name)                                                                     # returns a Device object (instantiated as the most specific Device subclass possible, such as MultiZoneLight)
 get_devices_by_name(names)                                                                   # returns a Group object
 get_devices_by_group(group)                                                                  # returns a Group object
@@ -190,7 +190,7 @@ set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
 ```
 
-The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all MultiZone lights using `lights = lan.get_multizone_lights()`, where lan is a LifxLAN object.
+The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all MultiZone lights using `lights = lan.multizone_lights`, where lan is a LifxLAN object.
 
 ##### TileChain API
 
@@ -224,7 +224,7 @@ set_tile_coordinates(tile_index, x, y)  # Permanently sets the specified tile's 
 get_tile_map([refresh_cache])           # Returns a 2D list with canvas_dimensions rows and cols where each element contains either a (tile_index, color_index) tuple or 0. This maps a pixel on the canvas to the tile number and LED number on that tile that the pixel corresponds to, or 0 if there is no tile in that location.
 ```
 
-A LIFX Tile light can be instantiated as either a Light or TileChain object, but to use the TileChain API you'll need to instantiate it as a TileChain. Just like with more generic Light objects, you can instantiate a TileChain directly with `light = TileChain("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all tilechain lights using `lights = lan.get_tilechain_lights()`, where lan is a LifxLAN object.
+A LIFX Tile light can be instantiated as either a Light or TileChain object, but to use the TileChain API you'll need to instantiate it as a TileChain. Just like with more generic Light objects, you can instantiate a TileChain directly with `light = TileChain("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all tilechain lights using `lights = lan.tilechain_lights`, where lan is a LifxLAN object.
 
 ##### Group API
 

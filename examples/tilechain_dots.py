@@ -6,9 +6,9 @@ from copy import deepcopy
 
 def main():
     lan = LifxLAN()
-    tilechain_lights = lan.get_tilechain_lights()
+    tilechain_lights = lan.tilechain_lights
     if len(tilechain_lights) != 0:
-        tile_chain = lan.get_tilechain_lights()[0]  # grab the first tilechain
+        tile_chain = lan.tilechain_lights[0]  # grab the first tilechain
         print("Selected TileChain light: {}".format(tile_chain.label))
         (cols, rows) = tile_chain.get_canvas_dimensions()
         original_colors = tile_chain.get_tilechain_colors()

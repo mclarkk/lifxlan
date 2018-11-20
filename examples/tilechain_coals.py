@@ -4,9 +4,9 @@ from time import sleep
 
 def main():
     lan = LifxLAN()
-    tilechain_lights = lan.get_tilechain_lights()
+    tilechain_lights = lan.tilechain_lights
     if len(tilechain_lights) != 0:
-        t = lan.get_tilechain_lights()[0] #grab the first tilechain
+        t = lan.tilechain_lights[0] #grab the first tilechain
         print("Selected TileChain light: {}".format(t.label))
         original_colors = t.get_tilechain_colors()
         (cols, rows) = t.get_canvas_dimensions()

@@ -26,9 +26,7 @@ class LifxLAN:
     def __init__(self, verbose=False):
         self.source_id = os.getpid()
         self.num_devices = 13
-        self.devices: List[Light] = []
-        # TODO: add this
-        # self._devices_by_mac_addr: Dict[str, Device] = {}
+        self._devices_by_mac_addr: Dict[str, Device] = {}
         self.verbose = verbose
         self._pool = ThreadPoolExecutor(40)
         self.refresh()
@@ -41,21 +39,24 @@ class LifxLAN:
 
     @property
     def lights(self) -> List[Light]:
+        # noinspection PyTypeChecker
         return [d for d in self.devices if d.is_light]
+
+    @property
+    def devices(self) -> List[Device]:
+        return list(self._devices_by_mac_addr.values())
 
     def refresh(self):
         """get available devices"""
         futures = []
-        self.devices.clear()
         self.num_devices = 10000
         responses = self._broadcast_with_resp(GetService, StateService)
         for r in responses:
             device = self._proc_device_response(r)
-            self.devices.append(device)
-            # self._devices_by_mac_addr[device.mac_addr] = device
+            self._devices_by_mac_addr[device.mac_addr] = device
             futures.append(self._pool.submit(device.refresh))
         wait(futures)
-        self.num_devices = len(self.devices)
+        self.num_devices = len(futures)
 
     def _proc_device_response(self, r):
         args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose
@@ -68,62 +69,33 @@ class LifxLAN:
                     device = TileChain(*args)
         return device
 
-    def get_multizone_lights(self):
+    @property
+    def multizone_lights(self):
         return [l for l in self.lights if l.supports_multizone]
 
-    def get_infrared_lights(self):
+    @property
+    def infrared_lights(self):
         return [l for l in self.lights if l.supports_infrared]
 
-    def get_color_lights(self):
+    @property
+    def color_lights(self):
         return [l for l in self.lights if l.supports_color]
 
-    def get_tilechain_lights(self):
+    @property
+    def tilechain_lights(self):
         return [l for l in self.lights if l.supports_chain]
 
-    def get_device_by_name(self, name):
-        device = None
-        all_devices = self.devices
-        for d in all_devices:
-            if d.label == name:
-                device = d
-        if device is None:  # didn't find it?
-            self.refresh()  # update list in case it is out of date
-            all_devices = self.devices
-            for d in all_devices:  # and try again
-                if d.label == name:
-                    device = d
-        return device
+    def get_device_by_name(self, name) -> Device:
+        return next(d for d in self.devices if d.label == name)
 
-    # takes in list of strings, returns Group of devices
-    def get_devices_by_name(self, names):
-        devices = []
-        all_devices = self.devices
-        for d in all_devices:
-            if d.label in names:
-                devices.append(d)
-        if len(devices) != len(names):  # didn't find everything?
-            self.refresh()  # update list in case it is out of date
-            all_devices = self.devices
-            for d in all_devices:  # and try again
-                if d.label in names:
-                    devices.append(d)
-        return Group(devices)
+    def get_devices_by_name(self, names) -> Group:
+        return Group([d for d in self.devices if d.label in set(names)])
 
     def get_devices_by_group(self, group):
-        devices = []
-        all_devices = self.devices
-        for d in all_devices:
-            if d.group == group:
-                devices.append(d)
-        return Group(devices)
+        return Group([d for d in self.devices if d.group == group])
 
     def get_devices_by_location(self, location):
-        devices = []
-        all_devices = self.devices
-        for d in all_devices:
-            if d.location == location:
-                devices.append(d)
-        return Group(devices)
+        return Group([d for d in self.devices if d.location == location])
 
     #
     def _get_matched_by_by_addr(self, responses):
@@ -228,8 +200,7 @@ class LifxLAN:
                             responses.append(response)
                 except timeout:
                     pass
-                elapsed_time = time() - start_time
-                timedout = True if elapsed_time > timeout_secs else False
+                timedout = time() - start_time > timeout_secs
             attempts += 1
         self.close_socket()
         return responses
