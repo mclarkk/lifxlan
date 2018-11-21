@@ -2,6 +2,8 @@
 have your lights transmit messages in morse code.
 """
 import logging
+import time
+from enum import Enum
 from typing import Union, List, TypeVar
 
 from lifxlan import Group, Light
@@ -21,6 +23,11 @@ MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F
 DOT_TIME_MS = 60
 
 
+class OnOff(Enum):
+    on = 'X'
+    off = '\b \b'
+
+
 class Morse(List[str]):
     @classmethod
     def from_str(cls, s: str) -> 'Morse':
@@ -28,17 +35,39 @@ class Morse(List[str]):
 
     @property
     def ms_time(self):
-        s = ' '.join(' '.join(self))
-        print(f'{s!r}')
-        return DOT_TIME_MS * (1 + sum(mc_char_len.get(c) for c in s))
+        return DOT_TIME_MS * (1 + sum(mc_char_len.get(c) for c in self.with_spaces))
+
+    @property
+    def with_spaces(self) -> str:
+        return ' '.join(' '.join(self))
+
+    def to_on_off(self):
+        return [(OnOff.off if c == ' ' else OnOff.on, mc_char_len.get(c))
+                for c in self.with_spaces]
+
+    def simulate(self):
+        print('simulating')
+        for on_off, val in self.to_on_off():
+            print(on_off.value, end='', flush=True)
+            time.sleep(DOT_TIME_MS / 100.)
+        print('done')
 
 
 m = Morse.from_str('sharifa')
 print(m)
 print(m.ms_time)
+print(m.with_spaces)
+print(m.to_on_off())
+m.simulate()
+
+print('j', end='')
+print('j', end='')
+print('j', end='')
+print('j', end='')
 
 
-def morse_code(light: Union[Light, List[Light]]):
+
+def morse_code(word_or_phrase: str, light: Union[Light, List[Light]]):
     pass
 
 

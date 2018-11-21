@@ -23,6 +23,11 @@ from .unpack import unpack_lifx_message
 from .group import Group
 
 
+# TODO: unify api between LifxLAN, Group, Device
+# TODO: should have basically same for each
+# TODO: in fact, LifxLAN could just contain a Group
+# TODO: move all set/get functionality to Group
+
 class LifxLAN:
     def __init__(self, verbose=False):
         self.source_id = os.getpid()
@@ -57,7 +62,7 @@ class LifxLAN:
             self._devices_by_mac_addr[device.mac_addr] = device
             futures.append(self._pool.submit(device.refresh))
         wait(futures)
-        self.num_devices = len(futures)
+        self.num_devices = len(self._devices_by_mac_addr)
 
     def _proc_device_response(self, r):
         args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose

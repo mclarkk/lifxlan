@@ -1,41 +1,36 @@
 # import thread
+from collections import deque
+from concurrent.futures.thread import ThreadPoolExecutor
 from threading import Thread
+from typing import List
+
+# from .device import Device
+from .utils import WaitPool
 
 
 class Group(object):
 
-    def __init__(self, devices=[], verbose=False):
+    def __init__(self, devices: List['Device'], verbose=False):
         self.devices = devices
         self.verbose = verbose
+        self._pool = ThreadPoolExecutor(len(self.devices))
+        self._wait_pool = WaitPool(self._pool)
 
     def add_device(self, device_object):
         self.devices.append(device_object)
 
     def remove_device(self, device_object):
-        new_devices = []
-        for d in self.devices:
-            if d != device_object:
-                new_devices.append(d)
-        self.devices = new_devices
+        self.devices = [d for d in self.devices if d != device_object]
 
     def remove_device_by_name(self, device_name):
-        new_devices = []
-        for d in self.devices:
-            if d.get_name() != device_name:
-                new_devices.append(d)
-        self.devices = new_devices
+        self.devices = [d for d in self.devices if d != device_name]
 
     def get_device_list(self):
         return self.devices
 
     def set_power(self, power, duration=0, rapid=False):
-        threads = []
-        for d in self.devices:
-            t = Thread(target=self.set_power_helper, args=(d, power, duration, rapid))
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
+        with self._wait_pool as wp:
+            wp.map(self.set_power_helper, ((d, power, duration, rapid) for d in self.devices))
 
     def set_power_helper(self, device, power, duration, rapid):
         if device.is_light:
@@ -190,7 +185,7 @@ class Group(object):
         # "simultaneous" change
         threads = []
         for d in multizone_devices:
-            t = Thread(target=d.set_zone_colors, args=(colors, duration, rapid, apply))
+            t = Thread(target=d.set_zone_colors, args=(colors, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:

@@ -12,6 +12,66 @@
 # Colours = 0 -> 255
 # Temperature 2500-9000 K, 3500 is default.
 # Output: (Hue, Saturation, Brightness, Temperature)
+from collections import deque
+from concurrent.futures import wait
+from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Optional
+
+
+class WaitPool:
+    """
+    allow jobs to be submitted to either an existing pool or a dynamically-created one,
+    wait for it to complete, and have access to the futures outside the `with` block
+
+    """
+    threads_per_pool = 8
+
+    def __init__(self, pool: Optional[ThreadPoolExecutor] = None):
+        self._pool = pool or ThreadPoolExecutor(self.threads_per_pool)
+        self._futures = []
+
+    @property
+    def futures(self):
+        return self._futures
+
+    def wait(self):
+        wait(self._futures)
+
+    def __getattr__(self, item):
+        """proxy for underlying pool object"""
+        return getattr(self._pool, item)
+
+    def map(self, fn, *iterables, timeout=None, chunksize=1):
+        self._futures.extend(self._pool.map(fn, *iterables, timeout=timeout, chunksize=chunksize))
+
+    def submit(self, fn, *args, **kwargs):
+        fut = self._pool.submit(fn, *args, **kwargs)
+        self._futures.append(fut)
+        return fut
+
+    def __enter__(self):
+        self._futures.clear()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.wait()
+
+
+def exhaust_map(fn, *iterables):
+    """
+    map that gets executed immediately with the results discarded
+
+    should be used for side effects (printing, updating, submitting to job pool, etc)
+    """
+    return exhaust(map(fn, *iterables))
+
+
+def exhaust(iterable):
+    deque(iterable, maxlen=0)
+
+
+exhaust.__doc__ = exhaust_map.__doc__
+
 
 def RGBtoHSBK(RGB, temperature=3500):
     cmax = max(RGB)
@@ -44,4 +104,4 @@ def RGBtoHSBK(RGB, temperature=3500):
         saturation = 0
         hue = 0
 
-    return (hue, saturation, brightness, temperature)
+    return hue, saturation, brightness, temperature
