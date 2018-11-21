@@ -21,6 +21,7 @@ from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, 
 from time import sleep, time
 from typing import NamedTuple, Optional, Dict
 
+from .settings import unknown
 from .errors import WorkflowException
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
@@ -69,9 +70,9 @@ class FirmwareInfo(NamedTuple):
 
 
 class VersionInfo(NamedTuple):
-    vendor: str = 'UNKNOWN'
-    product: str = 'UNKNOWN'
-    version: str = 'UNKNOWN'
+    vendor: str = unknown
+    product: str = unknown
+    version: str = unknown
 
 
 class SupportsDesc:
@@ -83,7 +84,15 @@ class SupportsDesc:
     def __get__(self, instance, owner):
         if not instance:
             return self
-        return instance._supports(self.name)
+
+        return self._supports(instance, self.name)
+
+    @staticmethod
+    def _supports(instance, feature: str) -> bool:
+        if instance.product is None:
+            instance._refresh_version_info()
+
+        return instance.product_features[feature]
 
 
 class Device(object):
@@ -300,12 +309,6 @@ class Device(object):
         if self.product is None:
             self._refresh_version_info()
         return self.product in light_products
-
-    def _supports(self, feature: str) -> bool:
-        if self.product is None:
-            self._refresh_version_info()
-
-        return self.product_features[feature]
 
     supports_color = SupportsDesc()
     supports_temperature = SupportsDesc()

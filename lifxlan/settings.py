@@ -4,6 +4,8 @@ from typing import NamedTuple
 
 from lifxlan.errors import InvalidParameterException
 
+unknown = 'UNKNOWN'
+
 
 class Color(NamedTuple):
     hue: int

@@ -3,7 +3,7 @@
 # Author: Meghan Clark
 
 import os
-from .settings import Color
+from .settings import Color, unknown
 
 from .device import Device
 from .errors import WorkflowException
@@ -109,13 +109,13 @@ class Light(Device):
         payload = dict(infrared_brightness=infrared_brightness)
         self._send_set_message(LightSetInfrared, payload, rapid=rapid)
 
-    # minimum color temperature supported by lightbulb
+    # minimum color temperature supported by light bulb
     def get_min_kelvin(self):
-        return self.product_features.get('min_kelvin', 'UNKNOWN')
+        return self.product_features.get('min_kelvin', unknown)
 
-    # maximum color temperature supported by lightbulb
+    # maximum color temperature supported by light bulb
     def get_max_kelvin(self):
-        return self.product_features.get('max_kelvin', 'UNKNOWN')
+        return self.product_features.get('max_kelvin', unknown)
 
     ############################################################################
     #                                                                          #
@@ -127,7 +127,7 @@ class Light(Device):
         self.refresh()
         indent = "  "
         s = self.device_characteristics_str(indent)
-        s += indent + "Color (HSBK): {}\n".format(self.get_color())
+        s += indent + f'Color (HSBK): {self.color}\n'
         s += indent + self.device_firmware_str(indent)
         s += indent + self.device_product_str(indent)
         s += indent + self.device_time_str(indent)

@@ -4,6 +4,9 @@ from lifxlan import Color
 
 def __main():
     lan = lifxlan.LifxLAN()
+    print(lan.auto_group())
+    print(lan.color_lights)
+    return
     l = lan.lights[0]
     l1 = lan.get_device_by_name('master 1')
     l2 = lan.get_device_by_name('master 2')

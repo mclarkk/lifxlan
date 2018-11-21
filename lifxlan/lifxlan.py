@@ -1,6 +1,7 @@
 # coding=utf-8
 # lifxlan.py
 # Author: Meghan Clark
+from itertools import groupby
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
@@ -96,6 +97,10 @@ class LifxLAN:
 
     def get_devices_by_location(self, location):
         return Group([d for d in self.devices if d.location == location])
+
+    def auto_group(self):
+        gb = groupby(self.devices, lambda d: d.label.split()[0])
+        return {k: Group(list(v)) for k, v in gb}
 
     #
     def _get_matched_by_by_addr(self, responses):
