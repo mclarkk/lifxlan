@@ -10,7 +10,7 @@ from time import sleep, time
 import os
 from typing import List, Optional, Dict
 
-from .settings import Color, PowerSettings, Waveform
+from .settings import Color, PowerSettings
 from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT, Device
 from .errors import WorkflowException
 from .light import Light
@@ -133,9 +133,9 @@ class LifxLAN:
         payload = dict(color=color, duration=duration)
         self._send_bcast_set_message(LightSetColor, payload, rapid=rapid)
 
-    def set_waveform_all_lights(self, is_transient, color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
+    def set_waveform_all_lights(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
         payload = dict(transient=is_transient, color=color, period=period, cycles=cycles, duty_cycle=duty_cycle,
-                       waveform=waveform.value)
+                       waveform=waveform)
         self._send_bcast_set_message(LightSetWaveform, payload, rapid=rapid)
 
     ############################################################################

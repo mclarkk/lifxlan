@@ -13,6 +13,7 @@ from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
     LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared, LightStatePower
 from .utils import WaitPool
+from .settings import Waveform
 
 RED = Color(65535, 65535, 65535, 3500)
 ORANGE = Color(6500, 65535, 65535, 3500)
@@ -65,10 +66,10 @@ class Light(Device):
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
     # color is [Hue, Saturation, Brightness, Kelvin]
-    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform, rapid=False):
+    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
         self._send_set_message(LightSetWaveform,
                                dict(transient=is_transient, color=color, period=period, cycles=cycles,
-                                    duty_cycle=duty_cycle, waveform=waveform), rapid=rapid)
+                                    duty_cycle=duty_cycle, waveform=waveform.value), rapid=rapid)
 
     def get_color(self) -> Color:
         response = self.req_with_resp(LightGet, LightState)

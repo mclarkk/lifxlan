@@ -6,7 +6,7 @@ from typing import List
 
 from .light import Light
 from .multizonelight import MultiZoneLight
-from .settings import Color, Waveform
+from .settings import Color
 from .utils import WaitPool
 
 
@@ -52,12 +52,6 @@ class Group(object):
     def set_power(self, power, duration=0, rapid=False):
         with self._wait_pool as wp:
             wp.map(self.set_power_helper, ((d, power, duration, rapid) for d in self.devices))
-
-    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
-        f = partial(Light.set_waveform, is_transient=is_transient, color=color, period=period, cycles=cycles,
-                    duty_cycle=duty_cycle, waveform=waveform, rapid=rapid)
-        with self._wait_pool as wp:
-            wp.map(f, self.color_lights)
 
     @staticmethod
     def set_power_helper(device, power, duration, rapid):

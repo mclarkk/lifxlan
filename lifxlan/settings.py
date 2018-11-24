@@ -7,6 +7,14 @@ from lifxlan.errors import InvalidParameterException
 unknown = 'UNKNOWN'
 
 
+class Waveform(Enum):
+    saw = 0
+    sine = 1
+    half_sine = 2
+    triangle = 3
+    pulse = 4
+
+
 class Color(NamedTuple):
     hue: int
     saturation: int
