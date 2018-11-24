@@ -5,17 +5,24 @@
 #
 # 1) RGB to HSBK conversion function
 #
-
-### Convert an RGB colour definition to HSBK
-# Author : BHCunningham
-# Input: (Red, Green, Blue), Temperature
-# Colours = 0 -> 255
-# Temperature 2500-9000 K, 3500 is default.
-# Output: (Hue, Saturation, Brightness, Temperature)
+import time
 from collections import deque
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
+from functools import wraps
 from typing import Optional
+
+
+def timer(func):
+    @wraps
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        try:
+            return func(*args, **kwargs)
+        finally:
+            print(f'func {func.__name__!r} took {time.time() - start_time} seconds')
+
+    return wrapper
 
 
 class WaitPool:
@@ -72,6 +79,13 @@ def exhaust(iterable):
 
 exhaust.__doc__ = exhaust_map.__doc__
 
+
+### Convert an RGB colour definition to HSBK
+# Author : BHCunningham
+# Input: (Red, Green, Blue), Temperature
+# Colours = 0 -> 255
+# Temperature 2500-9000 K, 3500 is default.
+# Output: (Hue, Saturation, Brightness, Temperature)
 
 def RGBtoHSBK(RGB, temperature=3500):
     cmax = max(RGB)

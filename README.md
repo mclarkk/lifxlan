@@ -172,7 +172,7 @@ Finally, you can set parts of the color individually using the following four me
 set_hue(hue, [duration], [rapid])                  # hue in range [0-65535]
 set_brightness(brightness, [duration], [rapid])    # brightness in range [0-65535]
 set_saturation(saturation, [duration], [rapid])    # saturation in range [0-65535]
-set_colortemp(kelvin, [duration], [rapid])         # kelvin in range [2500-9000]
+set_kelvin(kelvin, [duration], [rapid])         # kelvin in range [2500-9000]
 ```
 
 ##### MultiZoneLight API
@@ -263,7 +263,7 @@ set_color(color, [duration], [rapid])
 set_hue(hue, [duration], [rapid])
 set_brightness(brightness, [duration], [rapid])
 set_saturation(saturation, [duration], [rapid])
-set_colortemp(kelvin, [duration], [rapid])
+set_kelvin(kelvin, [duration], [rapid])
 set_infrared(infrared_brightness)
 set_zone_color(start, end, color, [duration], [rapid], [apply])
 set_zone_colors(colors, [duration], [rapid])

@@ -1,10 +1,11 @@
 """
-have your lights transmit messages in morse code.
+have your light/lights transmit messages in morse code.
 """
 import logging
 import sys
 import time
 from enum import Enum
+from functools import partial
 from itertools import repeat
 from typing import Union, List, TypeVar, Optional
 
@@ -93,9 +94,9 @@ def morse_code(word_or_phrase: str, light: Union[Light, List[Light]],
 
     if reset:
         with wp:
-            wp.map(Light.set_power, lights, repeat(0))
+            wp.map(partial(Light.set_power, power=0), lights)
             time.sleep(3)
-            wp.map(Light.set_color_power, lights, (ColorPower(c, p) for c, p in orig), repeat(3000))
+            wp.map(partial(Light.set_color_power, duration=3000), lights, (ColorPower(c, p) for c, p in orig))
 
 
 on_color = ColorPower(RED, 1)

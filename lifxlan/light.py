@@ -26,7 +26,8 @@ WHITE = Color(58275, 0, 65535, 5500)
 COLD_WHITE = Color(58275, 0, 65535, 9000)
 WARM_WHITE = Color(58275, 0, 65535, 3200)
 GOLD = Color(58275, 0, 65535, 2500)
-YALE_BLUE = Color.from_hex(0xf4d92, 9000)
+YALE_BLUE = Color.from_hex(0xF4D92, 9000)
+STEELERS_GOLD = Color.from_hex(0xFFB612, 9000)
 
 
 class Light(Device):
@@ -85,38 +86,31 @@ class Light(Device):
 
     def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
         with WaitPool() as wp:
-            wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
             if cp.power and cp.color:
                 wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
+            wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
     def set_hue(self, hue, duration=0, rapid=False):
-        """ hue to set
-            duration in ms"""
+        """hue to set; duration in ms"""
         self._replace_color(self.get_color(), duration, rapid, hue=hue)
 
     def set_saturation(self, saturation, duration=0, rapid=False):
-        """ saturation to set
-            duration in ms"""
+        """saturation to set; duration in ms"""
         self._replace_color(self.get_color(), duration, rapid, saturation=saturation)
 
     def set_brightness(self, brightness, duration=0, rapid=False):
-        """ brightness to set
-            duration in ms"""
+        """brightness to set; duration in ms"""
         self._replace_color(self.get_color(), duration, rapid, brightness=brightness)
 
-    def set_colortemp(self, kelvin, duration=0, rapid=False):
-        """ kelvin: color temperature to set
-            duration in ms"""
+    def set_kelvin(self, kelvin, duration=0, rapid=False):
+        """kelvin: color temperature to set; duration in ms"""
         self._replace_color(self.get_color(), duration, rapid, kelvin=kelvin)
 
     # Infrared get maximum brightness, infrared_brightness
     def get_infrared(self):
         if self.supports_infrared:
-            try:
-                response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
-                self.infrared_brightness = response.infrared_brightness
-            except WorkflowException as e:
-                raise
+            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
+            self.infrared_brightness = response.infrared_brightness
         return self.infrared_brightness
 
     # Infrared set maximum brightness, infrared_brightness

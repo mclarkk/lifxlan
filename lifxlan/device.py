@@ -29,6 +29,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
+from .utils import timer
 
 DEFAULT_TIMEOUT = 1  # second
 DEFAULT_ATTEMPTS = 2
@@ -69,7 +70,7 @@ class FirmwareInfo(NamedTuple):
     version: float = -1.0
 
 
-class VersionInfo(NamedTuple):
+class ProductInfo(NamedTuple):
     vendor: str = unknown
     product: str = unknown
     version: str = unknown
@@ -118,7 +119,7 @@ class Device(object):
         self.power_level = None
         self.host_firmware_info = FirmwareInfo()
         self.wifi_firmware_info = FirmwareInfo()
-        self.version_info = VersionInfo()
+        self.product_info = ProductInfo()
 
         self._pool = ThreadPoolExecutor(12)
 
@@ -136,8 +137,8 @@ class Device(object):
 
         # The following attributes are used for handling multithreading requests
 
-        self.socket_counter = 0
-        self.socket_table = {}
+        self._socket_counter = 0
+        self._socket_table = {}
 
     ###########################################################################
     #                                                                          #
@@ -146,32 +147,8 @@ class Device(object):
     ############################################################################
 
     @property
-    def host_firmware_build_timestamp(self):
-        return self.host_firmware_info.build_timestamp
-
-    @property
-    def host_firmware_version(self):
-        return self.host_firmware_info.version
-
-    @property
-    def wifi_firmware_build_timestamp(self):
-        return self.wifi_firmware_info.build_timestamp
-
-    @property
-    def wifi_firmware_version(self):
-        return self.wifi_firmware_info.version
-
-    @property
-    def vendor(self):
-        return self.version_info.vendor
-
-    @property
-    def version(self):
-        return self.version_info.version
-
-    @property
     def product(self):
-        return self.version_info.product
+        return self.product_info.product
 
     @property
     def product_name(self):
@@ -211,6 +188,7 @@ class Device(object):
                 self._refresh_wifi_firmware_info,
                 self._refresh_version_info)
 
+    @timer
     def refresh(self):
         """full refresh for all interesting values"""
         wait([self._pool.submit(f) for f in self._refresh_funcs])
@@ -253,12 +231,12 @@ class Device(object):
         t = self.wifi_firmware_info = FirmwareInfo(build, version)
         return t
 
-    def _refresh_version_info(self) -> VersionInfo:
+    def _refresh_version_info(self) -> ProductInfo:
         r = self.req_with_resp(GetVersion, StateVersion)
-        t = self.version_info = VersionInfo(r.vendor, r.product, r.version)
+        t = self.product_info = ProductInfo(r.vendor, r.product, r.version)
         return t
 
-    def get_wifi_info(self) -> WifiInfo:
+    def _get_wifi_info(self) -> WifiInfo:
         response = self.req_with_resp(GetWifiInfo, StateWifiInfo)
         return WifiInfo(response.signal, response.tx, response.rx)
 
@@ -266,41 +244,7 @@ class Device(object):
     # GET DATA
     # ==================================================================================================================
 
-    def get_product_features(self):
-        self._refresh_version_info()
-        return self.product_features
-
-    def get_location_tuple(self):
-        response = self.req_with_resp(GetLocation, StateLocation)
-        self.location = response.location
-        label = response.label
-        updated_at = response.updated_at
-        return self.location, label, updated_at
-
-    def get_location_label(self):
-        self.location, label, updated_at = self.get_location_tuple()
-        return label
-
-    def get_location_updated_at(self):
-        self.location, label, updated_at = self.get_location_tuple()
-        return updated_at
-
-    def get_group_tuple(self):
-        response = self.req_with_resp(GetGroup, StateGroup)
-        self.group = response.group
-        label = response.label
-        updated_at = response.updated_at
-        return self.group, label, updated_at
-
-    def get_group_label(self):
-        self.group, label, updated_at = self.get_group_tuple()
-        return label
-
-    def get_group_updated_at(self):
-        self.group, label, updated_at = self.get_group_tuple()
-        return updated_at
-
-    def get_time_info(self) -> TimeInfo:
+    def _get_time_info(self) -> TimeInfo:
         response = self.req_with_resp(GetInfo, StateInfo)
         return TimeInfo(response.time, response.uptime, response.downtime)
 
@@ -334,25 +278,25 @@ class Device(object):
         return s
 
     def device_firmware_str(self, indent):
-        host_build_ns = self.host_firmware_build_timestamp
+        host_build_ns = self.host_firmware_info.build_timestamp
         host_build_s = datetime.utcfromtimestamp(host_build_ns / 1000000000) if host_build_ns is not None else None
-        wifi_build_ns = self.wifi_firmware_build_timestamp
+        wifi_build_ns = self.wifi_firmware_info.build_timestamp
         wifi_build_s = datetime.utcfromtimestamp(wifi_build_ns / 1000000000) if wifi_build_ns is not None else None
         s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, host_build_s)
-        s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
+        s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_info.version)
         s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, wifi_build_s)
-        s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_version)
+        s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_info.version)
         return s
 
     def device_product_str(self, indent):
-        s = "Vendor: {}\n".format(self.vendor)
+        s = "Vendor: {}\n".format(self.product_info.vendor)
         s += indent + "Product: {} ({})\n".format(self.product, self.product_name)  #### FIX
-        s += indent + "Version: {}\n".format(self.version)
+        s += indent + "Version: {}\n".format(self.product_info.version)
         s += indent + "Features: {}\n".format(self.product_features)
         return s
 
     def device_time_str(self, indent):
-        time, uptime, downtime = self.get_time_info()
+        time, uptime, downtime = self._get_time_info()
         time_s = datetime.utcfromtimestamp(time / 1000000000) if time else None
         uptime_s = round(nanosec_to_hours(uptime), 2) if uptime else None
         downtime_s = round(nanosec_to_hours(downtime), 2) if downtime else None
@@ -362,7 +306,7 @@ class Device(object):
         return s
 
     def device_radio_str(self, indent):
-        signal, tx, rx = self.get_wifi_info()
+        signal, tx, rx = self._get_wifi_info()
         s = "Wifi Signal Strength (mW): {}\n".format(signal)
         s += indent + "Wifi TX (bytes): {}\n".format(tx)
         s += indent + "Wifi RX (bytes): {}\n".format(rx)
@@ -398,7 +342,7 @@ class Device(object):
                         num_repeats=DEFAULT_ATTEMPTS):
         payload = payload or {}
         socket_id = self.initialize_socket(timeout_secs)
-        sock = self.socket_table[socket_id]
+        sock = self._socket_table[socket_id]
         msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False,
                        response_requested=False)
         sent_msg_count = 0
@@ -429,7 +373,7 @@ class Device(object):
         success = False
         device_response = None
         socket_id = self.initialize_socket(timeout_secs)
-        sock = self.socket_table[socket_id]
+        sock = self._socket_table[socket_id]
         ack_requested = len(response_type) == 1 and Acknowledgement in response_type
         msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=ack_requested,
                        response_requested=not ack_requested)
@@ -495,15 +439,15 @@ class Device(object):
         sock.settimeout(timeout)
         try:
             sock.bind(("", 0))  # allow OS to assign next available source port
-            socket_id = self.socket_counter
-            self.socket_table[socket_id] = sock
-            self.socket_counter += 1
+            socket_id = self._socket_counter
+            self._socket_table[socket_id] = sock
+            self._socket_counter += 1
             return socket_id
         except Exception as err:
             raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
 
     def close_socket(self, socket_id):
-        sock = self.socket_table.pop(socket_id, None)
+        sock = self._socket_table.pop(socket_id, None)
         if sock is not None:
             sock.close()
 
