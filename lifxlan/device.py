@@ -189,13 +189,13 @@ class Device(object):
         self.req_with_ack(SetLabel, dict(label=label[:32]))
         self._refresh_label()
 
-    def set_power(self, power, rapid=False, **device_kwargs):
-        self._set_power(SetPower, power, rapid=rapid, **device_kwargs)
+    def set_power(self, power, rapid=False, **payload_kwargs):
+        self._set_power(SetPower, power, rapid=rapid, **payload_kwargs)
 
-    def _set_power(self, msg_type, power, rapid=False, **device_kwargs):
+    def _set_power(self, msg_type, power, rapid=False, **payload_kwargs):
         from lifxlan.settings import PowerSettings
-        payload = dict(power_level=PowerSettings.validate(power))
-        self._send_set_message(msg_type, payload, rapid=rapid, **device_kwargs)
+        payload = {'power_level': PowerSettings.validate(power), **payload_kwargs}
+        self._send_set_message(msg_type, payload, rapid=rapid)
         self._refresh_power()
 
     # ==================================================================================================================

@@ -3,13 +3,16 @@
 # Author: Meghan Clark
 
 import os
-from .settings import Color, unknown
+from typing import Callable, Tuple
+
+from .settings import Color, unknown, ColorPower
 
 from .device import Device
 from .errors import WorkflowException
 from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
     LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared, LightStatePower
+from .utils import WaitPool
 
 RED = Color(65535, 65535, 65535, 3500)
 ORANGE = Color(6500, 65535, 65535, 3500)
@@ -40,8 +43,12 @@ class Light(Device):
     ############################################################################
 
     @property
-    def _refresh_funcs(self):
+    def _refresh_funcs(self) -> Tuple[Callable]:
         return super()._refresh_funcs + (self.get_color,)
+
+    @property
+    def power(self):
+        return self.power_level
 
     # GetPower - power level
     def get_power(self):
@@ -53,6 +60,7 @@ class Light(Device):
         return self.power_level
 
     def set_power(self, power, duration=0, rapid=False):
+        print(f'setting power to {power}')
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
     # color is [Hue, Saturation, Brightness, Kelvin]
@@ -72,7 +80,14 @@ class Light(Device):
         self.set_color(color._replace(**color_kwargs), duration, rapid)
 
     def set_color(self, color: Color, duration=0, rapid=False):
+        print(f'setting color to {color}')
         self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
+
+    def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+        with WaitPool() as wp:
+            wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
+            if cp.power and cp.color:
+                wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
 
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set

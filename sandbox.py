@@ -7,9 +7,8 @@ def __main():
     print(lan.auto_group())
     print(lan.color_lights)
     return
-    l = lan.lights[0]
-    l1 = lan.get_device_by_name('master 1')
-    l2 = lan.get_device_by_name('master 2')
+    l1 = lan.get_device_by_name('test')
+    # l2 = lan.get_device_by_name('master 2')
     labels = [l.label for l in lan.lights]
     for lab in sorted(labels):
         print(lab)

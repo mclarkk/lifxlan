@@ -41,8 +41,8 @@ class WaitPool:
         """proxy for underlying pool object"""
         return getattr(self._pool, item)
 
-    def map(self, fn, *iterables, timeout=None, chunksize=1):
-        self._futures.extend(self._pool.map(fn, *iterables, timeout=timeout, chunksize=chunksize))
+    def map(self, fn, *iterables):
+        self._futures.extend(self._pool.submit(fn, *args) for args in zip(*iterables))
 
     def submit(self, fn, *args, **kwargs):
         fut = self._pool.submit(fn, *args, **kwargs)
