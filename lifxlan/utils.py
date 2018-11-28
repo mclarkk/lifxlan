@@ -42,19 +42,23 @@ class WaitPool:
         return self._futures
 
     def wait(self):
-        wait(self._futures)
+        wait(self.futures)
 
     def __getattr__(self, item):
         """proxy for underlying pool object"""
         return getattr(self._pool, item)
 
-    def map(self, fn, *iterables):
-        self._futures.extend(self._pool.submit(fn, *args) for args in zip(*iterables))
-
     def submit(self, fn, *args, **kwargs):
         fut = self._pool.submit(fn, *args, **kwargs)
         self._futures.append(fut)
         return fut
+
+    def map(self, fn, *iterables):
+        self._futures.extend(self._pool.submit(fn, *args) for args in zip(*iterables))
+
+    def dispatch(self, fn, *args, **kwargs):
+        """run on thread pool but don't wait for completion"""
+        return self._pool.submit(fn, *args, **kwargs)
 
     def __enter__(self):
         self._futures.clear()

@@ -11,7 +11,7 @@ from time import sleep, time
 import os
 from typing import List, Optional, Dict
 
-from .settings import Color, PowerSettings, Waveform
+from .settings import Color, PowerSettings, Waveform, TOTAL_NUM_LIGHTS
 from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT, Device
 from .errors import WorkflowException
 from .light import Light
@@ -45,17 +45,32 @@ class LifxLAN:
     @populate
     def __init__(self, verbose=False):
         self.source_id = os.getpid()
-        self._num_devices = 13
         self._devices_by_mac_addr: Dict[str, Device] = {}
         self._verbose = verbose
         self._wait_pool = WaitPool(ThreadPoolExecutor(40))
         self._group: Group = None
+        self._wait_pool.dispatch(self._check_for_new_lights)
 
     ############################################################################
     #                                                                          #
     #                         LAN (Broadcast) API Methods                      #
     #                                                                          #
     ############################################################################
+
+    @timer
+    def _check_for_new_lights(self):
+        """
+        run a check in the background and warn if we find new lights
+        that we haven't accounted for in `TOTAL_NUM_LIGHTS`
+        """
+        num_resps = len(self._broadcast_with_resp(GetService, StateService, total_num_lights=10000))
+        if num_resps != TOTAL_NUM_LIGHTS:
+            import warnings
+            msg = f'WARNING: found {num_resps} devices, but TOTAL_NUM_LIGHTS is set to {TOTAL_NUM_LIGHTS}'
+            warnings.warn(ResourceWarning(msg))
+            print(msg)
+        else:
+            print('no new lights found')
 
     @property
     def devices(self) -> List[Device]:
@@ -84,18 +99,16 @@ class LifxLAN:
         return self._group.tilechain_lights
 
     @timer
-    def populate_devices(self, reset=False):
+    def populate_devices(self, reset=False, total_num_lights=TOTAL_NUM_LIGHTS):
         """populate available devices"""
-        self._num_devices = 10000
 
         if reset:
             self._devices_by_mac_addr.clear()
 
-        responses = self._broadcast_with_resp(GetService, StateService)
+        responses = self._broadcast_with_resp(GetService, StateService, total_num_lights=total_num_lights)
         for device in map(self._proc_device_response, responses):
             self._devices_by_mac_addr[device.mac_addr] = device
         self._group = Group(list(self._devices_by_mac_addr.values()))
-        self._num_devices = len(self._devices_by_mac_addr)
         self.refresh()
 
     @timer
@@ -199,7 +212,8 @@ class LifxLAN:
 
     def _broadcast_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None,
                              timeout_secs=DEFAULT_TIMEOUT,
-                             max_attempts=DEFAULT_ATTEMPTS):
+                             max_attempts=DEFAULT_ATTEMPTS,
+                             total_num_lights=TOTAL_NUM_LIGHTS):
         payload = payload or {}
         self.initialize_socket(timeout_secs)
         if response_type == Acknowledgement:
@@ -212,11 +226,11 @@ class LifxLAN:
         addr_seen = []
         num_devices_seen = 0
         attempts = 0
-        while (self._num_devices is None or num_devices_seen < self._num_devices) and attempts < max_attempts:
+        while (total_num_lights is None or num_devices_seen < total_num_lights) and attempts < max_attempts:
             sent = False
             start_time = time()
             timedout = False
-            while (self._num_devices is None or num_devices_seen < self._num_devices) and not timedout:
+            while (total_num_lights is None or num_devices_seen < total_num_lights) and not timedout:
                 if not sent:
                     for ip_addr in UDP_BROADCAST_IP_ADDRS:
                         self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))

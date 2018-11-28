@@ -5,9 +5,11 @@
 # To Do: Validate that args are within required ranges, types, etc. In particular: Color [0-65535, 0-65535, 0-65535, 2500-9000], Power Level (must be 0 OR 65535)
 # Need to look into assert-type frameworks or something, there has to be a tool for that.
 # Also need to make custom errors possibly, though tool may have those.
+from collections import defaultdict
 
 import bitstring
 
+from .settings import unknown
 from .message import BROADCAST_MAC, Message, little_endian
 
 
@@ -813,10 +815,11 @@ MSG_IDS = {GetService: 2,
            StateTileState64: 711,
            SetTileState64: 715}
 
-SERVICE_IDS = {1: "UDP",
-               2: "reserved",
-               3: "reserved",
-               4: "reserved"}
+SERVICE_IDS = defaultdict((lambda: unknown),
+                          {1: "UDP",
+                           2: "reserved",
+                           3: "reserved",
+                           4: "reserved"})
 
 STR_MAP = {65535: "On",
            0: "Off",

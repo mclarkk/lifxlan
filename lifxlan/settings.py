@@ -1,10 +1,15 @@
 import colorsys
+import random
+from collections import Counter
 from enum import Enum
-from typing import NamedTuple, Dict
+from typing import NamedTuple, Dict, Union, List
+
+import numpy as np
 
 from lifxlan.errors import InvalidParameterException
 
 unknown = 'UNKNOWN'
+TOTAL_NUM_LIGHTS = 13
 
 
 class Waveform(Enum):
@@ -29,7 +34,9 @@ class Color(NamedTuple):
             h >>= 8
         nums.reverse()
         h, s, b = colorsys.rgb_to_hsv(*nums)
-        return cls(*map(int, (h * 2 ** 16, s * 2 ** 16, b / 255 * (2 ** 16), kelvin)))
+
+        mult = 2 ** 16 - 1
+        return cls(*map(int, (h * mult, s * mult, b / 255 * mult, kelvin)))
 
 
 class PowerSettings(Enum):
@@ -60,7 +67,22 @@ class ColorPower(NamedTuple):
     power: int
 
 
-class Colors:
+class ColorsMeta(type):
+    def __iter__(cls):
+        for name, val in vars(cls).items():
+            if isinstance(val, Color):
+                yield name, val
+
+    def __getitem__(cls, item):
+        return cls.__dict__[item]
+
+    def __str__(cls):
+        colors = '\n\t'.join(map(str, cls))
+        return f'Colors:\n\t{colors}'
+
+
+class Colors(metaclass=ColorsMeta):
+    DEFAULT = Color(43520, 0, 39321, 3200)
     RED = Color(65535, 65535, 65535, 3500)
     ORANGE = Color(6500, 65535, 65535, 3500)
     YELLOW = Color(9000, 65535, 65535, 3500)
@@ -82,10 +104,33 @@ class Colors:
     STEELERS_SILVER = Color.from_hex(0xa5acaf)
 
 
+Weight = int
+
+
 # themes
+class Theme:
+    def __init__(self, colors: Dict[Color, Weight]):
+        self._colors = colors
 
-xmas = {Colors.RED: 3, Colors.GREEN: 3, Colors.GOLD: 1}
-hanukkah = {Colors.HANUKKAH_BLUE: 1, Colors.WHITE: 1}
-steelers = {Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLACK: 3, Colors.STEELERS_BLUE: 3, Colors.STEELERS_RED: 3,
-            Colors.STEELERS_SILVER: 1}
+    @property
+    def sum_weights(self):
+        return sum(self._colors.values())
 
+    def get_colors(self, num_lights=1) -> List[Color]:
+        """get colors for `num_lights` lights"""
+        splits = np.array_split(range(num_lights), self.sum_weights)
+        random.shuffle(splits)
+        splits_iter = iter(splits)
+
+        res = []
+        for c, weight in self._colors.items():
+            for _, split in zip(range(weight), splits_iter):
+                res.extend([c] * len(split))
+        return res
+
+
+class Themes:
+    xmas = Theme({Colors.RED: 3, Colors.GREEN: 3, Colors.GOLD: 1})
+    hanukkah = Theme({Colors.HANUKKAH_BLUE: 1, Colors.WHITE: 1})
+    steelers = Theme({Colors.STEELERS_GOLD: 2, Colors.STEELERS_BLUE: 2,
+                      Colors.STEELERS_RED: 2, Colors.STEELERS_SILVER: 1})

@@ -39,7 +39,6 @@ class Light(Device):
     def power(self):
         return self.power_level
 
-    # GetPower - power level
     def get_power(self):
         try:
             response = self.req_with_resp(LightGetPower, LightStatePower)
@@ -52,7 +51,6 @@ class Light(Device):
         print(f'setting power to {power}')
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
-    # color is [Hue, Saturation, Brightness, Kelvin]
     def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
         self._send_set_message(LightSetWaveform,
                                dict(transient=is_transient, color=color, period=period, cycles=cycles,
@@ -121,7 +119,6 @@ class Light(Device):
     ############################################################################
 
     def __str__(self):
-        self.refresh()
         indent = "  "
         s = self.device_characteristics_str(indent)
         s += indent + f'Color (HSBK): {self.color}\n'

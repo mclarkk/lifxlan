@@ -8,6 +8,7 @@ from .multizonelight import *
 from .group import Group
 from .tilechain import TileChain, Tile
 from .utils import *
+from .settings import Color, Colors, Theme, Themes
 
 __version__     = '1.2.5'
 __description__ = 'API for local communication with LIFX devices over a LAN.'

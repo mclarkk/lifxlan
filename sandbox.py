@@ -1,8 +1,42 @@
+import random
+from itertools import groupby
+
 import lifxlan
 from lifxlan import Color
+from lifxlan.settings import Colors, Themes
+
+d = dict(a=3, b=3, c=1)
+
+
+def get_vals(n):
+    keys, vals = zip(*d.items())
+    print(keys, vals)
+    return random.choices(keys, vals, k=n)
 
 
 def __main():
+    print(Colors)
+    lan = lifxlan.LifxLAN()
+    print(lan.lights)
+    return
+
+    # for _ in range(20):
+    #     t = get_vals(1300)
+    #     t.sort()
+    #     gb = groupby(t)
+    #     for k, v in gb:
+    #         print(k, sum(1 for _ in v))
+    #     print()
+    #
+    # return
+    for _ in range(20):
+        t = Themes.xmas.get_colors(27)
+        t.sort()
+        gb = groupby(t)
+        for k, v in gb:
+            print(k, sum(1 for _ in v))
+        print()
+    return
     lan = lifxlan.LifxLAN()
     print(lan.auto_group())
     print(lan.color_lights)

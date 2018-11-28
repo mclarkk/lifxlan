@@ -5,7 +5,7 @@ from functools import partial, wraps
 from typing import List
 
 from .multizonelight import MultiZoneLight
-from .settings import Color, Waveform
+from .settings import Color, Waveform, Theme, ColorPower
 from .utils import WaitPool, exhaust
 from .light import Light
 from .device import Device
@@ -29,7 +29,7 @@ def _set_generic(func=None, *, light_type='color_lights'):
     return wrapper
 
 
-class Group(object):
+class Group:
 
     def __init__(self, devices: List[Device]):
         self.devices = devices
@@ -37,13 +37,13 @@ class Group(object):
 
     # noinspection PyTypeChecker
     @property
-    def lights(self) -> List[Light]:
-        return [l for l in self.devices if l.is_light]
+    def lights(self) -> 'LightGroup':
+        return LightGroup([l for l in self.devices if l.is_light])
 
     # noinspection PyTypeChecker
     @property
-    def color_lights(self) -> List[Light]:
-        return [l for l in self.devices if l.supports_color]
+    def color_lights(self) -> 'LightGroup':
+        return LightGroup([l for l in self.devices if l.supports_color])
 
     # noinspection PyTypeChecker
     @property
@@ -122,14 +122,28 @@ class Group(object):
     def set_zone_colors(self, colors, duration=0, rapid=False):
         """set zone colors on multizone lights"""
 
+    def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True):
+        colors = theme.get_colors(len(self))
+        with self._wait_pool as wp:
+            exhaust(
+                wp.submit(l.set_color_power, ColorPower(c, power_on), duration, rapid) for l, c in zip(self, colors))
+
     def __len__(self):
         return len(self.devices)
 
     def __iter__(self):
         return iter(self.devices)
 
+    def __getitem__(self, item):
+        return self.devices[item]
+
     def __str__(self):
-        s = "Group ({}):\n\n".format(len(self.devices))
-        for d in self.devices:
-            s += str(d) + "\n"
-        return s
+        start_end = f'\n{80 * "="}\n'
+        device_str = '\n'.join(map(str, self))
+        return f'{start_end}{type(self).__name__} (num_lights: {len(self.devices)}):\n{device_str}{start_end}'
+
+
+class LightGroup(Group):
+
+    def __init__(self, lights: List[Light]):
+        super().__init__(lights)
