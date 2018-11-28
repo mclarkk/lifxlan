@@ -45,7 +45,7 @@ class PowerSettings(Enum):
 
     @classmethod
     def validate(cls, value) -> int:
-        if value in cls.on.value:
+        if value in cls.on.value or (isinstance(value, int) and value):
             return cls.on.as_int
         elif value in cls.off.value:
             return cls.off.as_int

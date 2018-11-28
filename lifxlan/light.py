@@ -6,20 +6,16 @@ import os
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Callable, Tuple
 
-from .settings import Color, unknown, ColorPower
-
 from .device import Device
-from .errors import WorkflowException
 from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
     LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared, LightStatePower
+from .settings import Color, unknown, ColorPower, PowerSettings, Waveform
 from .utils import WaitPool
-from .settings import Waveform
 
 
 class Light(Device):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
-        mac_addr = mac_addr.lower()
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
         self.infrared_brightness = None
@@ -31,6 +27,12 @@ class Light(Device):
     #                                                                          #
     ############################################################################
 
+    def __hash__(self):
+        return super().__hash__() ^ hash(self.color)
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.color == other.color
+
     @property
     def _refresh_funcs(self) -> Tuple[Callable]:
         return super()._refresh_funcs + (self.get_color,)
@@ -40,14 +42,12 @@ class Light(Device):
         return self.power_level
 
     def get_power(self):
-        try:
-            response = self.req_with_resp(LightGetPower, LightStatePower)
-            self.power_level = response.power_level
-        except WorkflowException as e:
-            raise
+        response = self.req_with_resp(LightGetPower, LightStatePower)
+        self.power_level = response.power_level
         return self.power_level
 
     def set_power(self, power, duration=0, rapid=False):
+        power = PowerSettings.validate(power)
         print(f'setting power to {power}')
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 

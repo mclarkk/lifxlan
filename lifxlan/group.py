@@ -2,7 +2,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from functools import partial, wraps
-from typing import List
+from typing import List, Union, Dict
 
 from .multizonelight import MultiZoneLight
 from .settings import Color, Waveform, Theme, ColorPower
@@ -12,18 +12,23 @@ from .device import Device
 from .tilechain import TileChain
 
 
-def _set_generic(func=None, *, light_type='color_lights'):
+def _set_generic(func=None, *, func_name_override=None, light_type='color_lights'):
     """
-    call the wrapped `func.__name__` on all lights in the given `lights_name` argument
-    essentially acts as a passthrough to the underlying light objects themselves
+    call the wrapped `func.__name__` on all lights in the given
+    `light_type` argument essentially acts as a passthrough to the
+    underlying light objects themselves
+
+    changing `light_type` in the decorator call will allow you to
+    forward calls to multizone and tile lights
     """
     if func is None:
-        return partial(_set_generic, light_type=light_type)
+        return partial(_set_generic, light_type=light_type, func_name_override=func_name_override)
+    func_name = func_name_override or func.__name__
 
     @wraps(func)
     def wrapper(self: 'Group', *args, **kwargs):
         with self._wait_pool as wp:
-            exhaust(wp.submit(getattr(l, func.__name__), *args, **kwargs) for l in getattr(self, light_type))
+            exhaust(wp.submit(getattr(l, func_name), *args, **kwargs) for l in getattr(self, light_type))
         return self._wait_pool.futures
 
     return wrapper
@@ -62,7 +67,12 @@ class Group:
 
     def refresh(self):
         with self._wait_pool as wp:
-            exhaust(wp.submit(d.refresh) for d in self.devices)
+            futures = {d: wp.submit(d.refresh) for d in self.devices}
+        for d, fut in futures.items():
+            if not fut.result():
+                print(f'ERROR with device with mac addr {d.mac_addr, d.label}, '
+                      f'removing from group. result: {fut.result()}')
+                self.remove_device(d)
 
     def add_device(self, device_object):
         if device_object not in self.devices:
@@ -77,7 +87,7 @@ class Group:
 
     def set_power(self, power, duration=0, rapid=False):
         with self._wait_pool as wp:
-            wp.map(self._set_power_helper, ((d, power, duration, rapid) for d in self.devices))
+            exhaust(wp.submit(self._set_power_helper, d, power, duration, rapid) for d in self.devices)
 
     @staticmethod
     def _set_power_helper(device, power, duration, rapid):
@@ -93,6 +103,19 @@ class Group:
     @_set_generic
     def set_color(self, color: Color, duration=0, rapid=False):
         """set color on color lights"""
+
+    def set_color_power(self, cp: Union[ColorPower, Dict[Light, ColorPower]],
+                        duration=0, rapid=True):
+        """set color and power on color lights"""
+        if isinstance(cp, ColorPower):
+            return self._set_color_power(cp, duration, rapid)
+
+        with self._wait_pool as wp:
+            exhaust(wp.submit(l.set_color_power, _cp, duration, rapid) for l, _cp in cp.items())
+
+    @_set_generic(func_name_override='set_color_power')
+    def _set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+        """set color and power on color lights"""
 
     @_set_generic
     def set_hue(self, hue, duration=0, rapid=False):

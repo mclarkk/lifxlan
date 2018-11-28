@@ -34,9 +34,10 @@ def populate(func):
     @wraps(func)
     def wrapper(self: 'LifxLAN', *args, **kwargs):
         res = func(self, *args, **kwargs)
-        with suppress(Exception):
+        try:
             self.populate_devices()
-        return res
+        finally:
+            return res
 
     return wrapper
 

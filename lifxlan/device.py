@@ -16,22 +16,23 @@
 import netifaces as ni
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
+from contextlib import suppress
 from datetime import datetime
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
 from typing import NamedTuple, Optional, Dict
 
-from .settings import unknown
-from .errors import WorkflowException
+from .settings import unknown, PowerSettings
+from .errors import WorkflowException, NoResponse
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
-from .utils import timer
+from .utils import timer, exhaust
 
-DEFAULT_TIMEOUT = 1  # second
+DEFAULT_TIMEOUT = 2  # second
 DEFAULT_ATTEMPTS = 2
 
 VERBOSE = False
@@ -102,7 +103,7 @@ class Device(object):
     # source_id is a number unique to this client, will appear in responses to this client
     def __init__(self, mac_addr, ip_addr, service, port, source_id, verbose=False):
         self.verbose = verbose
-        self.mac_addr = mac_addr
+        self.mac_addr = mac_addr.lower()
         self.port = port
         self.service = service
         self.source_id = source_id
@@ -146,6 +147,12 @@ class Device(object):
     #                                                                          #
     ############################################################################
 
+    def __hash__(self):
+        return hash(self.mac_addr)
+
+    def __eq__(self, other):
+        return self.mac_addr == other.mac_addr
+
     @property
     def product(self):
         return self.product_info.product
@@ -170,7 +177,6 @@ class Device(object):
         self._set_power(SetPower, power, rapid=rapid, **payload_kwargs)
 
     def _set_power(self, msg_type, power, rapid=False, **payload_kwargs):
-        from lifxlan.settings import PowerSettings
         payload = {'power_level': PowerSettings.validate(power), **payload_kwargs}
         self._send_set_message(msg_type, payload, rapid=rapid)
         self._refresh_power()
@@ -188,10 +194,16 @@ class Device(object):
                 self._refresh_wifi_firmware_info,
                 self._refresh_version_info)
 
+    # noinspection PyUnreachableCode
     @timer
     def refresh(self):
         """full refresh for all interesting values"""
-        wait([self._pool.submit(f) for f in self._refresh_funcs])
+        with suppress(NoResponse):
+            futures = [self._pool.submit(f) for f in self._refresh_funcs]
+            exhaust(f.result() for f in futures)
+            return True
+
+        return False
 
     def _refresh_label(self):
         response = self.req_with_resp(GetLabel, StateLabel)
@@ -250,7 +262,7 @@ class Device(object):
 
     @property
     def is_light(self) -> bool:
-        if self.product is None:
+        if self.product is None or unknown in self.product_info:
             self._refresh_version_info()
         return self.product in light_products
 
@@ -412,7 +424,7 @@ class Device(object):
             attempts += 1
         if not success:
             self.close_socket(socket_id)
-            raise WorkflowException(
+            raise NoResponse(
                 "WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(str(response_type),
                                                                                                     str(self.mac_addr),
                                                                                                     str(self.label),

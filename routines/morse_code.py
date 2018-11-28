@@ -5,19 +5,15 @@ import logging
 import sys
 import time
 from enum import Enum
-from functools import partial
-from itertools import repeat
-from typing import Union, List, TypeVar, Optional
+from typing import Union, List, NamedTuple
 
-from lifxlan import Group, Light, ThreadPoolExecutor, LifxLAN
-from lifxlan.settings import ColorPower, PowerSettings, Color, Colors
-from lifxlan.utils import WaitPool, exhaust
+from lifxlan import Group, Light, LifxLAN, exhaust
+from lifxlan.settings import ColorPower, Colors
 
 __author__ = 'acushner'
 
 log = logging.getLogger(__name__)
 
-mc_char_len = {'.': 1, '-': 3, ' ': 1}
 MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
                    'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.',
                    'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
@@ -26,6 +22,7 @@ MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F
                    '?': '..--..', '/': '-..-.', '-': '-....-', '(': '-.--.', ')': '-.--.-'}
 
 TIME_QUANTUM_MS = 240
+mc_char_len = {k: v * TIME_QUANTUM_MS / 1000 for k, v in {'.': 1, '-': 3, ' ': 1}.items()}
 
 
 class OnOff(Enum):
@@ -42,15 +39,19 @@ class Morse(List[str]):
 
     @property
     def ms_time(self):
-        return TIME_QUANTUM_MS * (1 + sum(mc_char_len.get(c) for c in self.with_spaces))
+        return TIME_QUANTUM_MS + sum(mc_char_len[c] for c in self.with_spaces)
 
     @property
     def with_spaces(self) -> str:
-        return ' '.join(' '.join(self))
+        return ' '.join(' '.join(self)) + ' '
 
     def to_on_off(self):
         return [(OnOff.off if c == ' ' else OnOff.on, mc_char_len.get(c))
                 for c in self.with_spaces]
+
+    @property
+    def to_char_and_len(self):
+        return [(c, mc_char_len[c]) for c in self.with_spaces]
 
     def simulate(self):
         print('simulating\n')
@@ -60,59 +61,44 @@ class Morse(List[str]):
         print('\ndone')
 
 
-# m = Morse.from_str('sharifa')
-# print(m)
-# print(m.ms_time)
-# print(m.with_spaces)
-# print(m.to_on_off())
-# print()
-# m.simulate()
+class MCSettings(NamedTuple):
+    dot: ColorPower = ColorPower(Colors.STEELERS_GOLD, 1)
+    dash: ColorPower = dot
+    space: ColorPower = ColorPower(None, 0)
 
-wp = WaitPool(ThreadPoolExecutor(8))
+    _char_idx_map = dict(zip('.- ', range(3)))
+
+    def cp_from_char(self, char):
+        return self[self._char_idx_map[char]]
 
 
-def morse_code(word_or_phrase: str, light: Union[Light, List[Light]],
-               color_power_off: Optional[ColorPower] = ColorPower(None, 0),
-               color_power_on: Optional[ColorPower] = None, *, reset=True):
-    lights = [light] if isinstance(light, Light) else light
+def morse_code(word_or_phrase: str,
+               light_group: Union[Light, Group],
+               settings: MCSettings = MCSettings(),
+               *, reset=True):
+    light_group = Group([light_group]) if isinstance(light_group, Light) else light_group
     m = Morse.from_str(word_or_phrase)
-    orig = [ColorPower(l.color, l.power) for l in lights]
-    d = {OnOff.on: color_power_on, OnOff.off: color_power_off}
+    orig = {l: ColorPower(l.color, l.power) for l in light_group}
+    print(orig)
 
-    def get_color_iterable():
-        if on_off is OnOff.on and not color_power_on:
-            return orig
-        return repeat(d[on_off])
-
-    for on_off, val in m.to_on_off():
-        print()
-        print((on_off, val))
-        with wp:
-            exhaust(wp.submit(l.set_color_power, cp) for l, cp in zip(lights, get_color_iterable()))
-            time.sleep(val * TIME_QUANTUM_MS / 1000.0)
+    for c, length in m.to_char_and_len:
+        light_group.set_color_power(settings.cp_from_char(c))
+        time.sleep(length)
 
     if reset:
-        with wp:
-            exhaust(wp.submit(l.set_power, power=0) for l in lights)
-            time.sleep(3)
-            exhaust(wp.submit(l.set_color_power, cp=ColorPower(*o), duration=3000) for l, o in zip(lights, orig))
-            wp.map(partial(Light.set_color_power, duration=3000), lights, (ColorPower(c, p) for c, p in orig))
-
-
-on_color = ColorPower(Colors.RED, 1)
-off_color = ColorPower(Colors.GOLD, 0)
-
-if on_color:
-    print('jeb')
+        light_group.set_power(0)
+        time.sleep(1)
+        light_group.set_color_power(orig, duration=3000)
 
 
 def __main():
     lan = LifxLAN()
-    print(lan.lights)
-    l = lan.auto_group()['living_room'].lights
-    # l.set_color_power(ColorPower(Colors.PURPLE, 1))
-    # l.set_power(0)
-    morse_code('s', l, color_power_on=on_color, color_power_off=off_color, reset=True)
+    # print(lan.lights)
+    l = lan.auto_group()['master'].lights
+    l.set_color(Colors.DEFAULT)
+    exhaust(map(print, (light.power for light in l)))
+    morse_code('sharifa', l.lights, reset=True)
+    l = l
 
 
 if __name__ == '__main__':

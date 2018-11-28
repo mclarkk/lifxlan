@@ -68,20 +68,13 @@ class WaitPool:
         self.wait()
 
 
-def exhaust_map(fn, *iterables):
+def exhaust(iterable):
     """
-    map that gets executed immediately with the results discarded
+    immediately consume and iterable and discard results
 
     should be used for side effects (printing, updating, submitting to job pool, etc)
     """
-    return exhaust(map(fn, *iterables))
-
-
-def exhaust(iterable):
     deque(iterable, maxlen=0)
-
-
-exhaust.__doc__ = exhaust_map.__doc__
 
 
 ### Convert an RGB colour definition to HSBK
