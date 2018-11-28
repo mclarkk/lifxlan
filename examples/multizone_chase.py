@@ -4,7 +4,8 @@ import sys
 from copy import deepcopy
 from time import sleep
 
-from lifxlan import GREEN, LifxLAN, RED
+from lifxlan import LifxLAN
+from lifxlan.settings import RED, GREEN
 
 
 def main():

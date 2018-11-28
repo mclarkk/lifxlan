@@ -3,6 +3,7 @@
 # Author: Meghan Clark
 
 import os
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Callable, Tuple
 
 from .settings import Color, unknown, ColorPower
@@ -15,21 +16,6 @@ from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
 from .utils import WaitPool
 from .settings import Waveform
 
-RED = Color(65535, 65535, 65535, 3500)
-ORANGE = Color(6500, 65535, 65535, 3500)
-YELLOW = Color(9000, 65535, 65535, 3500)
-GREEN = Color(16173, 65535, 65535, 3500)
-CYAN = Color(29814, 65535, 65535, 3500)
-BLUE = Color(43634, 65535, 65535, 3500)
-PURPLE = Color(50486, 65535, 65535, 3500)
-PINK = Color(58275, 65535, 47142, 3500)
-WHITE = Color(58275, 0, 65535, 5500)
-COLD_WHITE = Color(58275, 0, 65535, 9000)
-WARM_WHITE = Color(58275, 0, 65535, 3200)
-GOLD = Color(58275, 0, 65535, 2500)
-YALE_BLUE = Color.from_hex(0xF4D92, 9000)
-STEELERS_GOLD = Color.from_hex(0xFFB612, 9000)
-
 
 class Light(Device):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
@@ -37,6 +23,7 @@ class Light(Device):
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
         self.infrared_brightness = None
+        self._wait_pool = WaitPool(ThreadPoolExecutor(2))
 
     ############################################################################
     #                                                                          #
@@ -86,7 +73,7 @@ class Light(Device):
         self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
 
     def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
-        with WaitPool() as wp:
+        with self._wait_pool as wp:
             if cp.power and cp.color:
                 wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
             wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)

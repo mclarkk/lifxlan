@@ -1,6 +1,7 @@
 # coding=utf-8
 # lifxlan.py
 # Author: Meghan Clark
+from functools import wraps
 from itertools import groupby
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -29,14 +30,26 @@ from .utils import timer, WaitPool, exhaust
 # TODO: in fact, LifxLAN could just contain a Group
 # TODO: move all set/get functionality to Group
 
+def populate(func):
+    @wraps(func)
+    def wrapper(self: 'LifxLAN', *args, **kwargs):
+        res = func(self, *args, **kwargs)
+        with suppress(Exception):
+            self.populate_devices()
+        return res
+
+    return wrapper
+
+
 class LifxLAN:
+    @populate
     def __init__(self, verbose=False):
         self.source_id = os.getpid()
-        self.num_devices = 13
+        self._num_devices = 13
         self._devices_by_mac_addr: Dict[str, Device] = {}
-        self.verbose = verbose
+        self._verbose = verbose
         self._wait_pool = WaitPool(ThreadPoolExecutor(40))
-        self.get_devices()
+        self._group: Group = None
 
     ############################################################################
     #                                                                          #
@@ -45,34 +58,53 @@ class LifxLAN:
     ############################################################################
 
     @property
-    def lights(self) -> List[Light]:
-        # noinspection PyTypeChecker
-        return [d for d in self.devices if d.is_light]
+    def devices(self) -> List[Device]:
+        # return list(self._devices_by_mac_addr.values())
+        return self._group.devices
 
     @property
-    def devices(self) -> List[Device]:
-        return list(self._devices_by_mac_addr.values())
+    def lights(self) -> List[Light]:
+        # noinspection PyTypeChecker
+        return self._group.lights
+
+    @property
+    def multizone_lights(self):
+        return self._group.multizone_lights
+
+    @property
+    def infrared_lights(self):
+        return self._group.infrared_lights
+
+    @property
+    def color_lights(self):
+        return self._group.color_lights
+
+    @property
+    def tilechain_lights(self):
+        return self._group.tilechain_lights
 
     @timer
-    def get_devices(self):
-        """get available devices"""
-        self.num_devices = 10000
+    def populate_devices(self, reset=False):
+        """populate available devices"""
+        self._num_devices = 10000
+
+        if reset:
+            self._devices_by_mac_addr.clear()
 
         responses = self._broadcast_with_resp(GetService, StateService)
         for device in map(self._proc_device_response, responses):
             self._devices_by_mac_addr[device.mac_addr] = device
-
-        self.num_devices = len(self._devices_by_mac_addr)
+        self._group = Group(list(self._devices_by_mac_addr.values()))
+        self._num_devices = len(self._devices_by_mac_addr)
         self.refresh()
 
     @timer
     def refresh(self):
         """refresh stats on available devices"""
-        with self._wait_pool as wp:
-            exhaust(wp.submit(d.refresh) for d in self.devices)
+        self._group.refresh()
 
     def _proc_device_response(self, r):
-        args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose
+        args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self._verbose
         with suppress(WorkflowException):
             device = Light(*args)
             if device.is_light:
@@ -82,24 +114,8 @@ class LifxLAN:
                     device = TileChain(*args)
         return device
 
-    @property
-    def multizone_lights(self):
-        return [l for l in self.lights if l.supports_multizone]
-
-    @property
-    def infrared_lights(self):
-        return [l for l in self.lights if l.supports_infrared]
-
-    @property
-    def color_lights(self):
-        return [l for l in self.lights if l.supports_color]
-
-    @property
-    def tilechain_lights(self):
-        return [l for l in self.lights if l.supports_chain]
-
     def get_device_by_name(self, name) -> Device:
-        return next(d for d in self.devices if d.label == name)
+        return next((d for d in self.devices if d.label == name), None)
 
     def get_devices_by_name(self, names) -> Group:
         return Group([d for d in self.devices if d.label in set(names)])
@@ -110,11 +126,14 @@ class LifxLAN:
     def get_devices_by_location(self, location):
         return Group([d for d in self.devices if d.location == location])
 
-    def auto_group(self):
-        gb = groupby(self.devices, lambda d: d.label.split()[0])
-        return {k: Group(list(v)) for k, v in gb}
+    def auto_group(self) -> Dict[str, Group]:
+        def key(d):
+            split_names = d.label.split()
+            return split_names[0] if len(split_names) == 1 else '_'.join(split_names[:-1])
 
-    #
+        devices = sorted(self.devices, key=key)
+        return {k: Group(list(v)) for k, v in groupby(devices, key)}
+
     def _get_matched_by_by_addr(self, responses):
         """return gen expr of (light, resp) matched by mac address"""
         if not self.devices:
@@ -172,7 +191,7 @@ class LifxLAN:
         while sent_msg_count < num_repeats:
             for ip_addr in UDP_BROADCAST_IP_ADDRS:
                 self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
-            if self.verbose:
+            if self._verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
             sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
@@ -193,22 +212,22 @@ class LifxLAN:
         addr_seen = []
         num_devices_seen = 0
         attempts = 0
-        while (self.num_devices is None or num_devices_seen < self.num_devices) and attempts < max_attempts:
+        while (self._num_devices is None or num_devices_seen < self._num_devices) and attempts < max_attempts:
             sent = False
             start_time = time()
             timedout = False
-            while (self.num_devices is None or num_devices_seen < self.num_devices) and not timedout:
+            while (self._num_devices is None or num_devices_seen < self._num_devices) and not timedout:
                 if not sent:
                     for ip_addr in UDP_BROADCAST_IP_ADDRS:
                         self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
                     sent = True
-                    if self.verbose:
+                    if self._verbose:
                         print("SEND: " + str(msg))
                 try:
                     data, (ip_addr, port) = self.sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     response.ip_addr = ip_addr
-                    if self.verbose:
+                    if self._verbose:
                         print("RECV: " + str(response))
                     if type(response) == response_type and response.source_id == self.source_id:
                         if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:

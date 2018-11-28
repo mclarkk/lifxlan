@@ -3,8 +3,8 @@
 
 import sys
 
-from lifxlan import BLUE, COLD_WHITE, CYAN, GOLD, GREEN, LifxLAN, \
-    ORANGE, PINK, PURPLE, RED, WARM_WHITE, WHITE, YELLOW
+from lifxlan import LifxLAN
+from lifxlan.settings import RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK, WHITE, COLD_WHITE, WARM_WHITE, GOLD
 
 colors = {
     "red": RED, 

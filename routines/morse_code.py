@@ -10,9 +10,8 @@ from itertools import repeat
 from typing import Union, List, TypeVar, Optional
 
 from lifxlan import Group, Light, ThreadPoolExecutor, LifxLAN
-from lifxlan.light import YALE_BLUE, RED, PURPLE, GOLD
-from lifxlan.settings import ColorPower, PowerSettings, Color
-from lifxlan.utils import WaitPool
+from lifxlan.settings import ColorPower, PowerSettings, Color, Colors
+from lifxlan.utils import WaitPool, exhaust
 
 __author__ = 'acushner'
 
@@ -89,18 +88,19 @@ def morse_code(word_or_phrase: str, light: Union[Light, List[Light]],
         print()
         print((on_off, val))
         with wp:
-            wp.map(Light.set_color_power, lights, get_color_iterable())
+            exhaust(wp.submit(l.set_color_power, cp) for l, cp in zip(lights, get_color_iterable()))
             time.sleep(val * TIME_QUANTUM_MS / 1000.0)
 
     if reset:
         with wp:
-            wp.map(partial(Light.set_power, power=0), lights)
+            exhaust(wp.submit(l.set_power, power=0) for l in lights)
             time.sleep(3)
+            exhaust(wp.submit(l.set_color_power, cp=ColorPower(*o), duration=3000) for l, o in zip(lights, orig))
             wp.map(partial(Light.set_color_power, duration=3000), lights, (ColorPower(c, p) for c, p in orig))
 
 
-on_color = ColorPower(RED, 1)
-off_color = ColorPower(GOLD, 0)
+on_color = ColorPower(Colors.RED, 1)
+off_color = ColorPower(Colors.GOLD, 0)
 
 if on_color:
     print('jeb')
@@ -109,10 +109,10 @@ if on_color:
 def __main():
     lan = LifxLAN()
     print(lan.lights)
-    l = lan.color_lights[0]
-    l.set_color_power(ColorPower(PURPLE, 1))
+    l = lan.auto_group()['living_room'].lights
+    # l.set_color_power(ColorPower(Colors.PURPLE, 1))
     # l.set_power(0)
-    morse_code('sharifa', l, color_power_on=on_color, color_power_off=off_color, reset=True)
+    morse_code('s', l, color_power_on=on_color, color_power_off=off_color, reset=True)
 
 
 if __name__ == '__main__':

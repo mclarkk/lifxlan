@@ -2,6 +2,8 @@ from lifxlan import *
 from random import randint
 from time import sleep
 
+from lifxlan.settings import YELLOW, BLUE
+
 
 def main():
     lan = LifxLAN()

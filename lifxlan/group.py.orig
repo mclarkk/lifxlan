@@ -51,10 +51,10 @@ class Group(object):
 
     def set_power(self, power, duration=0, rapid=False):
         with self._wait_pool as wp:
-            wp.map(self.set_power_helper, ((d, power, duration, rapid) for d in self.devices))
+            wp.map(self._set_power_helper, ((d, power, duration, rapid) for d in self.devices))
 
     @staticmethod
-    def set_power_helper(device, power, duration, rapid):
+    def _set_power_helper(device, power, duration, rapid):
         if device.is_light:
             device.set_power(power, duration, rapid)  # Light::set_power(power, [duration], [rapid])
         else:

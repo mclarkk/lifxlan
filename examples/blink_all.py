@@ -3,7 +3,8 @@
 import sys
 from time import sleep
 
-from lifxlan import BLUE, GREEN, LifxLAN
+from lifxlan import LifxLAN
+from lifxlan.settings import GREEN, BLUE
 
 
 def main():
