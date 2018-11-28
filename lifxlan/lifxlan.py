@@ -21,6 +21,7 @@ from .multizonelight import MultiZoneLight
 from .tilechain import TileChain
 from .unpack import unpack_lifx_message
 from .group import Group
+from .utils import timer, WaitPool, exhaust
 
 
 # TODO: unify api between LifxLAN, Group, Device
@@ -34,8 +35,8 @@ class LifxLAN:
         self.num_devices = 13
         self._devices_by_mac_addr: Dict[str, Device] = {}
         self.verbose = verbose
-        self._pool = ThreadPoolExecutor(40)
-        self.refresh()
+        self._wait_pool = WaitPool(ThreadPoolExecutor(40))
+        self.get_devices()
 
     ############################################################################
     #                                                                          #
@@ -52,16 +53,23 @@ class LifxLAN:
     def devices(self) -> List[Device]:
         return list(self._devices_by_mac_addr.values())
 
-    def refresh(self):
+    @timer
+    def get_devices(self):
         """get available devices"""
-        futures = []
         self.num_devices = 10000
+
         responses = self._broadcast_with_resp(GetService, StateService)
         for device in map(self._proc_device_response, responses):
             self._devices_by_mac_addr[device.mac_addr] = device
-            futures.append(self._pool.submit(device.refresh))
-        wait(futures)
+
         self.num_devices = len(self._devices_by_mac_addr)
+        self.refresh()
+
+    @timer
+    def refresh(self):
+        """refresh stats on available devices"""
+        with self._wait_pool as wp:
+            exhaust(wp.submit(d.refresh) for d in self.devices)
 
     def _proc_device_response(self, r):
         args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose

@@ -10,11 +10,11 @@ from collections import deque
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import wraps
-from typing import Optional
+from typing import Optional, List, Generator
 
 
 def timer(func):
-    @wraps
+    @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
         try:

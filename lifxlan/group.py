@@ -1,13 +1,20 @@
 # import thread
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
-from functools import partial
+from functools import partial, wraps
 from typing import List
 
 from .light import Light
 from .multizonelight import MultiZoneLight
 from .settings import Color, Waveform
-from .utils import WaitPool
+from .utils import WaitPool, exhaust
+
+
+def _set_generic(func):
+    @wraps(func)
+    def wrapper(self: Group, *args, **kwargs):
+        with self._wait_pool as wp:
+            exhaust(wp.submit(getattr(l, func.__name__, *args, **kwargs) for l in self.color_lights))
 
 
 class Group(object):
@@ -53,11 +60,9 @@ class Group(object):
         with self._wait_pool as wp:
             wp.map(self.set_power_helper, ((d, power, duration, rapid) for d in self.devices))
 
+    @_set_generic
     def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
-        f = partial(Light.set_waveform, is_transient=is_transient, color=color, period=period, cycles=cycles,
-                    duty_cycle=duty_cycle, waveform=waveform, rapid=rapid)
-        with self._wait_pool as wp:
-            wp.map(f, self.color_lights)
+        pass
 
     @staticmethod
     def set_power_helper(device, power, duration, rapid):
@@ -69,20 +74,20 @@ class Group(object):
     def set_color(self, color: Color, duration=0, rapid=False):
         # pre-calculate which devices you'll operate on
         # it'll make the color change look more simultaneous
-        f = partial(Light.set_color, color=color, duration=duration, rapid=rapid)
+        kwargs = dict(color=color, duration=duration, rapid=rapid)
         with self._wait_pool as wp:
-            wp.map(f, self.color_lights)
+            exhaust(wp.submit(l.set_color, **kwargs) for l in self.color_lights)
 
     def set_hue(self, hue, duration=0, rapid=False):
         # pre-calculate which devices to operate on
-        f = partial(Light.set_hue, hue=hue, duration=duration, rapid=rapid)
+        kwargs = dict(hue=hue, duration=duration, rapid=rapid)
         with self._wait_pool as wp:
-            wp.map(f, self.color_lights)
+            exhaust(wp.submit(l.set_hue, **kwargs) for l in self.color_lights)
 
     def set_brightness(self, brightness, duration=0, rapid=False):
         f = partial(Light.set_brightness, brightness=brightness, duration=duration, rapid=rapid)
         with self._wait_pool as wp:
-            wp.map(f, self.color_lights)
+            exhaust(wp.submit(l.set_brightness, **kwargs) for l in self.color_lights)
 
     def set_saturation(self, saturation, duration=0, rapid=False):
         f = partial(Light.set_saturation, saturation=saturation, duration=duration, rapid=rapid)
