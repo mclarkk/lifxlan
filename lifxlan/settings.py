@@ -10,6 +10,7 @@ from lifxlan.errors import InvalidParameterException
 
 unknown = 'UNKNOWN'
 TOTAL_NUM_LIGHTS = 13
+DEFAULT_KELVIN = 3200
 
 
 class Waveform(Enum):
@@ -24,7 +25,7 @@ class RGBk(NamedTuple):
     r: int
     g: int
     b: int
-    k: int = 3200
+    k: int = DEFAULT_KELVIN
 
     @property
     def hex(self) -> str:
@@ -36,7 +37,7 @@ class RGBk(NamedTuple):
         return Color.from_rgb(self)
 
     def __add__(self, other) -> 'RGBk':
-        add = lambda v1, v2: int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
+        add = lambda v1, v2: round(((v1 ** 2 + v2 ** 2) / 2) ** .5)
         return RGBk(add(self.r, other.r), add(self.g, other.g), add(self.b, other.b), (self.k + other.k) // 2)
 
 
@@ -44,12 +45,12 @@ class Color(NamedTuple):
     hue: int
     saturation: int
     brightness: int
-    kelvin: int
+    kelvin: int = DEFAULT_KELVIN
 
     _mult = 2 ** 16
 
     @classmethod
-    def from_hex(cls, h, kelvin=3200) -> 'Color':
+    def from_hex(cls, h, kelvin=DEFAULT_KELVIN) -> 'Color':
         nums = []
         for _ in range(3):
             nums.append(h & 0xff)
@@ -61,7 +62,7 @@ class Color(NamedTuple):
     def from_rgb(cls, rgb: RGBk) -> 'Color':
         h, s, b = colorsys.rgb_to_hsv(*rgb[:3])
         mult = cls._mult - 1
-        return cls(*map(int, (h * mult, s * mult, b / 255 * mult, rgb.k)))
+        return cls(*map(round, (h * mult, s * mult, b / 255 * mult, rgb.k)))
 
     @property
     def hex(self) -> str:
@@ -71,11 +72,11 @@ class Color(NamedTuple):
     def rgb(self) -> RGBk:
         mult = self._mult - 1
         h, s, b = self.hue / mult, self.saturation / mult, self.brightness / mult * 255
-        return RGBk(*map(int, colorsys.hsv_to_rgb(h, s, b)), self.kelvin)
+        return RGBk(*map(round, colorsys.hsv_to_rgb(h, s, b)), self.kelvin)
 
     def offset_hue(self, degrees) -> 'Color':
         hue_d = self.hue / self._mult * 360
-        return self._replace(hue=int(abs((hue_d + degrees) % 360) * self._mult / 360))
+        return self._replace(hue=round(abs((hue_d + degrees) % 360) * self._mult / 360))
 
     def __add__(self, other) -> 'Color':
         """avg colors together using math"""
@@ -116,9 +117,9 @@ class ColorPower(NamedTuple):
 
 class ColorsMeta(type):
     def __iter__(cls):
-        for name, val in vars(cls).items():
-            if isinstance(val, Color):
-                yield name, val
+        yield from ((name, val)
+                    for name, val in vars(cls).items()
+                    if isinstance(val, Color))
 
     def __getitem__(cls, item):
         return cls.__dict__[item]
@@ -129,7 +130,7 @@ class ColorsMeta(type):
 
 
 class Colors(metaclass=ColorsMeta):
-    DEFAULT = Color(43520, 0, 39321, 3200)
+    DEFAULT = Color(43520, 0, 39321)
     RED = Color(65535, 65535, 65535, 3500)
     ORANGE = Color(6500, 65535, 65535, 3500)
     YELLOW = Color(9000, 65535, 65535, 3500)
@@ -140,7 +141,7 @@ class Colors(metaclass=ColorsMeta):
     PINK = Color(58275, 65535, 47142, 3500)
     WHITE = Color(58275, 0, 65535, 5500)
     COLD_WHITE = Color(58275, 0, 65535, 9000)
-    WARM_WHITE = Color(58275, 0, 65535, 3200)
+    WARM_WHITE = Color(58275, 0, 65535)
     GOLD = Color(58275, 0, 65535, 2500)
     YALE_BLUE = Color.from_hex(0xf4d92)
     HANUKKAH_BLUE = Color.from_hex(0x09239b)
