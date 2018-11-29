@@ -37,11 +37,34 @@ def offset_colors(degrees=30, n_iterations=10, c=Colors.YALE_BLUE):
         c = next_c
 
 
+def mean():
+    print(Colors.YALE_BLUE + Colors.YALE_BLUE)
+    c = Color.mean(Colors.YALE_BLUE, Colors.YALE_BLUE, Colors.YALE_BLUE)
+    print(Colors.YALE_BLUE)
+    print(c)
+
+
+def hex_rgb_testing():
+    val = 0xf4d92
+    c = Color.from_hex(val)
+    rgb = c.rgb
+    print(rgb)
+    print(hex(val))
+    print(rgb.hex)
+
+    t = rgb + rgb
+    print((rgb + rgb).hex)
+    print('____')
+    print(c)
+    print(c.rgb.color.rgb.color.rgb.color)
+
 def __main():
+    return mean()
     lan = LifxLAN()
     m = lan.auto_group()['master']
     l1, l2 = m
-    for cc1, cc2 in offset_colors(degrees=60):
+    # for cc1, cc2 in offset_colors(degrees=60):
+    for cc1, cc2 in hex_vs_from_package_compare():
         print(cc1, cc2)
         print(l1.label, cc1.kelvin)
         l1.set_color(cc1)

@@ -1,8 +1,8 @@
 import colorsys
 import random
-from collections import Counter
 from enum import Enum
-from typing import NamedTuple, Dict, Union, List
+from functools import reduce
+from typing import NamedTuple, Dict, List
 
 import numpy as np
 
@@ -20,6 +20,26 @@ class Waveform(Enum):
     pulse = 4
 
 
+class RGBk(NamedTuple):
+    r: int
+    g: int
+    b: int
+    k: int = 3200
+
+    @property
+    def hex(self) -> str:
+        """loses kelvin in this conversion"""
+        return hex((self.r << 16) + (self.g << 8) + self.b)
+
+    @property
+    def color(self) -> 'Color':
+        return Color.from_rgb(self)
+
+    def __add__(self, other) -> 'RGBk':
+        add = lambda v1, v2: int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
+        return RGBk(add(self.r, other.r), add(self.g, other.g), add(self.b, other.b), (self.k + other.k) // 2)
+
+
 class Color(NamedTuple):
     hue: int
     saturation: int
@@ -29,28 +49,41 @@ class Color(NamedTuple):
     _mult = 2 ** 16
 
     @classmethod
-    def from_hex(cls, h, kelvin=3200):
+    def from_hex(cls, h, kelvin=3200) -> 'Color':
         nums = []
         for _ in range(3):
             nums.append(h & 0xff)
             h >>= 8
         nums.reverse()
-        h, s, b = colorsys.rgb_to_hsv(*nums)
+        return cls.from_rgb(RGBk(*nums, kelvin))
+
+    @classmethod
+    def from_rgb(cls, rgb: RGBk) -> 'Color':
+        h, s, b = colorsys.rgb_to_hsv(*rgb[:3])
         mult = cls._mult - 1
-        return cls(*map(int, (h * mult, s * mult, b / 255 * mult, kelvin)))
+        return cls(*map(int, (h * mult, s * mult, b / 255 * mult, rgb.k)))
+
+    @property
+    def hex(self) -> str:
+        return self.rgb.hex
+
+    @property
+    def rgb(self) -> RGBk:
+        mult = self._mult - 1
+        h, s, b = self.hue / mult, self.saturation / mult, self.brightness / mult * 255
+        return RGBk(*map(int, colorsys.hsv_to_rgb(h, s, b)), self.kelvin)
 
     def offset_hue(self, degrees) -> 'Color':
         hue_d = self.hue / self._mult * 360
         return self._replace(hue=int(abs((hue_d + degrees) % 360) * self._mult / 360))
 
-    @classmethod
-    def _avg(cls, v1, v2):
-        return ((v1 + v2) % cls._mult) // 2
-
     def __add__(self, other) -> 'Color':
         """avg colors together using math"""
-        kelvin = (self.kelvin + other.kelvin) // 2
-        return Color(*(self._avg(getattr(self, f), getattr(other, f)) for f in self._fields[:-1]), kelvin)
+        return (self.rgb + other.rgb).color
+
+    @classmethod
+    def mean(cls, *colors):
+        return reduce(cls.__add__, colors)
 
 
 class PowerSettings(Enum):
@@ -73,7 +106,7 @@ class PowerSettings(Enum):
         elif self is PowerSettings.off:
             return 0
         else:
-            raise RuntimeError('you should never be here')
+            raise RuntimeError('you should not be here')
 
 
 class ColorPower(NamedTuple):
