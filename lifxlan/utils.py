@@ -29,7 +29,6 @@ class WaitPool:
     """
     allow jobs to be submitted to either an existing pool or a dynamically-created one,
     wait for it to complete, and have access to the futures outside the `with` block
-
     """
     threads_per_pool = 8
 

@@ -22,7 +22,7 @@ MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F
                    '?': '..--..', '/': '-..-.', '-': '-....-', '(': '-.--.', ')': '-.--.-'}
 
 TIME_QUANTUM_MS = 240
-mc_char_len = {k: v * TIME_QUANTUM_MS / 1000 for k, v in {'.': 1, '-': 3, ' ': 1}.items()}
+mc_char_len = {k: v * TIME_QUANTUM_MS / 1000 for k, v in (('.', 1), ('-', 3), (' ', 1))}
 
 
 class OnOff(Enum):
@@ -57,7 +57,7 @@ class Morse(List[str]):
         print('simulating\n')
         for on_off, val in self.to_on_off():
             sys.stdout.write(on_off.value)
-            time.sleep(val * TIME_QUANTUM_MS / 1000.)
+            time.sleep(val)
         print('\ndone')
 
 
@@ -94,11 +94,10 @@ def morse_code(word_or_phrase: str,
 def __main():
     lan = LifxLAN()
     # print(lan.lights)
-    l = lan.auto_group()['master'].lights
+    l = lan.auto_group()['master']
     l.set_color(Colors.DEFAULT)
     exhaust(map(print, (light.power for light in l)))
     morse_code('sharifa', l.lights, reset=True)
-    l = l
 
 
 if __name__ == '__main__':
