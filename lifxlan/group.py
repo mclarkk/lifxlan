@@ -4,12 +4,12 @@ from contextlib import suppress
 from functools import partial, wraps
 from typing import List, Union, Dict
 
+from .device import Device
+from .light import Light
 from .multizonelight import MultiZoneLight
 from .settings import Color, Waveform, Theme, ColorPower
-from .utils import WaitPool, exhaust
-from .light import Light
-from .device import Device
 from .tilechain import TileChain
+from .utils import WaitPool, exhaust
 
 
 def _set_generic(func=None, *, func_name_override=None, light_type='color_lights'):

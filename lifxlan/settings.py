@@ -26,6 +26,8 @@ class Color(NamedTuple):
     brightness: int
     kelvin: int
 
+    _mult = 2 ** 16
+
     @classmethod
     def from_hex(cls, h, kelvin=3200):
         nums = []
@@ -34,9 +36,21 @@ class Color(NamedTuple):
             h >>= 8
         nums.reverse()
         h, s, b = colorsys.rgb_to_hsv(*nums)
-
-        mult = 2 ** 16 - 1
+        mult = cls._mult - 1
         return cls(*map(int, (h * mult, s * mult, b / 255 * mult, kelvin)))
+
+    def offset_hue(self, degrees) -> 'Color':
+        hue_d = self.hue / self._mult * 360
+        return self._replace(hue=int(abs((hue_d + degrees) % 360) * self._mult / 360))
+
+    @classmethod
+    def _avg(cls, v1, v2):
+        return ((v1 + v2) % cls._mult) // 2
+
+    def __add__(self, other) -> 'Color':
+        """avg colors together using math"""
+        kelvin = (self.kelvin + other.kelvin) // 2
+        return Color(*(self._avg(getattr(self, f), getattr(other, f)) for f in self._fields[:-1]), kelvin)
 
 
 class PowerSettings(Enum):
