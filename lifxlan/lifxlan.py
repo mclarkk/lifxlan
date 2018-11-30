@@ -5,7 +5,7 @@ from functools import wraps
 from itertools import groupby
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
-from contextlib import suppress
+from contextlib import suppress, contextmanager
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
 import os
@@ -22,7 +22,7 @@ from .multizonelight import MultiZoneLight
 from .tilechain import TileChain
 from .unpack import unpack_lifx_message
 from .group import Group
-from .utils import timer, WaitPool, exhaust
+from .utils import timer, WaitPool, exhaust, init_socket
 
 
 # TODO: unify api between LifxLAN, Group, Device
@@ -64,14 +64,18 @@ class LifxLAN:
         run a check in the background and warn if we find new lights
         that we haven't accounted for in `TOTAL_NUM_LIGHTS`
         """
-        num_resps = len(self._broadcast_with_resp(GetService, StateService, total_num_lights=10000))
-        if num_resps != TOTAL_NUM_LIGHTS:
-            import warnings
-            msg = f'WARNING: found {num_resps} devices, but TOTAL_NUM_LIGHTS is set to {TOTAL_NUM_LIGHTS}'
-            warnings.warn(ResourceWarning(msg))
-            print(msg)
-        else:
-            print('no new lights found')
+        try:
+            num_resps = len(self._broadcast_with_resp(GetService, StateService, total_num_lights=10000))
+            if num_resps != TOTAL_NUM_LIGHTS:
+                import warnings
+                msg = f'WARNING: found {num_resps} devices, but TOTAL_NUM_LIGHTS is set to {TOTAL_NUM_LIGHTS}'
+                warnings.warn(ResourceWarning(msg))
+                print(msg)
+            else:
+                print('no new lights found')
+        except Exception as e:
+            print(f'error in _check_for_new_lights: {e!r}')
+            raise e
 
     @property
     def devices(self) -> List[Device]:
@@ -197,63 +201,61 @@ class LifxLAN:
     def _broadcast_fire_and_forget(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
                                    num_repeats=DEFAULT_ATTEMPTS):
         payload = payload or {}
-        self.initialize_socket(timeout_secs)
-        msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False,
-                       response_requested=False)
-        sent_msg_count = 0
-        sleep_interval = 0.05 if num_repeats > 20 else 0
-        while sent_msg_count < num_repeats:
-            for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
-            if self._verbose:
-                print("SEND: " + str(msg))
-            sent_msg_count += 1
-            sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
-        self.close_socket()
+        with init_socket(timeout_secs) as sock:
+            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False,
+                           response_requested=False)
+            sent_msg_count = 0
+            sleep_interval = 0.05 if num_repeats > 20 else 0
+            while sent_msg_count < num_repeats:
+                for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                    sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
+                if self._verbose:
+                    print("SEND: " + str(msg))
+                sent_msg_count += 1
+                sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
 
     def _broadcast_with_resp(self, msg_type, response_type, payload: Optional[Dict] = None,
                              timeout_secs=DEFAULT_TIMEOUT,
                              max_attempts=DEFAULT_ATTEMPTS,
                              total_num_lights=TOTAL_NUM_LIGHTS):
         payload = payload or {}
-        self.initialize_socket(timeout_secs)
-        if response_type == Acknowledgement:
-            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True,
-                           response_requested=False)
-        else:
-            msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False,
-                           response_requested=True)
-        responses = []
-        addr_seen = []
-        num_devices_seen = 0
-        attempts = 0
-        while (total_num_lights is None or num_devices_seen < total_num_lights) and attempts < max_attempts:
-            sent = False
-            start_time = time()
-            timedout = False
-            while (total_num_lights is None or num_devices_seen < total_num_lights) and not timedout:
-                if not sent:
-                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                        self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
-                    sent = True
-                    if self._verbose:
-                        print("SEND: " + str(msg))
-                try:
-                    data, (ip_addr, port) = self.sock.recvfrom(1024)
-                    response = unpack_lifx_message(data)
-                    response.ip_addr = ip_addr
-                    if self._verbose:
-                        print("RECV: " + str(response))
-                    if type(response) == response_type and response.source_id == self.source_id:
-                        if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
-                            addr_seen.append(response.target_addr)
-                            num_devices_seen += 1
-                            responses.append(response)
-                except timeout:
-                    pass
-                timedout = time() - start_time > timeout_secs
-            attempts += 1
-        self.close_socket()
+        with init_socket(timeout_secs) as sock:
+            if response_type == Acknowledgement:
+                msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=True,
+                               response_requested=False)
+            else:
+                msg = msg_type(BROADCAST_MAC, self.source_id, seq_num=0, payload=payload, ack_requested=False,
+                               response_requested=True)
+            responses = []
+            addr_seen = []
+            num_devices_seen = 0
+            attempts = 0
+            while (total_num_lights is None or num_devices_seen < total_num_lights) and attempts < max_attempts:
+                sent = False
+                start_time = time()
+                timedout = False
+                while (total_num_lights is None or num_devices_seen < total_num_lights) and not timedout:
+                    if not sent:
+                        for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                            sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
+                        sent = True
+                        if self._verbose:
+                            print("SEND: " + str(msg))
+                    try:
+                        data, (ip_addr, port) = sock.recvfrom(1024)
+                        response = unpack_lifx_message(data)
+                        response.ip_addr = ip_addr
+                        if self._verbose:
+                            print("RECV: " + str(response))
+                        if type(response) == response_type and response.source_id == self.source_id:
+                            if response.target_addr not in addr_seen and response.target_addr != BROADCAST_MAC:
+                                addr_seen.append(response.target_addr)
+                                num_devices_seen += 1
+                                responses.append(response)
+                    except timeout:
+                        pass
+                    timedout = time() - start_time > timeout_secs
+                attempts += 1
         return responses
 
     def broadcast_with_ack(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT + 0.5,
@@ -270,19 +272,6 @@ class LifxLAN:
     #                              Socket Methods                              #
     #                                                                          #
     ############################################################################
-
-    def initialize_socket(self, timeout):
-        self.sock = socket(AF_INET, SOCK_DGRAM)
-        self.sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        self.sock.settimeout(timeout)
-        try:
-            self.sock.bind(("", 0))  # allow OS to assign next available source port
-        except Exception as err:
-            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
-
-    def close_socket(self):
-        self.sock.close()
 
 
 def test():

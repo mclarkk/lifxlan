@@ -9,8 +9,11 @@ import time
 from collections import deque
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
+from contextlib import contextmanager
 from functools import wraps
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from typing import Optional, List, Generator
+from .errors import WorkflowException
 
 
 def timer(func):
@@ -74,6 +77,22 @@ def exhaust(iterable):
     should be used for side effects (printing, updating, submitting to job pool, etc)
     """
     deque(iterable, maxlen=0)
+
+
+@contextmanager
+def init_socket(timeout):
+    sock = socket(AF_INET, SOCK_DGRAM)
+    try:
+        sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+        sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+        sock.settimeout(timeout)
+        try:
+            sock.bind(("", 0))  # allow OS to assign next available source port
+        except Exception as err:
+            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
+        yield sock
+    finally:
+        sock.close()
 
 
 ### Convert an RGB colour definition to HSBK

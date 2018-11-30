@@ -59,7 +59,7 @@ def hex_rgb_testing():
     print(c.rgb.color.rgb.color.rgb.color)
 
 def __main():
-    return mean()
+    # return mean()
     lan = LifxLAN()
     m = lan.auto_group()['master']
     l1, l2 = m

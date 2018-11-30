@@ -30,7 +30,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .products import features_map, product_map, light_products
 from .unpack import unpack_lifx_message
-from .utils import timer, exhaust
+from .utils import timer, exhaust, init_socket
 
 DEFAULT_TIMEOUT = 2  # second
 DEFAULT_ATTEMPTS = 2
@@ -135,11 +135,6 @@ class Device(object):
         # time
         # uptime
         # downtime
-
-        # The following attributes are used for handling multithreading requests
-
-        self._socket_counter = 0
-        self._socket_table = {}
 
     ###########################################################################
     #                                                                          #
@@ -353,23 +348,21 @@ class Device(object):
     def fire_and_forget(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
                         num_repeats=DEFAULT_ATTEMPTS):
         payload = payload or {}
-        socket_id = self.initialize_socket(timeout_secs)
-        sock = self._socket_table[socket_id]
-        msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False,
-                       response_requested=False)
-        sent_msg_count = 0
-        sleep_interval = 0.05 if num_repeats > 20 else 0
-        while sent_msg_count < num_repeats:
-            if self.ip_addr:
-                sock.sendto(msg.packed_message, (self.ip_addr, self.port))
-            else:
-                for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                    sock.sendto(msg.packed_message, (ip_addr, self.port))
-            if self.verbose:
-                print("SEND: " + str(msg))
-            sent_msg_count += 1
-            sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
-        self.close_socket(socket_id)
+        with init_socket(timeout_secs) as sock:
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False,
+                           response_requested=False)
+            sent_msg_count = 0
+            sleep_interval = 0.05 if num_repeats > 20 else 0
+            while sent_msg_count < num_repeats:
+                if self.ip_addr:
+                    sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+                else:
+                    for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                        sock.sendto(msg.packed_message, (ip_addr, self.port))
+                if self.verbose:
+                    print("SEND: " + str(msg))
+                sent_msg_count += 1
+                sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
 
     # Usually used for Set messages
     def req_with_ack(self, msg_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
@@ -384,84 +377,56 @@ class Device(object):
             response_type = [response_type]
         success = False
         device_response = None
-        socket_id = self.initialize_socket(timeout_secs)
-        sock = self._socket_table[socket_id]
-        ack_requested = len(response_type) == 1 and Acknowledgement in response_type
-        msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=ack_requested,
-                       response_requested=not ack_requested)
-        response_seen = False
-        attempts = 0
-        while not response_seen and attempts < max_attempts:
-            sent = False
-            start_time = time()
-            timedout = False
-            while not response_seen and not timedout:
-                if not sent:
-                    if self.ip_addr:
-                        sock.sendto(msg.packed_message, (self.ip_addr, self.port))
-                    else:
-                        for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                            sock.sendto(msg.packed_message, (ip_addr, self.port))
-                    sent = True
-                    if self.verbose:
-                        print("SEND: " + str(msg))
-                try:
-                    data, (ip_addr, port) = sock.recvfrom(1024)
-                    response = unpack_lifx_message(data)
-                    if self.verbose:
-                        print("RECV: " + str(response))
-                    if type(response) in response_type:
-                        if response.source_id == self.source_id and (
-                                response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
-                            response_seen = True
-                            device_response = response
-                            self.ip_addr = ip_addr
-                            success = True
-                except timeout:
-                    pass
-                elapsed_time = time() - start_time
-                timedout = True if elapsed_time > timeout_secs else False
-            attempts += 1
-        if not success:
-            self.close_socket(socket_id)
-            raise NoResponse(
-                "WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(str(response_type),
-                                                                                                    str(self.mac_addr),
-                                                                                                    str(self.label),
-                                                                                                    str(msg_type)))
-        else:
-            self.close_socket(socket_id)
-        return device_response
+        with init_socket(timeout_secs) as sock:
+            ack_requested = len(response_type) == 1 and Acknowledgement in response_type
+            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=ack_requested,
+                           response_requested=not ack_requested)
+            response_seen = False
+            attempts = 0
+            while not response_seen and attempts < max_attempts:
+                sent = False
+                start_time = time()
+                timedout = False
+                while not response_seen and not timedout:
+                    if not sent:
+                        if self.ip_addr:
+                            sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+                        else:
+                            for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                                sock.sendto(msg.packed_message, (ip_addr, self.port))
+                        sent = True
+                        if self.verbose:
+                            print("SEND: " + str(msg))
+                    try:
+                        data, (ip_addr, port) = sock.recvfrom(1024)
+                        response = unpack_lifx_message(data)
+                        if self.verbose:
+                            print("RECV: " + str(response))
+                        if type(response) in response_type:
+                            if response.source_id == self.source_id and (
+                                    response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
+                                response_seen = True
+                                device_response = response
+                                self.ip_addr = ip_addr
+                                success = True
+                    except timeout:
+                        pass
+                    elapsed_time = time() - start_time
+                    timedout = True if elapsed_time > timeout_secs else False
+                attempts += 1
+            if not success:
+                raise NoResponse(
+                    "WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(
+                        str(response_type),
+                        str(self.mac_addr),
+                        str(self.label),
+                        str(msg_type)))
+            return device_response
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
     # def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=DEFAULT_TIMEOUT,
     #                       max_attempts=DEFAULT_ATTEMPTS):
     #     pass
-
-    ############################################################################
-    #                                                                          #
-    #                              Socket Methods                              #
-    #                                                                          #
-    ############################################################################
-
-    def initialize_socket(self, timeout):
-        sock = socket(AF_INET, SOCK_DGRAM)
-        sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-        sock.settimeout(timeout)
-        try:
-            sock.bind(("", 0))  # allow OS to assign next available source port
-            socket_id = self._socket_counter
-            self._socket_table[socket_id] = sock
-            self._socket_counter += 1
-            return socket_id
-        except Exception as err:
-            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
-
-    def close_socket(self, socket_id):
-        sock = self._socket_table.pop(socket_id, None)
-        if sock is not None:
-            sock.close()
 
 
 ################################################################################
