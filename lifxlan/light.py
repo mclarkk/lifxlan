@@ -33,83 +33,88 @@ class Light(Device):
     def __eq__(self, other):
         return super().__eq__(other) and self.color == other.color
 
+    def __lt__(self, other: 'Light'):
+        return self._sort_key < other._sort_key
+
+    @property
+    def _sort_key(self) -> str:
+        return f'{self.label}|||{self.product_name}'
+
     @property
     def _refresh_funcs(self) -> Tuple[Callable]:
-        return super()._refresh_funcs + (self.get_color,)
+        return super()._refresh_funcs + (self._refresh_light_state, self._refresh_infrared)
 
     @property
     def power(self):
         return self.power_level
 
-    def get_power(self):
-        response = self.req_with_resp(LightGetPower, LightStatePower)
-        self.power_level = response.power_level
-        return self.power_level
-
-    def set_power(self, power, duration=0, rapid=False):
-        power = PowerSettings.validate(power)
-        print(f'setting power to {power}')
-        self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
+    @property
+    def color_power(self) -> ColorPower:
+        return ColorPower(self.color, self.power)
 
     def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
         self._send_set_message(LightSetWaveform,
                                dict(transient=is_transient, color=color, period=period, cycles=cycles,
                                     duty_cycle=duty_cycle, waveform=waveform.value), rapid=rapid)
 
-    def get_color(self) -> Color:
+    def _refresh_light_state(self):
+        """get and update color, power_level, and label from light"""
         response = self.req_with_resp(LightGet, LightState)
         self.color = Color(*response.color)
         self.power_level = response.power_level
         self.label = response.label
-        return self.color
 
-    def _replace_color(self, color: Color, duration, rapid, **color_kwargs):
-        self.set_color(color._replace(**color_kwargs), duration, rapid)
+    def _refresh_infrared(self):
+        """update infrared_brightness if supported"""
+        if self.supports_infrared:
+            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
+            self.infrared_brightness = response.infrared_brightness
 
     def set_color(self, color: Color, duration=0, rapid=False):
         print(f'setting color to {color}')
         self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
 
+    def set_power(self, power, duration=0, rapid=False):
+        power = PowerSettings.validate(power)
+        print(f'setting power to {power}')
+        self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
+
     def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+        """set both color and power at the same time"""
         with self._wait_pool as wp:
-            if cp.power and cp.color:
-                wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
+            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
             wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
+
+    def _replace_color(self, color: Color, duration, rapid, **color_kwargs):
+        """helper func for setting various Color attributes"""
+        self.set_color(color._replace(**color_kwargs), duration, rapid)
 
     def set_hue(self, hue, duration=0, rapid=False):
         """hue to set; duration in ms"""
-        self._replace_color(self.get_color(), duration, rapid, hue=hue)
+        self._replace_color(self.color, duration, rapid, hue=hue)
 
     def set_saturation(self, saturation, duration=0, rapid=False):
         """saturation to set; duration in ms"""
-        self._replace_color(self.get_color(), duration, rapid, saturation=saturation)
+        self._replace_color(self.color, duration, rapid, saturation=saturation)
 
     def set_brightness(self, brightness, duration=0, rapid=False):
         """brightness to set; duration in ms"""
-        self._replace_color(self.get_color(), duration, rapid, brightness=brightness)
+        self._replace_color(self.color, duration, rapid, brightness=brightness)
 
     def set_kelvin(self, kelvin, duration=0, rapid=False):
         """kelvin: color temperature to set; duration in ms"""
-        self._replace_color(self.get_color(), duration, rapid, kelvin=kelvin)
+        self._replace_color(self.color, duration, rapid, kelvin=kelvin)
 
-    # Infrared get maximum brightness, infrared_brightness
-    def get_infrared(self):
-        if self.supports_infrared:
-            response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
-            self.infrared_brightness = response.infrared_brightness
-        return self.infrared_brightness
-
-    # Infrared set maximum brightness, infrared_brightness
     def set_infrared(self, infrared_brightness, rapid=False):
         payload = dict(infrared_brightness=infrared_brightness)
         self._send_set_message(LightSetInfrared, payload, rapid=rapid)
 
-    # minimum color temperature supported by light bulb
-    def get_min_kelvin(self):
+    @property
+    def min_kelvin(self):
         return self.product_features.get('min_kelvin', unknown)
 
-    # maximum color temperature supported by light bulb
-    def get_max_kelvin(self):
+    @property
+    def max_kelvin(self):
         return self.product_features.get('max_kelvin', unknown)
 
     ############################################################################
@@ -119,6 +124,11 @@ class Light(Device):
     ############################################################################
 
     def __str__(self):
+        return f'{self.product_name} ({self.label!r})'
+
+    __repr__ = __str__
+
+    def info_str(self):
         indent = "  "
         s = self.device_characteristics_str(indent)
         s += indent + f'Color (HSBK): {self.color}\n'

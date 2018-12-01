@@ -14,26 +14,25 @@
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 import netifaces as ni
-from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from datetime import datetime
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
+from socket import timeout
 from time import sleep, time
 from typing import NamedTuple, Optional, Dict
 
-from .settings import unknown, PowerSettings
-from .errors import WorkflowException, NoResponse
+from .errors import NoResponse
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .products import features_map, product_map, light_products
+from .settings import unknown, PowerSettings
 from .unpack import unpack_lifx_message
-from .utils import timer, exhaust, init_socket
+from .utils import timer, exhaust, init_socket, WaitPool
 
-DEFAULT_TIMEOUT = 2  # second
-DEFAULT_ATTEMPTS = 2
+DEFAULT_TIMEOUT = 1  # second
+DEFAULT_ATTEMPTS = 4
 
 VERBOSE = False
 
@@ -122,7 +121,7 @@ class Device(object):
         self.wifi_firmware_info = FirmwareInfo()
         self.product_info = ProductInfo()
 
-        self._pool = ThreadPoolExecutor(12)
+        self._wait_pool = WaitPool(ThreadPoolExecutor(12))
 
         # For completeness, the following are state attributes of the device
         # that become stale too fast to bother caching in the device object,
@@ -148,6 +147,13 @@ class Device(object):
     def __eq__(self, other):
         return self.mac_addr == other.mac_addr
 
+    def __lt__(self, other):
+        return self.group < other.group
+
+    # ==================================================================================================================
+    # DEVICE PROPERTIES
+    # ==================================================================================================================
+
     @property
     def product(self):
         return self.product_info.product
@@ -159,6 +165,18 @@ class Device(object):
     @property
     def product_features(self):
         return features_map.get(self.product)
+
+    @property
+    def is_light(self) -> bool:
+        if self.product is None or unknown in self.product_info:
+            self._refresh_version_info()
+        return self.product in light_products
+
+    supports_color = SupportsDesc()
+    supports_temperature = SupportsDesc()
+    supports_multizone = SupportsDesc()
+    supports_infrared = SupportsDesc()
+    supports_chain = SupportsDesc()
 
     # ==================================================================================================================
     # SETTERS
@@ -193,9 +211,11 @@ class Device(object):
     @timer
     def refresh(self):
         """full refresh for all interesting values"""
+        with self._wait_pool as wp:
+            exhaust(map(wp.submit, self._refresh_funcs))
+
         with suppress(NoResponse):
-            futures = [self._pool.submit(f) for f in self._refresh_funcs]
-            exhaust(f.result() for f in futures)
+            exhaust(f.result() for f in wp.futures)
             return True
 
         return False
@@ -211,61 +231,45 @@ class Device(object):
         self.location = response.label.encode('utf-8')
         if type(self.location).__name__ == 'bytes':  # Python 3
             self.location = self.location.decode('utf-8')
-        return self.location
 
     def _refresh_group(self):
         response = self.req_with_resp(GetGroup, StateGroup)
         self.group = response.label.encode('utf-8')
         if type(self.group).__name__ == 'bytes':  # Python 3
             self.group = self.group.decode('utf-8')
-        return self.group
 
     def _refresh_power(self):
         response = self.req_with_resp(GetPower, StatePower)
         self.power_level = response.power_level
 
-    def _refresh_host_firmware_info(self) -> FirmwareInfo:
+    def _refresh_host_firmware_info(self):
         response = self.req_with_resp(GetHostFirmware, StateHostFirmware)
         build = response.build
         version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
-        t = self.host_firmware_info = FirmwareInfo(build, version)
-        return t
+        self.host_firmware_info = FirmwareInfo(build, version)
 
-    def _refresh_wifi_firmware_info(self) -> FirmwareInfo:
+    def _refresh_wifi_firmware_info(self):
         response = self.req_with_resp(GetWifiFirmware, StateWifiFirmware)
         build = response.build
         version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
-        t = self.wifi_firmware_info = FirmwareInfo(build, version)
-        return t
+        self.wifi_firmware_info = FirmwareInfo(build, version)
 
-    def _refresh_version_info(self) -> ProductInfo:
-        r = self.req_with_resp(GetVersion, StateVersion)
-        t = self.product_info = ProductInfo(r.vendor, r.product, r.version)
-        return t
-
-    def _get_wifi_info(self) -> WifiInfo:
-        response = self.req_with_resp(GetWifiInfo, StateWifiInfo)
-        return WifiInfo(response.signal, response.tx, response.rx)
+    def _refresh_version_info(self, only_if_needed=False):
+        if not only_if_needed or (self.product is None or unknown in self.product_info):
+            r = self.req_with_resp(GetVersion, StateVersion)
+            self.product_info = ProductInfo(r.vendor, r.product, r.version)
 
     # ==================================================================================================================
     # GET DATA
     # ==================================================================================================================
 
+    def _get_wifi_info(self) -> WifiInfo:
+        response = self.req_with_resp(GetWifiInfo, StateWifiInfo)
+        return WifiInfo(response.signal, response.tx, response.rx)
+
     def _get_time_info(self) -> TimeInfo:
         response = self.req_with_resp(GetInfo, StateInfo)
         return TimeInfo(response.time, response.uptime, response.downtime)
-
-    @property
-    def is_light(self) -> bool:
-        if self.product is None or unknown in self.product_info:
-            self._refresh_version_info()
-        return self.product in light_products
-
-    supports_color = SupportsDesc()
-    supports_temperature = SupportsDesc()
-    supports_multizone = SupportsDesc()
-    supports_infrared = SupportsDesc()
-    supports_chain = SupportsDesc()
 
     ############################################################################
     #                                                                          #
@@ -415,12 +419,8 @@ class Device(object):
                     timedout = True if elapsed_time > timeout_secs else False
                 attempts += 1
             if not success:
-                raise NoResponse(
-                    "WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(
-                        str(response_type),
-                        str(self.mac_addr),
-                        str(self.label),
-                        str(msg_type)))
+                raise NoResponse(f'WorkflowException: Did not receive {response_type!r} from {self.mac_addr!r} '
+                                 f'(Name: {self.label!r}) in response to {msg_type!r}')
             return device_response
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively

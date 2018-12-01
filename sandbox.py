@@ -1,9 +1,10 @@
 import random
 from itertools import groupby
 
-import lifxlan
-from lifxlan import Color
+
+from lifxlan import Color, exhaust, LifxLAN
 from lifxlan.settings import Colors, Themes
+import time
 
 d = dict(a=3, b=3, c=1)
 
@@ -16,8 +17,33 @@ def get_vals(n):
 
 def __main():
     print(Colors)
-    lan = lifxlan.LifxLAN()
-    print(lan.lights)
+    c = Colors.YALE_BLUE
+    print(c.offset_hue(60))
+    exhaust(map(print, Themes.snes))
+    # exhaust(map(print, c.get_complements(1)))
+    # exhaust(map(print, c.get_complements(1)))
+    comps = c.get_complements(.2)
+    # print(len(comps))
+    lan = LifxLAN()
+    m = lan.auto_group()['master']
+    print(m)
+    print(lan.on_lights)
+    print(lan.off_lights)
+    return
+    exhaust(map(print, m.color_power.items()))
+    return
+    m.set_color(Colors.DEFAULT)
+    return
+    for c in Themes.snes:
+        m.set_color(c)
+        time.sleep(5)
+    return
+    c = Color.mean(*(c for _, c in Colors))
+    print(c)
+    m.set_color(c)
+    time.sleep(4)
+    m.set_color(Colors.DEFAULT)
+
     return
 
     # for _ in range(20):
@@ -37,7 +63,7 @@ def __main():
             print(k, sum(1 for _ in v))
         print()
     return
-    lan = lifxlan.LifxLAN()
+    lan = LifxLAN()
     print(lan.auto_group())
     print(lan.color_lights)
     return
@@ -51,7 +77,6 @@ def __main():
     duration = 4
     orig = l1.color
     l2.set_color(Color.from_hex(0xf4d92, l2.color.kelvin), duration=duration * 1000)
-    import time
     time.sleep(duration)
     l2.set_color(orig, duration=duration * 1000)
     return

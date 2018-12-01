@@ -2,13 +2,11 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from functools import partial, wraps
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional, Iterable
 
 from .device import Device
 from .light import Light
-from .multizonelight import MultiZoneLight
-from .settings import Color, Waveform, Theme, ColorPower
-from .tilechain import TileChain
+from .settings import Color, Waveform, Theme, ColorPower, TOTAL_NUM_LIGHTS
 from .utils import WaitPool, exhaust
 
 
@@ -34,45 +32,69 @@ def _set_generic(func=None, *, func_name_override=None, light_type='color_lights
     return wrapper
 
 
+class _GetGeneric:
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __init__(self, light_type='color_lights'):
+        self.light_type = light_type
+
+    def __get__(self, instance, owner):
+        if not instance:
+            return self
+
+        return {d: getattr(d, self.name) for d in getattr(instance, self.light_type)}
+
+
 class Group:
 
-    def __init__(self, devices: List[Device]):
-        self.devices = devices
-        self._wait_pool = WaitPool(ThreadPoolExecutor(30))
-
-    # noinspection PyTypeChecker
-    @property
-    def lights(self) -> 'LightGroup':
-        return LightGroup([l for l in self.devices if l.is_light])
-
-    # noinspection PyTypeChecker
-    @property
-    def color_lights(self) -> 'LightGroup':
-        return LightGroup([l for l in self.devices if l.supports_color])
-
-    # noinspection PyTypeChecker
-    @property
-    def multizone_lights(self) -> List[MultiZoneLight]:
-        return [l for l in self.devices if l.supports_multizone]
-
-    # noinspection PyTypeChecker
-    @property
-    def infrared_lights(self) -> List[Light]:
-        return [l for l in self.devices if l.supports_infrared]
-
-    # noinspection PyTypeChecker
-    @property
-    def tilechain_lights(self) -> List[TileChain]:
-        return [l for l in self.devices if l.supports_chain]
+    def __init__(self, devices: Iterable[Device], name: Optional[str] = None):
+        self.devices = sorted(devices)
+        self.name = name or ''
+        self._wait_pool = WaitPool(ThreadPoolExecutor(TOTAL_NUM_LIGHTS))
 
     def refresh(self):
         with self._wait_pool as wp:
             futures = {d: wp.submit(d.refresh) for d in self.devices}
+
         for d, fut in futures.items():
             if not fut.result():
-                print(f'ERROR with device with mac addr {d.mac_addr, d.label}, '
+                print(f'ERROR with device with name, mac addr {d.label, d.mac_addr}, '
                       f'removing from group. result: {fut.result()}')
                 self.remove_device(d)
+
+    # ==================================================================================================================
+    # GROUP PROPERTIES
+    # ==================================================================================================================
+
+    # noinspection PyTypeChecker
+    @property
+    def lights(self) -> 'LightGroup':
+        return LightGroup(l for l in self.devices if l.is_light)
+
+    # noinspection PyTypeChecker
+    @property
+    def color_lights(self) -> 'LightGroup':
+        return LightGroup(l for l in self.devices if l.supports_color)
+
+    # noinspection PyTypeChecker
+    @property
+    def multizone_lights(self) -> 'LightGroup':
+        return LightGroup(l for l in self.devices if l.supports_multizone)
+
+    # noinspection PyTypeChecker
+    @property
+    def infrared_lights(self) -> 'LightGroup':
+        return LightGroup(l for l in self.devices if l.supports_infrared)
+
+    # noinspection PyTypeChecker
+    @property
+    def tilechain_lights(self) -> 'LightGroup':
+        return LightGroup(l for l in self.devices if l.supports_chain)
+
+    # ==================================================================================================================
+    # ALTER GROUP IN MEMORY
+    # ==================================================================================================================
 
     def add_device(self, device_object):
         if device_object not in self.devices:
@@ -88,6 +110,10 @@ class Group:
     def set_power(self, power, duration=0, rapid=False):
         with self._wait_pool as wp:
             exhaust(wp.submit(self._set_power_helper, d, power, duration, rapid) for d in self.devices)
+
+    # ==================================================================================================================
+    # SET LIGHT VALUES IN GROUP
+    # ==================================================================================================================
 
     @staticmethod
     def _set_power_helper(device, power, duration, rapid):
@@ -151,6 +177,13 @@ class Group:
             exhaust(
                 wp.submit(l.set_color_power, ColorPower(c, power_on), duration, rapid) for l, c in zip(self, colors))
 
+    # ==================================================================================================================
+    # GET SETTINGS FROM LIGHTS
+    # ==================================================================================================================
+    power = _GetGeneric('devices')
+    color = _GetGeneric()
+    color_power = _GetGeneric()
+
     def __len__(self):
         return len(self.devices)
 
@@ -163,7 +196,8 @@ class Group:
     def __str__(self):
         start_end = f'\n{80 * "="}\n'
         device_str = '\n'.join(map(str, self))
-        return f'{start_end}{type(self).__name__} (num_lights: {len(self.devices)}):\n{device_str}{start_end}'
+        name_str = f' {self.name!r}' if self.name else ''
+        return f'{start_end}{type(self).__name__}{name_str} ({len(self.devices)} lights):\n{device_str}{start_end}'
 
 
 class LightGroup(Group):

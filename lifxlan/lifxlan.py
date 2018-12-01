@@ -42,6 +42,18 @@ def populate(func):
     return wrapper
 
 
+class FromGroup:
+    """based on name, get information from internal group object"""
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance: 'LifxLAN', owner):
+        if not instance:
+            return self
+        return getattr(instance._group, self.name)
+
+
 class LifxLAN:
     @populate
     def __init__(self, verbose=False):
@@ -77,31 +89,30 @@ class LifxLAN:
             print(f'error in _check_for_new_lights: {e!r}')
             raise e
 
-    @property
-    def devices(self) -> List[Device]:
-        # return list(self._devices_by_mac_addr.values())
-        return self._group.devices
+    # ==================================================================================================================
+    # accessors to lights from group
+    # ==================================================================================================================
+    devices = FromGroup()
+    lights = FromGroup()
+    multizone_lights = FromGroup()
+    infrared_lights = FromGroup()
+    color_lights = FromGroup()
+    tilechain_lights = FromGroup()
+
+    # ==================================================================================================================
+    # accessors to light settings
+    # ==================================================================================================================
+    power = FromGroup()
+    color = FromGroup()
+    color_power = FromGroup()
 
     @property
-    def lights(self) -> List[Light]:
-        # noinspection PyTypeChecker
-        return self._group.lights
+    def on_lights(self) -> Group:
+        return Group((l for l, p in self.power.items() if p), 'ON')
 
     @property
-    def multizone_lights(self):
-        return self._group.multizone_lights
-
-    @property
-    def infrared_lights(self):
-        return self._group.infrared_lights
-
-    @property
-    def color_lights(self):
-        return self._group.color_lights
-
-    @property
-    def tilechain_lights(self):
-        return self._group.tilechain_lights
+    def off_lights(self):
+        return Group((l for l, p in self.power.items() if not p), 'OFF')
 
     @timer
     def populate_devices(self, reset=False, total_num_lights=TOTAL_NUM_LIGHTS):
@@ -113,7 +124,7 @@ class LifxLAN:
         responses = self._broadcast_with_resp(GetService, StateService, total_num_lights=total_num_lights)
         for device in map(self._proc_device_response, responses):
             self._devices_by_mac_addr[device.mac_addr] = device
-        self._group = Group(list(self._devices_by_mac_addr.values()))
+        self._group = Group(self._devices_by_mac_addr.values())
         self.refresh()
 
     @timer
@@ -136,13 +147,13 @@ class LifxLAN:
         return next((d for d in self.devices if d.label == name), None)
 
     def get_devices_by_name(self, names) -> Group:
-        return Group([d for d in self.devices if d.label in set(names)])
+        return Group(d for d in self.devices if d.label in set(names))
 
     def get_devices_by_group(self, group):
-        return Group([d for d in self.devices if d.group == group])
+        return Group(d for d in self.devices if d.group == group)
 
     def get_devices_by_location(self, location):
-        return Group([d for d in self.devices if d.location == location])
+        return Group(d for d in self.devices if d.location == location)
 
     def auto_group(self) -> Dict[str, Group]:
         def key(d):
@@ -150,7 +161,7 @@ class LifxLAN:
             return split_names[0] if len(split_names) == 1 else '_'.join(split_names[:-1])
 
         devices = sorted(self.devices, key=key)
-        return {k: Group(list(v)) for k, v in groupby(devices, key)}
+        return {k: Group(v, k) for k, v in groupby(devices, key)}
 
     def _get_matched_by_by_addr(self, responses):
         """return gen expr of (light, resp) matched by mac address"""
