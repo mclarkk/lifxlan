@@ -7,7 +7,6 @@ import struct
 import bitstring
 
 BROADCAST_MAC = "00:00:00:00:00:00"
-BROADCAST_SOURCE_ID = 0
 
 HEADER_SIZE_BYTES = 36
 

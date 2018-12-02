@@ -6,6 +6,7 @@
 # Need to look into assert-type frameworks or something, there has to be a tool for that.
 # Also need to make custom errors possibly, though tool may have those.
 from collections import defaultdict
+from typing import Optional, Dict
 
 import bitstring
 
@@ -16,7 +17,9 @@ from .message import BROADCAST_MAC, Message, little_endian
 ##### DEVICE MESSAGES #####
 
 class GetService(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         super(GetService, self).__init__(MSG_IDS[GetService], target_addr, source_id, seq_num, ack_requested,
                                          response_requested)
@@ -39,7 +42,9 @@ class StateService(Message):
 
 
 class GetHostInfo(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetHostInfo, self).__init__(MSG_IDS[GetHostInfo], target_addr, source_id, seq_num, ack_requested,
                                           response_requested)
 
@@ -67,7 +72,9 @@ class StateHostInfo(Message):
 
 
 class GetHostFirmware(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetHostFirmware, self).__init__(MSG_IDS[GetHostFirmware], target_addr, source_id, seq_num, ack_requested,
                                               response_requested)
 
@@ -92,7 +99,9 @@ class StateHostFirmware(Message):
 
 
 class GetWifiInfo(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetWifiInfo, self).__init__(MSG_IDS[GetWifiInfo], target_addr, source_id, seq_num, ack_requested,
                                           response_requested)
 
@@ -120,7 +129,9 @@ class StateWifiInfo(Message):
 
 
 class GetWifiFirmware(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetWifiFirmware, self).__init__(MSG_IDS[GetWifiFirmware], target_addr, source_id, seq_num, ack_requested,
                                               response_requested)
 
@@ -145,7 +156,9 @@ class StateWifiFirmware(Message):
 
 
 class GetPower(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetPower, self).__init__(MSG_IDS[GetPower], target_addr, source_id, seq_num, ack_requested,
                                        response_requested)
 
@@ -177,7 +190,9 @@ class StatePower(Message):
 
 
 class GetLabel(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetLabel, self).__init__(MSG_IDS[GetLabel], target_addr, source_id, seq_num, ack_requested,
                                        response_requested)
 
@@ -219,7 +234,9 @@ class StateLabel(Message):
 
 
 class GetVersion(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetVersion, self).__init__(MSG_IDS[GetVersion], target_addr, source_id, seq_num, ack_requested,
                                          response_requested)
 
@@ -244,7 +261,9 @@ class StateVersion(Message):
 
 
 class GetInfo(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetInfo, self).__init__(MSG_IDS[GetInfo], target_addr, source_id, seq_num, ack_requested,
                                       response_requested)
 
@@ -269,7 +288,9 @@ class StateInfo(Message):
 
 
 class GetLocation(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetLocation, self).__init__(MSG_IDS[GetLocation], target_addr, source_id, seq_num, ack_requested,
                                           response_requested)
 
@@ -299,7 +320,9 @@ class StateLocation(Message):
 
 
 class GetGroup(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(GetGroup, self).__init__(MSG_IDS[GetGroup], target_addr, source_id, seq_num, ack_requested,
                                        response_requested)
 
@@ -329,7 +352,9 @@ class StateGroup(Message):
 
 
 class Acknowledgement(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(Acknowledgement, self).__init__(MSG_IDS[Acknowledgement], target_addr, source_id, seq_num, ack_requested,
                                               response_requested)
 
@@ -370,7 +395,9 @@ class EchoResponse(Message):
 
 
 class LightGet(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(LightGet, self).__init__(MSG_IDS[LightGet], target_addr, source_id, seq_num, ack_requested,
                                        response_requested)
 
@@ -452,7 +479,9 @@ class LightState(Message):
 
 
 class LightGetPower(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(LightGetPower, self).__init__(MSG_IDS[LightGetPower], target_addr, source_id, seq_num, ack_requested,
                                             response_requested)
 
@@ -489,7 +518,9 @@ class LightStatePower(Message):
 ##### INFRARED MESSAGES #####
 
 class LightGetInfrared(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         super(LightGetInfrared, self).__init__(MSG_IDS[LightGetInfrared], target_addr, source_id, seq_num,
                                                ack_requested, response_requested)
 
@@ -605,14 +636,18 @@ class MultiZoneGetColorZones(Message):
 ##### TILE MESSAGES #####
 
 class GetDeviceChain(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         super(GetDeviceChain, self).__init__(MSG_IDS[GetDeviceChain], target_addr, source_id, seq_num, ack_requested,
                                              response_requested)
 
 
 class StateDeviceChain(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         self.start_index = payload["start_index"]
         self.total_count = payload["total_count"]
@@ -650,7 +685,9 @@ class StateDeviceChain(Message):
 
 
 class SetUserPosition(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         self.tile_index = payload["tile_index"]
         self.reserved = payload["reserved"]
@@ -673,7 +710,9 @@ class SetUserPosition(Message):
 
 
 class GetTileState64(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         self.tile_index = payload["tile_index"]
         self.length = payload["length"]
@@ -702,7 +741,9 @@ class GetTileState64(Message):
 
 
 class StateTileState64(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         self.tile_index = payload["tile_index"]
         self.reserved = payload["reserved"]
@@ -732,7 +773,9 @@ class StateTileState64(Message):
 
 
 class SetTileState64(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+    def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
+                 response_requested=False):
+        payload = payload or {}
         target_addr = BROADCAST_MAC
         self.tile_index = payload["tile_index"]
         self.length = payload["length"]

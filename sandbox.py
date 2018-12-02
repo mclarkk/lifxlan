@@ -25,6 +25,8 @@ def __main():
     comps = c.get_complements(.2)
     # print(len(comps))
     lan = LifxLAN()
+    print(lan.lights)
+    return
     m = lan.auto_group()['master']
     print(m)
     print(lan.on_lights)

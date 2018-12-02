@@ -31,7 +31,7 @@ from .settings import unknown, PowerSettings
 from .unpack import unpack_lifx_message
 from .utils import timer, exhaust, init_socket, WaitPool
 
-DEFAULT_TIMEOUT = 1  # second
+DEFAULT_TIMEOUT = .8  # second
 DEFAULT_ATTEMPTS = 4
 
 VERBOSE = False
@@ -80,20 +80,14 @@ class SupportsDesc:
     """return whether or not a certain feature is supported based on the member name"""
 
     def __set_name__(self, owner, name):
-        self.name = name.split('_', 1)[-1]
+        self.feature = name.split('_', 1)[-1]
 
     def __get__(self, instance, owner):
         if not instance:
             return self
 
-        return self._supports(instance, self.name)
-
-    @staticmethod
-    def _supports(instance, feature: str) -> bool:
-        if instance.product is None:
-            instance._refresh_version_info()
-
-        return instance.product_features[feature]
+        instance._refresh_version_info(only_if_needed=True)
+        return instance.product_features[self.feature]
 
 
 class Device(object):
@@ -168,8 +162,7 @@ class Device(object):
 
     @property
     def is_light(self) -> bool:
-        if self.product is None or unknown in self.product_info:
-            self._refresh_version_info()
+        self._refresh_version_info(only_if_needed=True)
         return self.product in light_products
 
     supports_color = SupportsDesc()
@@ -254,7 +247,7 @@ class Device(object):
         version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
         self.wifi_firmware_info = FirmwareInfo(build, version)
 
-    def _refresh_version_info(self, only_if_needed=False):
+    def _refresh_version_info(self, *, only_if_needed=False):
         if not only_if_needed or (self.product is None or unknown in self.product_info):
             r = self.req_with_resp(GetVersion, StateVersion)
             self.product_info = ProductInfo(r.vendor, r.product, r.version)

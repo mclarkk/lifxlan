@@ -28,6 +28,15 @@ def timer(func):
     return wrapper
 
 
+@contextmanager
+def localtimer():
+    start_time = time.time()
+    try:
+        yield
+    finally:
+        print(f'localtimer took {time.time() - start_time}')
+
+
 class WaitPool:
     """
     allow jobs to be submitted to either an existing pool or a dynamically-created one,
