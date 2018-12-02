@@ -20,12 +20,8 @@ from .tilechain import TileChain
 from .utils import timer, WaitPool
 
 
-# TODO: unify api between LifxLAN, Group, Device
-# TODO: should have basically same for each
-# TODO: in fact, LifxLAN could just contain a Group
-# TODO: move all set/get functionality to Group
-
-def populate(func):
+def _populate(func):
+    """used to ensure that `populate_devices` occurs after LifxLAN.__init__"""
     @wraps(func)
     def wrapper(self: 'LifxLAN', *args, **kwargs):
         res = func(self, *args, **kwargs)
@@ -37,8 +33,12 @@ def populate(func):
     return wrapper
 
 
-class FromGroup:
-    """forward attribute access to `_group` based on member name"""
+class _FromGroup:
+    """
+    forward attribute access to `_group` based on member name
+
+    in other words, get the attribute from the group
+    """
 
     def __set_name__(self, owner, name):
         self.name = name
@@ -50,7 +50,7 @@ class FromGroup:
 
 
 class LifxLAN:
-    @populate
+    @_populate
     def __init__(self, verbose=False):
         self.source_id = os.getpid()
         self._devices_by_mac_addr: Dict[str, Device] = {}
@@ -68,26 +68,28 @@ class LifxLAN:
     # ==================================================================================================================
     # accessors to lights from group
     # ==================================================================================================================
-    devices = FromGroup()
-    lights = FromGroup()
-    multizone_lights = FromGroup()
-    infrared_lights = FromGroup()
-    color_lights = FromGroup()
-    tilechain_lights = FromGroup()
+    devices = _FromGroup()
+    lights = _FromGroup()
+    multizone_lights = _FromGroup()
+    infrared_lights = _FromGroup()
+    color_lights = _FromGroup()
+    tilechain_lights = _FromGroup()
 
     # ==================================================================================================================
     # accessors to light settings
     # ==================================================================================================================
-    power = FromGroup()
-    color = FromGroup()
-    color_power = FromGroup()
+    power = _FromGroup()
+    color = _FromGroup()
+    color_power = _FromGroup()
 
     @property
     def on_lights(self) -> Group:
+        """group of lights that are currently on"""
         return Group((l for l, p in self.power.items() if p), 'ON')
 
     @property
     def off_lights(self):
+        """group of lights that are currently off"""
         return Group((l for l, p in self.power.items() if not p), 'OFF')
 
     @timer

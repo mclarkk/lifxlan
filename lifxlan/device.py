@@ -176,7 +176,7 @@ class Device(object):
     # ==================================================================================================================
 
     def set_label(self, label):
-        self.req_with_ack(SetLabel, dict(label=label[:32]))
+        self._send_set_message(SetLabel, dict(label=label[:32]), rapid=False)
         self._refresh_label()
 
     def set_power(self, power, rapid=False, **payload_kwargs):
