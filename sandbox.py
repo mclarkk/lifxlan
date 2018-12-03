@@ -1,6 +1,6 @@
 import random
 from itertools import groupby
-
+from typing import Iterable
 
 from lifxlan import Color, exhaust, LifxLAN
 from lifxlan.settings import Colors, Themes
@@ -26,8 +26,19 @@ def __main():
     # print(len(comps))
     lan = LifxLAN()
     print(lan.lights)
+    ag = lan.auto_group()
+    m = ag['master']
+    print(m + ag['living_room'] + m)
+    print(isinstance(m, Iterable))
+    cs, vs = zip(*Colors)
+    c = vs[0]
+    print(len(c.get_complements(20)))
+    print(c)
+    c += vs[1]
+    print(c, vs[0] + vs[1])
+    print('JEB', Colors.sum(*vs))
     return
-    m = lan.auto_group()['master']
+
     print(m)
     print(lan.on_lights)
     print(lan.off_lights)

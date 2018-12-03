@@ -84,6 +84,9 @@ class Color(NamedTuple):
         """avg colors together using math"""
         return (self.rgb + other.rgb).color
 
+    def __iadd__(self, other):
+        return self + other
+
     def get_complements(self, degrees) -> List['Color']:
         """
         return list of colors offset by degrees
@@ -101,7 +104,7 @@ class Color(NamedTuple):
         res = [self]
         for n in range(1, self._max_complements):
             n_deg = n * degrees
-            if (hue_d + n_deg) % 360 == hue_d:
+            if n_deg % 360 == 0:
                 break
 
             res.append(self.offset_hue(n_deg))
@@ -182,7 +185,7 @@ class Colors(metaclass=ColorsMeta):
     SNES_BLACK = Color.from_hex(0x211a21)
 
     @classmethod
-    def mean(cls, *colors: Color):
+    def sum(cls, *colors: Color):
         """average together all colors provided"""
         return reduce(op.add, colors)
 
@@ -210,7 +213,11 @@ class Theme:
         return sum(self._colors.values())
 
     def get_colors(self, num_lights=1) -> List[Color]:
-        """get colors for `num_lights` lights"""
+        """
+        get colors for `num_lights` lights
+
+        allows an easy way for a `Group` to figure out which colors to apply to its lights
+        """
         splits = np.array_split(range(num_lights), self.sum_weights)
         random.shuffle(splits)
         splits_iter = iter(splits)

@@ -94,7 +94,9 @@ def morse_code(word_or_phrase: str,
 def __main():
     lan = LifxLAN()
     # print(lan.lights)
-    l = lan.auto_group()['master']
+    l = lan.auto_group()['living_room']
+    # print(lan.auto_group())
+    # return
     l.set_color(Colors.DEFAULT)
     exhaust(map(print, (light.power for light in l)))
     morse_code('sharifa', l.lights, reset=True)

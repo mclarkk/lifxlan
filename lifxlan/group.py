@@ -2,6 +2,7 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from functools import partial, wraps
+from itertools import chain
 from typing import List, Union, Dict, Optional, Iterable
 
 from .device import Device
@@ -33,6 +34,8 @@ def _set_generic(func=None, *, func_name_override=None, light_type='color_lights
 
 
 class _GetGeneric:
+    """based on member name and light type, create a dictionary of {Light: attr}"""
+
     def __set_name__(self, owner, name):
         self.name = name
 
@@ -49,9 +52,15 @@ class _GetGeneric:
 class Group:
 
     def __init__(self, devices: Iterable[Device], name: Optional[str] = None):
-        self.devices = sorted(devices)
+        self.devices = self._init_devices(devices)
         self.name = name or ''
         self._wait_pool = WaitPool(ThreadPoolExecutor(TOTAL_NUM_LIGHTS))
+
+    @staticmethod
+    def _init_devices(devices):
+        """ensure no duplicates and preserve original order"""
+        seen = set()
+        return sorted(d for d in devices if d not in seen and not seen.add(d))
 
     def refresh(self):
         with self._wait_pool as wp:
@@ -190,14 +199,26 @@ class Group:
     def __iter__(self):
         return iter(self.devices)
 
-    def __getitem__(self, item):
-        return self.devices[item]
+    def __getitem__(self, idx):
+        return self.devices[idx]
 
     def __str__(self):
         start_end = f'\n{80 * "="}\n'
         device_str = '\n'.join(map(str, self))
         name_str = f' {self.name!r}' if self.name else ''
         return f'{start_end}{type(self).__name__}{name_str} ({len(self.devices)} lights):\n{device_str}{start_end}'
+
+    def __add__(self, other):
+        if isinstance(other, Device):
+            return Group(self.devices + [other])
+        if isinstance(other, Iterable):
+            return Group(chain(self, other))
+        return NotImplemented
+
+    def __iadd__(self, other):
+        g = self + other
+        self.devices[:] = g.devices
+        return self
 
 
 class LightGroup(Group):
