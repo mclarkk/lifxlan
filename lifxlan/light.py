@@ -3,14 +3,13 @@
 # Author: Meghan Clark
 
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Callable, Tuple
 
+from .colors import ColorPower, Color
 from .device import Device
-from .msgtypes import LightGet, LightGetInfrared, LightGetPower, \
-    LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
-    LightState, LightStateInfrared, LightStatePower
-from .settings import Color, unknown, ColorPower, PowerSettings, Waveform
+from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
+    LightState, LightStateInfrared
+from .settings import unknown, PowerSettings, Waveform
 from .utils import WaitPool
 
 
@@ -19,7 +18,7 @@ class Light(Device):
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
         self.infrared_brightness = None
-        self._wait_pool = WaitPool(ThreadPoolExecutor(2))
+        self._wait_pool = WaitPool(2)
 
     ############################################################################
     #                                                                          #

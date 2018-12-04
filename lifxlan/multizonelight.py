@@ -6,7 +6,7 @@ import os
 
 from .light import Light
 from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
-from .settings import Color
+from .colors import Color
 
 
 class MultiZoneLight(Light):

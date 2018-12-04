@@ -2,8 +2,7 @@ import random
 from itertools import groupby
 from typing import Iterable
 
-from lifxlan import Color, exhaust, LifxLAN
-from lifxlan.settings import Colors, Themes
+from lifxlan import Color, exhaust, LifxLAN, Colors, Themes
 import time
 
 d = dict(a=3, b=3, c=1)

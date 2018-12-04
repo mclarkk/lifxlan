@@ -8,11 +8,12 @@ from .multizonelight import *
 from .group import Group
 from .tilechain import TileChain, Tile
 from .utils import *
-from .settings import Color, Colors, Theme, Themes
+from .themes import Theme, Themes
+from .colors import Color, Colors
 
-__version__     = '1.2.5'
+__version__     = '1.3.0'
 __description__ = 'API for local communication with LIFX devices over a LAN.'
-__url__         = 'http://github.com/mclarkk/lifxlan'
-__author__      = 'Meghan Clark'
-__authoremail__ = 'mclarkk@berkeley.edu'
+__url__         = 'http://github.com/sweettuse/lifxlan'
+__author__      = 'Meghan Clark, adam cushner'
+__authoremail__ = 'mclarkk@berkeley.edu; adam.cushner@gmail.com'
 __license__     = 'MIT'

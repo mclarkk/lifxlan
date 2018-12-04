@@ -7,8 +7,7 @@ import time
 from enum import Enum
 from typing import Union, List, NamedTuple
 
-from lifxlan import Group, Light, LifxLAN, exhaust
-from lifxlan.settings import ColorPower, Colors
+from lifxlan import Group, Light, LifxLAN, exhaust, Colors, ColorPower
 
 __author__ = 'acushner'
 

@@ -1,13 +1,14 @@
 # import thread
-from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from functools import partial, wraps
 from itertools import chain
 from typing import List, Union, Dict, Optional, Iterable
 
+from .colors import ColorPower, Color
 from .device import Device
 from .light import Light
-from .settings import Color, Waveform, Theme, ColorPower, TOTAL_NUM_LIGHTS
+from .settings import Waveform, TOTAL_NUM_LIGHTS
+from .themes import Theme
 from .utils import WaitPool, exhaust
 
 
@@ -54,7 +55,7 @@ class Group:
     def __init__(self, devices: Iterable[Device], name: Optional[str] = None):
         self.devices = self._init_devices(devices)
         self.name = name or ''
-        self._wait_pool = WaitPool(ThreadPoolExecutor(TOTAL_NUM_LIGHTS))
+        self._wait_pool = WaitPool(TOTAL_NUM_LIGHTS)
 
     @staticmethod
     def _init_devices(devices):

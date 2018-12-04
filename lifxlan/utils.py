@@ -1,10 +1,3 @@
-# Useful to have, non-LAN functions
-# Rev 0.1
-# Date 06/08/2017
-# Author: BHCunningham
-#
-# 1) RGB to HSBK conversion function
-#
 import time
 from collections import deque
 from concurrent.futures import wait
@@ -12,7 +5,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import contextmanager
 from functools import wraps
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
-from typing import Optional, List, Generator
+from typing import Optional, List, Generator, Any, Union
 from .errors import WorkflowException
 
 
@@ -44,13 +37,31 @@ class WaitPool:
     """
     threads_per_pool = 8
 
-    def __init__(self, pool: Optional[ThreadPoolExecutor] = None):
-        self._pool = pool or ThreadPoolExecutor(self.threads_per_pool)
+    def __init__(self, pool: Optional[Union[int, ThreadPoolExecutor]] = None):
+        self._pool = self._init_pool(pool)
         self._futures = []
+
+    @staticmethod
+    def _init_pool(pool: Optional[Union[int, ThreadPoolExecutor]]):
+        if isinstance(pool, ThreadPoolExecutor):
+            return pool
+
+        if isinstance(pool, int):
+            num_threads = pool
+        elif pool is None:
+            num_threads = WaitPool.threads_per_pool
+        else:
+            raise ValueError(f'invalid value for `pool`: {pool!r}')
+
+        return ThreadPoolExecutor(num_threads)
 
     @property
     def futures(self):
         return self._futures
+
+    @property
+    def results(self) -> List[Any]:
+        return [f.result() for f in self._futures]
 
     def wait(self):
         wait(self.futures)
@@ -81,7 +92,7 @@ class WaitPool:
 
 def exhaust(iterable):
     """
-    immediately consume and iterable and discard results
+    immediately consume an iterable and discard results
 
     should be used for side effects (printing, updating, submitting to job pool, etc)
     """
@@ -102,44 +113,3 @@ def init_socket(timeout):
         yield sock
     finally:
         sock.close()
-
-
-### Convert an RGB colour definition to HSBK
-# Author : BHCunningham
-# Input: (Red, Green, Blue), Temperature
-# Colours = 0 -> 255
-# Temperature 2500-9000 K, 3500 is default.
-# Output: (Hue, Saturation, Brightness, Temperature)
-
-def RGBtoHSBK(RGB, temperature=3500):
-    cmax = max(RGB)
-    cmin = min(RGB)
-    cdel = cmax - cmin
-
-    brightness = int((cmax / 255) * 65535)
-
-    if cdel != 0:
-        saturation = int(((cdel) / cmax) * 65535)
-
-        redc = (cmax - RGB[0]) / (cdel)
-        greenc = (cmax - RGB[1]) / (cdel)
-        bluec = (cmax - RGB[2]) / (cdel)
-
-        if RGB[0] == cmax:
-            hue = bluec - greenc
-        else:
-            if RGB[1] == cmax:
-                hue = 2 + redc - bluec
-            else:
-                hue = 4 + greenc - redc
-
-        hue = hue / 6
-        if hue < 0:
-            hue = hue + 1
-
-        hue = int(hue * 65535)
-    else:
-        saturation = 0
-        hue = 0
-
-    return hue, saturation, brightness, temperature

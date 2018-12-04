@@ -2,7 +2,6 @@
 # lifxlan.py
 # Author: Meghan Clark
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from functools import wraps
 from itertools import groupby
@@ -55,7 +54,7 @@ class LifxLAN:
         self.source_id = os.getpid()
         self._devices_by_mac_addr: Dict[str, Device] = {}
         self._verbose = verbose
-        self._wait_pool = WaitPool(ThreadPoolExecutor(40))
+        self._wait_pool = WaitPool(40)
         self._group: Group = None
         self._wait_pool.dispatch(self._check_for_new_lights)
 

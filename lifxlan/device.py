@@ -14,7 +14,6 @@
 # This may need to change in the future to support multiple (service, port) pairs
 # per device, and also to capture in real time when a service is down (port = 0).
 import netifaces as ni
-from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import suppress
 from datetime import datetime
 from socket import timeout
@@ -115,7 +114,7 @@ class Device(object):
         self.wifi_firmware_info = FirmwareInfo()
         self.product_info = ProductInfo()
 
-        self._wait_pool = WaitPool(ThreadPoolExecutor(12))
+        self._wait_pool = WaitPool(12)
 
         # For completeness, the following are state attributes of the device
         # that become stale too fast to bother caching in the device object,
