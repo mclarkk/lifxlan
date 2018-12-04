@@ -5,6 +5,8 @@ from typing import Iterable
 from lifxlan import Color, exhaust, LifxLAN, Colors, Themes
 import time
 
+from lifxlan.grid import Grid, downstairs
+
 d = dict(a=3, b=3, c=1)
 
 
@@ -14,7 +16,14 @@ def get_vals(n):
     return random.choices(keys, vals, k=n)
 
 
+def grid_test():
+    lights = LifxLAN().lights
+    g = Grid.from_rows(downstairs, lights)
+
+
+
 def __main():
+    return grid_test()
     print(Colors)
     c = Colors.YALE_BLUE
     print(c.offset_hue(60))

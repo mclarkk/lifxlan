@@ -6,6 +6,7 @@ unknown = 'UNKNOWN'
 TOTAL_NUM_LIGHTS = 17
 DEFAULT_KELVIN = 3200
 
+
 class Waveform(Enum):
     saw = 0
     sine = 1
@@ -35,18 +36,3 @@ class PowerSettings(Enum):
             return 0
         else:
             raise RuntimeError('you should not be here')
-
-
-Lights = {'living room 1': (0, 0),
-          'living room 2': (0, 0),
-          'living room 3': (0, 0),
-          'living room 4': (0, 0),
-          'kitchen 1': (0, 0),
-          'kitchen 2': (0, 0),
-          'kitchen 3': (0, 0),
-          'kitchen 4': (0, 0),
-          'creative space 1': (0, 0),
-          'creative space 2': (0, 0),
-          'creative space 3': (0, 0),
-          'creative space 4': (0, 0),
-          }

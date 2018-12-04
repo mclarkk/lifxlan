@@ -191,6 +191,7 @@ class Group:
     # GET SETTINGS FROM LIGHTS
     # ==================================================================================================================
     power = _GetGeneric('devices')
+    label = _GetGeneric('lights')
     color = _GetGeneric()
     color_power = _GetGeneric()
 
