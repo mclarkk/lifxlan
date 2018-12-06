@@ -134,7 +134,7 @@ class Light(Device):
         return self.product_features.get('max_kelvin', unknown)
 
     @contextmanager
-    def reset_to_orig(self, duration=0):
+    def reset_to_orig(self, duration=3000):
         """reset light to original color/power settings when done"""
         orig = copy(self)
         try:
