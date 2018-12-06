@@ -9,3 +9,4 @@
 # - morse code training app
 # x get rid of lan entirely? or move to a functional interface?
 # - do the wave in lights
+# - document usage - change README.md

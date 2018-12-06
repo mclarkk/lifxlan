@@ -5,17 +5,7 @@ from typing import Optional, List, Union, Iterable
 from lifxlan import LifxLAN, Group, Colors, Color, Theme
 from time import sleep, time
 
-ColorTheme = Optional[Union[Color, Iterable[Color]]]
-
-
-def _colors_to_themes(val: ColorTheme):
-    if isinstance(val, Color):
-        return Theme.from_colors(val)
-    if isinstance(val, Theme):
-        return val
-    if isinstance(val, Iterable):
-        return Theme.from_colors(*val)
-    return val
+ColorTheme = Optional[Union[Theme, Color, Iterable[Color]]]
 
 
 def breathe(lifx: Group, breath_time_secs=8, min_brightness=.3 * 65536,
@@ -73,6 +63,31 @@ def rainbow(lifx: Group, colors: Optional[ColorTheme] = Colors.RAINBOW,
         for color in theme:
             lifx.set_color(color, transition_time_ms, rapid)
             sleep(duration_secs)
+
+
+def set_theme(lifx: Group, rotate_secs: Optional[int] = None,
+              duration_mins: Optional[int] = 20,
+              *themes: ColorTheme, smooth=True):
+    """
+    set lights to theme every rotate seconds.
+
+    will round robin `themes`.
+    rotation still works on one theme as it will re-assign the theme each rotate_seconds
+    """
+    # TODO: complete
+    themes = [_colors_to_themes(t) for t in themes]
+    with lifx.reset_to_orig():
+        pass
+
+
+def _colors_to_themes(val: ColorTheme):
+    if isinstance(val, Color):
+        return Theme.from_colors(val)
+    if isinstance(val, Theme):
+        return val
+    if isinstance(val, Iterable):
+        return Theme.from_colors(*val)
+    return val
 
 
 if __name__ == '__main__':

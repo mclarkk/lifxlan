@@ -213,6 +213,7 @@ class Group:
 
     def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True):
         colors = theme.get_colors(len(self))
+        print(colors)
         with self._wait_pool as wp:
             exhaust(
                 wp.submit(l.set_color_power, ColorPower(c, power_on), duration, rapid) for l, c in zip(self, colors))

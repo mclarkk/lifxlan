@@ -74,6 +74,7 @@ class MCSettings(NamedTuple):
 def morse_code(word_or_phrase: str,
                light_group: Union[Light, Group],
                settings: MCSettings = MCSettings()):
+    """translate `word_or_phrase` into morse code that will appear on your lights"""
     light_group = Group([light_group]) if isinstance(light_group, Light) else light_group
     m = Morse.from_str(word_or_phrase)
 

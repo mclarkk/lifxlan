@@ -40,6 +40,7 @@ class Theme:
         for c, weight in self._colors.items():
             for _, split in zip(range(weight), splits_iter):
                 res.extend([c] * len(split))
+        random.shuffle(res)
         return res
 
     def __iter__(self):
