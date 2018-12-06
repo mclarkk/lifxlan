@@ -2,7 +2,7 @@
 # coding=utf-8
 import sys
 
-from lifxlan import LifxLAN
+from lifxlan import LifxLAN, exhaust
 
 
 def main():
@@ -17,16 +17,8 @@ def main():
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
-    lifx = LifxLAN(num_lights)
-
-    # get devices
-    print("Discovering lights...")
-    devices = lifx.lights
-
-    print("Found {} lights:".format(len(devices)))
-
-    for d in devices:
-        print("{} ({}) HSBK: {}".format(d.label, d.mac_addr, d.get_color()))
+    lifx = LifxLAN()
+    exhaust(map(print, (f'{d.label} ({d.mac_addr}) HSBK: {c}' for d, c in lifx.color.items())))
 
 if __name__=="__main__":
     main()

@@ -3,8 +3,9 @@
 import sys
 from time import sleep
 
-from lifxlan import LifxLAN
-from lifxlan.settings import GREEN, BLUE
+from lifxlan import LifxLAN, Colors
+
+BLINK_ALL = True
 
 
 def main():
@@ -20,58 +21,43 @@ def main():
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
-    lifx = LifxLAN(num_lights)
+    lifx = LifxLAN()
 
     # get devices
-    devices = lifx.lights
-    bulb = devices[0]
-    print("Selected {}".format(bulb.label))
+    devices = lifx.color_lights
+    if not BLINK_ALL:
+        devices = devices['master 2']
+    print("Selected {}".format(devices.label))
 
+    interval_secs, num_cycles = .1, 12
     # get original state
-    original_power = bulb.power_level
-    original_color = bulb.get_color()
-    bulb.set_power("on")
+    with devices.reset_to_orig(1000):
+        devices.turn_on()
 
-    sleep(0.2)  # to look pretty
+        sleep(0.2)  # to look pretty
 
-    print("Toggling power...")
-    toggle_device_power(bulb, 0.2)
+        print("Toggling power...")
+        toggle_device_power(devices, interval_secs, num_cycles)
 
-    print("Toggling color...")
-    toggle_light_color(bulb, 0.2)
-
-    # restore original color
-    # color can be restored after the power is turned off as well
-    print("Restoring original color and power...")
-    bulb.set_color(original_color)
-
-    sleep(1)  # to look pretty.
-
-    # restore original power
-    bulb.set_power(original_power)
+        print("Toggling color...")
+        toggle_light_color(devices, interval_secs, num_cycles)
 
 
 def toggle_device_power(device, interval=0.5, num_cycles=3):  # TEST
-    original_power_state = device.power_level
-    device.set_power("off")
-    rapid = True if interval < 1 else False
-    for i in range(num_cycles):
-        device.set_power("on", rapid)
-        sleep(interval)
-        device.set_power("off", rapid)
-        sleep(interval)
-    device.set_power(original_power_state)
+    with device.reset_to_orig():
+        device.set_power("off")
+        for i in range(num_cycles):
+            for power in range(2):
+                device.set_power(power)
+                sleep(interval)
 
 
 def toggle_light_color(light, interval=0.5, num_cycles=3):
-    original_color = light.get_color()
-    rapid = True if interval < 1 else False
-    for i in range(num_cycles):
-        light.set_color(BLUE, rapid=rapid)
-        sleep(interval)
-        light.set_color(GREEN, rapid=rapid)
-        sleep(interval)
-    light.set_color(original_color)
+    with light.reset_to_orig():
+        for i in range(num_cycles):
+            for c in Colors.YALE_BLUE.get_complements(90)[:4]:
+                light.set_color(c)
+                sleep(interval)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,10 @@
 # coding=utf-8
 # light.py
 # Author: Meghan Clark
-
+import logging
 import os
+from contextlib import contextmanager
+from copy import copy
 from typing import Callable, Tuple
 
 from .colors import ColorPower, Color
@@ -11,6 +13,13 @@ from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrare
     LightState, LightStateInfrared
 from .settings import unknown, PowerSettings, Waveform
 from .utils import WaitPool
+
+log = logging.getLogger(__file__)
+log.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 
 class Light(Device):
@@ -70,15 +79,22 @@ class Light(Device):
             self.infrared_brightness = response.infrared_brightness
 
     def set_color(self, color: Color, duration=0, rapid=False):
-        print(f'setting color to {color}')
-        self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
+        if color:
+            log.info(f'setting color to {color} over {duration} msecs')
+            self.color = color
+            self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
+
+    def turn_on(self, duration=0):
+        self.set_power(1, duration)
+
+    def turn_off(self, duration=0):
+        self.set_power(0, duration)
 
     def set_power(self, power, duration=0, rapid=False):
-        power = PowerSettings.validate(power)
-        print(f'setting power to {power}')
+        log.info(f'setting power to {power} over {duration} msecs')
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
-    def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+    def set_color_power(self, cp: ColorPower, duration=0, rapid=False):
         """set both color and power at the same time"""
         with self._wait_pool as wp:
             wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
@@ -115,6 +131,15 @@ class Light(Device):
     @property
     def max_kelvin(self):
         return self.product_features.get('max_kelvin', unknown)
+
+    @contextmanager
+    def reset_to_orig(self, duration=0):
+        """reset light to original color/power settings when done"""
+        orig = copy(self)
+        try:
+            yield
+        finally:
+            self.set_color_power(ColorPower(orig.color, orig.power), duration)
 
     ############################################################################
     #                                                                          #

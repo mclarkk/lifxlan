@@ -153,6 +153,8 @@ class Colors(metaclass=ColorsMeta):
     COPILOT_BLUE_GREY = Color.from_hex(0x386e8f)
     COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)
 
+    RAINBOW = RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
+
     @classmethod
     def sum(cls, *colors: Color):
         """average together all colors provided"""

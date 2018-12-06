@@ -73,32 +73,21 @@ class MCSettings(NamedTuple):
 
 def morse_code(word_or_phrase: str,
                light_group: Union[Light, Group],
-               settings: MCSettings = MCSettings(),
-               *, reset=True):
+               settings: MCSettings = MCSettings()):
     light_group = Group([light_group]) if isinstance(light_group, Light) else light_group
     m = Morse.from_str(word_or_phrase)
-    orig = {l: ColorPower(l.color, l.power) for l in light_group}
-    print(orig)
 
-    for c, length in m.to_char_and_len:
-        light_group.set_color_power(settings.cp_from_char(c))
-        time.sleep(length)
-
-    if reset:
-        light_group.set_power(0)
-        time.sleep(1)
-        light_group.set_color_power(orig, duration=3000)
+    with light_group.reset_to_orig(3000):
+        for c, length in m.to_char_and_len:
+            light_group.set_color_power(settings.cp_from_char(c))
+            time.sleep(length)
 
 
 def __main():
     lan = LifxLAN()
-    # print(lan.lights)
-    l = lan.auto_group()['living_room']
-    # print(lan.auto_group())
-    # return
-    l.set_color(Colors.DEFAULT)
-    exhaust(map(print, (light.power for light in l)))
-    morse_code('sharifa', l.lights, reset=True)
+    g = lan.auto_group()['master']
+    exhaust(map(print, (light.power for light in g)))
+    morse_code('s', g)
 
 
 if __name__ == '__main__':

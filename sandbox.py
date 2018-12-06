@@ -21,8 +21,19 @@ def grid_test():
     g = Grid.from_rows(downstairs, lights)
 
 
+def test_powers():
+    group = LifxLAN().color_lights
+    with group.reset_to_orig(5000):
+        group.set_power(0, 1000)
+        time.sleep(1)
+
+    for _ in range(5):
+        group.refresh_power()
+        print(group.power)
+        time.sleep(.5)
 
 def __main():
+    return test_powers()
     return grid_test()
     print(Colors)
     c = Colors.YALE_BLUE

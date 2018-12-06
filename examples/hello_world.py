@@ -25,9 +25,10 @@ def main():
     print("\nFound {} light(s):\n".format(len(devices)))
     for d in devices:
         try:
-        	print(d)
+            print(d)
         except:
             pass
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

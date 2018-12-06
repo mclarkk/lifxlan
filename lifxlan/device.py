@@ -175,16 +175,16 @@ class Device(object):
     # ==================================================================================================================
 
     def set_label(self, label):
-        self._send_set_message(SetLabel, dict(label=label[:32]), rapid=False)
-        self._refresh_label()
+        self.label = label[:32]
+        self._send_set_message(SetLabel, dict(label=self.label), rapid=False)
 
     def set_power(self, power, rapid=False, **payload_kwargs):
         self._set_power(SetPower, power, rapid=rapid, **payload_kwargs)
 
     def _set_power(self, msg_type, power, rapid=False, **payload_kwargs):
-        payload = {'power_level': PowerSettings.validate(power), **payload_kwargs}
+        self.power_level = PowerSettings.validate(power)
+        payload = {'power_level': self.power_level, **payload_kwargs}
         self._send_set_message(msg_type, payload, rapid=rapid)
-        self._refresh_power()
 
     # ==================================================================================================================
     # REFRESH LOCAL VALUES

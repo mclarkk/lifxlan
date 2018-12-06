@@ -3,6 +3,5 @@
 
 from lifxlan import LifxLAN
 
-lifxlan = LifxLAN()
+LifxLAN().turn_off()
 
-lifxlan.set_power_all_lights("off", rapid=True)

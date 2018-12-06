@@ -3,8 +3,7 @@
 import sys
 from time import sleep
 
-from lifxlan import LifxLAN
-from lifxlan.settings import RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
+from lifxlan import LifxLAN, Colors
 
 
 def main():
@@ -17,44 +16,35 @@ def main():
 
     # instantiate LifxLAN client, num_lights may be None (unknown).
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
-    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance 
+    # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
     lifx = LifxLAN(num_lights)
+    lifx = lifx['master']
 
-    # get devices
-    devices = lifx.lights
-    bulb = devices[0]
-    print("Selected {}".format(bulb.label))
+    with lifx.reset_to_orig(2000):
 
-    # get original state
-    print("Turning on all lights...")
-    original_power = bulb.power_level
-    original_color = bulb.get_color()
-    bulb.set_power("on")
+        print("Turning on all lights...")
+        lifx.turn_on()
+        sleep(1)
 
-    sleep(1) # for looks
+        print("Flashy fast rainbow")
+        rainbow(lifx, 0.3)
 
-    print("Flashy fast rainbow")
-    rainbow(bulb, 0.1)
+        print("Smooth slow rainbow")
+        rainbow(lifx, 20, smooth=True)
 
-    print("Smooth slow rainbow")
-    rainbow(bulb, 1, smooth=True)
+    print("Restoring original colors/powers to all lights...")
 
-    print("Restoring original power and color...")
-    # restore original power
-    bulb.set_power(original_power)
-    # restore original color
-    sleep(0.5) # for looks
-    bulb.set_color(original_color)
 
-def rainbow(bulb, duration_secs=0.5, smooth=False):
-    colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]
-    transition_time_ms = duration_secs*1000 if smooth else 0
-    rapid = True if duration_secs < 1 else False
+def rainbow(lan, duration_secs=0.5, smooth=False):
+    colors = Colors.RAINBOW
+    transition_time_ms = duration_secs * 1000 if smooth else 0
+    rapid = duration_secs < 1
     for color in colors:
-        bulb.set_color(color, transition_time_ms, rapid)
+        lan.set_color(color, transition_time_ms, rapid)
         sleep(duration_secs)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
