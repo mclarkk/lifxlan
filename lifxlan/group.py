@@ -226,6 +226,37 @@ class Group:
     def turn_off(self, duration=0):
         """turn off lights"""
 
+    def get_device_by_name(self, name) -> Device:
+        return next((d for d in self.devices if d.label == name), None)
+
+    def get_devices_by_name(self, names) -> 'Group':
+        return Group(d for d in self.devices if d.label in set(names))
+
+    def get_devices_by_group(self, group) -> 'Group':
+        return Group(d for d in self.devices if d.group == group)
+
+    def get_devices_by_location(self, location) -> 'Group':
+        return Group(d for d in self.devices if d.location == location)
+
+    def auto_group(self) -> Dict[str, 'Group']:
+        """group lights together by labels"""
+
+        def key(d):
+            split_names = d.label.split()
+            return split_names[0] if len(split_names) == 1 else '_'.join(split_names[:-1])
+
+        devices = sorted(self.devices, key=key)
+        return {k: Group(v, k) for k, v in groupby(devices, key)}
+
+    @contextmanager
+    def reset_to_orig(self, duration=3000):
+        """reset group color/power per light to original settings on block exit"""
+        cur_light_state = {l: copy(l) for l in self.devices}
+        try:
+            yield
+        finally:
+            self.set_color_power({l: ColorPower(lc.color, lc.power) for l, lc in cur_light_state.items()},
+                                 duration=duration)
     # ==================================================================================================================
     # GET SETTINGS FROM LIGHTS (reads currently stored values)
     # ==================================================================================================================
@@ -254,7 +285,7 @@ class Group:
         return iter(self.devices)
 
     def __getitem__(self, idx_or_name) -> Union[Light, 'Group']:
-        """get light by idx if int or by name otherwise"""
+        """get light by idx if int or by name otherwise. failing that, it will check for a group with that name"""
         if isinstance(idx_or_name, int):
             return self.devices[idx_or_name]
         res = self.get_device_by_name(idx_or_name)
@@ -278,37 +309,6 @@ class Group:
         self.devices = g.devices
         return self
 
-    def get_device_by_name(self, name) -> Device:
-        return next((d for d in self.devices if d.label == name), None)
-
-    def get_devices_by_name(self, names) -> 'Group':
-        return Group(d for d in self.devices if d.label in set(names))
-
-    def get_devices_by_group(self, group) -> 'Group':
-        return Group(d for d in self.devices if d.group == group)
-
-    def get_devices_by_location(self, location) -> 'Group':
-        return Group(d for d in self.devices if d.location == location)
-
-    def auto_group(self) -> Dict[str, 'Group']:
-        """group lights together by labels"""
-
-        def key(d):
-            split_names = d.label.split()
-            return split_names[0] if len(split_names) == 1 else '_'.join(split_names[:-1])
-
-        devices = sorted(self.devices, key=key)
-        return {k: Group(v, k) for k, v in groupby(devices, key)}
-
-    @contextmanager
-    def reset_to_orig(self, duration=3000):
-        """reset group color/power per light to original settings block exits"""
-        cur_light_state = {l: copy(l) for l in self.devices}
-        try:
-            yield
-        finally:
-            self.set_color_power({l: ColorPower(lc.color, lc.power) for l, lc in cur_light_state.items()},
-                                 duration=duration)
 
 
 class LightGroup(Group):
