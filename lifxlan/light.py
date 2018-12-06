@@ -11,9 +11,10 @@ from .colors import ColorPower, Color
 from .device import Device
 from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared
-from .settings import unknown, PowerSettings, Waveform
+from .settings import unknown, Waveform
 from .utils import WaitPool
 
+# TODO: cleanup logging BS
 log = logging.getLogger(__file__)
 log.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

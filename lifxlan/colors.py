@@ -26,8 +26,12 @@ class RGBk(NamedTuple):
     def color(self) -> 'Color':
         return Color.from_rgb(self)
 
+    @staticmethod
+    def _add_components(v1, v2):
+        return int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
+
     def __add__(self, other) -> 'RGBk':
-        add = lambda v1, v2: int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
+        add = self._add_components
         return RGBk(add(self.r, other.r), add(self.g, other.g), add(self.b, other.b), (self.k + other.k) // 2)
 
 
