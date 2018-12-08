@@ -339,7 +339,7 @@ class Device(object):
     ############################################################################
 
     def _send_set_message(self, msg_type, payload: Optional[Dict] = None, timeout_secs=DEFAULT_TIMEOUT,
-                          max_attempts=DEFAULT_ATTEMPTS, *, rapid: bool):
+                          max_attempts=1, *, rapid: bool):
         """handle sending messages either rapidly or not"""
         args = msg_type, payload, timeout_secs
         if rapid:

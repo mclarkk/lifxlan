@@ -17,12 +17,14 @@ from .themes import Theme
 from .tilechain import TileChain
 from .utils import WaitPool, exhaust, timer
 
+rapid_default = True
+
 
 def _call_on_lights(func=None, *, func_name_override=None, light_type='color_lights'):
     """
     call the wrapped `func.__name__` on all lights in the given
-    `light_type` argument essentially acts as a passthrough to the
-    underlying light objects themselves
+    `light_type` argument.
+    essentially acts as a pass-through to the underlying light objects themselves
 
     changing `light_type` in the decorator call will allow you to
     forward calls to multizone and tile lights
@@ -44,7 +46,11 @@ LightAttrDict = Dict[Light, Any]
 
 
 class _GetFromLights:
-    """based on member name and light type, create a dictionary of {Light: attr}"""
+    """
+    descriptor
+
+    based on member name and light type, create a dictionary of {Light: attr}
+    """
 
     def __set_name__(self, owner, name):
         self.name = name
@@ -147,7 +153,7 @@ class Group:
     # SET LIGHT VALUES IN GROUP
     # ==================================================================================================================
 
-    def set_power(self, power: Union[int, LightAttrDict], duration=0, rapid=False):
+    def set_power(self, power: Union[int, LightAttrDict], duration=0, rapid=rapid_default):
         devices, powers = self.devices, repeat(power)
         if isinstance(power, dict):
             devices, powers = zip(*power.items())
@@ -163,11 +169,12 @@ class Group:
             device.set_power(power, rapid)
 
     @_call_on_lights
-    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
+    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform,
+                     rapid=rapid_default):
         """set waveform on color lights"""
 
     @_call_on_lights
-    def set_color(self, color: Color, duration=0, rapid=False):
+    def set_color(self, color: Color, duration=0, rapid=rapid_default):
         """set color on color lights"""
 
     def set_color_power(self, cp: Union[ColorPower, Dict[Light, ColorPower]],
@@ -184,19 +191,19 @@ class Group:
         """set color and power on color lights"""
 
     @_call_on_lights
-    def set_hue(self, hue, duration=0, rapid=False):
+    def set_hue(self, hue, duration=0, rapid=rapid_default, offset=False):
         """set hue on color lights"""
 
     @_call_on_lights
-    def set_brightness(self, brightness, duration=0, rapid=False):
+    def set_brightness(self, brightness, duration=0, rapid=rapid_default, offset=False):
         """set brightness on color lights"""
 
     @_call_on_lights
-    def set_saturation(self, saturation, duration=0, rapid=False):
+    def set_saturation(self, saturation, duration=0, rapid=rapid_default, offset=False):
         """set saturation on color lights"""
 
     @_call_on_lights
-    def set_kelvin(self, kelvin, duration=0, rapid=False):
+    def set_kelvin(self, kelvin, duration=0, rapid=rapid_default, offset=False):
         """set kelvin on color lights"""
 
     @_call_on_lights
@@ -204,11 +211,11 @@ class Group:
         """set infrared on color lights"""
 
     @_call_on_lights(light_type='multizone_lights')
-    def set_zone_color(self, start, end, color, duration=0, rapid=False, apply=1):
+    def set_zone_color(self, start, end, color, duration=0, rapid=rapid_default, apply=1):
         """set zone color on multizone lights"""
 
     @_call_on_lights(light_type='multizone_lights')
-    def set_zone_colors(self, colors, duration=0, rapid=False):
+    def set_zone_colors(self, colors, duration=0, rapid=rapid_default):
         """set zone colors on multizone lights"""
 
     def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True):
@@ -247,36 +254,9 @@ class Group:
     def refresh_color(self):
         """refresh all lights' color"""
 
-    def __len__(self):
-        return len(self.devices)
-
-    def __iter__(self):
-        return iter(self.devices)
-
-    def __getitem__(self, idx_or_name) -> Union[Light, 'Group']:
-        """get light by idx if int or by name otherwise"""
-        if isinstance(idx_or_name, int):
-            return self.devices[idx_or_name]
-        res = self.get_device_by_name(idx_or_name)
-        return res or self.auto_group()[idx_or_name]
-
-    def __str__(self):
-        start_end = f'\n{80 * "="}\n'
-        device_str = '\n'.join(map(str, self))
-        name_str = f' {self.name!r}' if self.name else ''
-        return f'{start_end}{type(self).__name__}{name_str} ({len(self.devices)} lights):\n{device_str}{start_end}'
-
-    def __add__(self, other):
-        if isinstance(other, Device):
-            return Group(self.devices + [other])
-        if isinstance(other, Iterable):
-            return Group(chain(self, other))
-        return NotImplemented
-
-    def __iadd__(self, other):
-        g = self + other
-        self.devices = g.devices
-        return self
+    # ==================================================================================================================
+    # ACCESS DEVICES MORE EASILY
+    # ==================================================================================================================
 
     def get_device_by_name(self, name) -> Device:
         return next((d for d in self.devices if d.label == name), None)
@@ -303,12 +283,47 @@ class Group:
     @contextmanager
     def reset_to_orig(self, duration=3000, *, orig_override=None):
         """reset group color/power per light to original settings block exits"""
-        cur_light_state = orig_override or {l: copy(l) for l in self.devices}
+        cur_light_state = orig_override
+        if not cur_light_state:
+            cur_light_state = {l: ColorPower(l.color, l.power) for l in self.devices}
         try:
-            yield
+            yield cur_light_state
         finally:
-            self.set_color_power({l: ColorPower(lc.color, lc.power) for l, lc in cur_light_state.items()},
-                                 duration=duration)
+            self.set_color_power(cur_light_state, duration=duration, rapid=False)
+
+    # ==================================================================================================================
+    # MAKE GROUP PYTHONIC
+    # ==================================================================================================================
+    def __len__(self):
+        return len(self.devices)
+
+    def __iter__(self):
+        return iter(self.devices)
+
+    def __getitem__(self, idx_or_name) -> Union[Light, 'Group']:
+        """get light by idx if int, by name if possible, else try to grab from auto_group"""
+        if isinstance(idx_or_name, int):
+            return self.devices[idx_or_name]
+        res = self.get_device_by_name(idx_or_name)
+        return res or self.auto_group()[idx_or_name]
+
+    def __str__(self):
+        start_end = f'\n{80 * "="}\n'
+        device_str = '\n'.join(map(str, self))
+        name_str = f' {self.name!r}' if self.name else ''
+        return f'{start_end}{type(self).__name__}{name_str} ({len(self.devices)} lights):\n{device_str}{start_end}'
+
+    def __add__(self, other):
+        if isinstance(other, Device):
+            return Group(self.devices + [other])
+        if isinstance(other, Iterable):
+            return Group(chain(self, other))
+        return NotImplemented
+
+    def __iadd__(self, other):
+        g = self + other
+        self.devices = g.devices
+        return self
 
 
 class LightGroup(Group):

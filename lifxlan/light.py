@@ -75,6 +75,7 @@ class Light(Device):
 
     def set_color(self, color: Color, duration=0, rapid=False):
         if color:
+            color = color.clamped
             log.info(f'setting color to {color} over {duration} msecs')
             self.color = color
             self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
@@ -94,26 +95,28 @@ class Light(Device):
             wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
             wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
-    def _replace_color(self, color: Color, duration, rapid, **color_kwargs):
+    def _replace_color(self, color: Color, duration, rapid, offset=False, **color_kwargs):
         """helper func for setting various Color attributes"""
+        if offset:
+            color_kwargs = {k: getattr(color, k) + v for k, v in color_kwargs.items()}
         c = Color(*map(int, color._replace(**color_kwargs)))
         self.set_color(c, duration, rapid)
 
-    def set_hue(self, hue, duration=0, rapid=False):
+    def set_hue(self, hue, duration=0, rapid=False, offset=False):
         """hue to set; duration in ms"""
-        self._replace_color(self.color, duration, rapid, hue=hue)
+        self._replace_color(self.color, duration, rapid, offset, hue=hue)
 
-    def set_saturation(self, saturation, duration=0, rapid=False):
+    def set_saturation(self, saturation, duration=0, rapid=False, offset=False):
         """saturation to set; duration in ms"""
-        self._replace_color(self.color, duration, rapid, saturation=saturation)
+        self._replace_color(self.color, duration, rapid, offset, saturation=saturation)
 
-    def set_brightness(self, brightness, duration=0, rapid=False):
+    def set_brightness(self, brightness, duration=0, rapid=False, offset=False):
         """brightness to set; duration in ms"""
-        self._replace_color(self.color, duration, rapid, brightness=brightness)
+        self._replace_color(self.color, duration, rapid, offset, brightness=brightness)
 
-    def set_kelvin(self, kelvin, duration=0, rapid=False):
+    def set_kelvin(self, kelvin, duration=0, rapid=False, offset=False):
         """kelvin: color temperature to set; duration in ms"""
-        self._replace_color(self.color, duration, rapid, kelvin=kelvin)
+        self._replace_color(self.color, duration, rapid, offset, kelvin=kelvin)
 
     def set_infrared(self, infrared_brightness, rapid=False):
         payload = dict(infrared_brightness=infrared_brightness)

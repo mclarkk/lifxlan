@@ -69,8 +69,19 @@ class Color(NamedTuple):
         h, s, b = self.hue / mult, self.saturation / mult, self.brightness / mult * 255
         return RGBk(*map(int, colorsys.hsv_to_rgb(h, s, b)), self.kelvin)
 
+    @property
+    def clamped(self) -> 'Color':
+        """force values into acceptable ranges"""
+        return Color(*map(self._to_2_16, self[:3]), min(max(self.kelvin, 2500), 9000))
+
+    @staticmethod
+    def _to_2_16(val):
+        """force val to be between 0 and 65535 inclusive"""
+        return int(min(65535, val % Color._mult))
+
     def offset_hue(self, degrees) -> 'Color':
-        return self._replace(hue=int(abs(self.hue + degrees / 360 * self._mult) % self._mult))
+        hue = self._to_2_16(self.hue + degrees / 360 * self._mult)
+        return self._replace(hue=hue)
 
     def get_complements(self, degrees) -> List['Color']:
         """

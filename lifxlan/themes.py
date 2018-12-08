@@ -1,4 +1,5 @@
 import random
+from copy import copy
 from typing import List, Dict
 
 import numpy as np
@@ -16,6 +17,7 @@ Weight = int
 class Theme:
     def __init__(self, colors: Dict[Color, Weight]):
         self._colors = colors
+        self._group_colors: List[Color] = []
 
     @classmethod
     def from_colors(cls, *colors: Color):
@@ -41,13 +43,22 @@ class Theme:
             for _, split in zip(range(weight), splits_iter):
                 res.extend([c] * len(split))
         random.shuffle(res)
+        self._group_colors = res
         return res
 
     def __iter__(self):
         return iter(self._colors)
 
 
-class Themes:
+class ThemesMeta(type):
+    def __getattribute__(cls, item):
+        res = type.__getattribute__(cls, item)
+        if isinstance(res, Theme):
+            res = copy(res)
+        return res
+
+
+class Themes(metaclass=ThemesMeta):
     xmas = Theme({Colors.RED: 3, Colors.GREEN: 3, Colors.GOLD: 1})
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
