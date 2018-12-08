@@ -300,12 +300,14 @@ class Group:
     def __iter__(self):
         return iter(self.devices)
 
-    def __getitem__(self, idx_or_name) -> Union[Light, 'Group']:
-        """get light by idx if int, by name if possible, else try to grab from auto_group"""
+    def __getitem__(self, idx_or_name) -> 'Group':
+        """get light by idx if int, by name otherwise, else try to grab from auto_group"""
         if isinstance(idx_or_name, int):
-            return self.devices[idx_or_name]
+            return Group([self.devices[idx_or_name]])
         res = self.get_device_by_name(idx_or_name)
-        return res or self.auto_group()[idx_or_name]
+        if res:
+            return Group([res])
+        return self.auto_group()[idx_or_name]
 
     def __str__(self):
         start_end = f'\n{80 * "="}\n'

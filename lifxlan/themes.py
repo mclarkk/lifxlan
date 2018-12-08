@@ -15,8 +15,16 @@ Weight = int
 
 
 class Theme:
+    """
+    weighted collection of colors
+    """
     def __init__(self, colors: Dict[Color, Weight]):
         self._colors = colors
+
+    def override_brightness(self, bright_pct):
+        brightness = bright_pct / 100 * 65535
+        self._colors = {c._replace(brightness=brightness): w for c, w in self._colors.items()}
+        return self
 
     @classmethod
     def from_colors(cls, *colors: Color):
@@ -47,6 +55,14 @@ class Theme:
     def __iter__(self):
         return iter(self._colors)
 
+    def __add__(self, other):
+        if isinstance(other, Color):
+            other_cols = {other: 1}
+        else:
+            other_cols = other._colors
+
+        return Theme({**self._colors, **other_cols})
+
 
 class ThemesMeta(type):
     def __getattribute__(cls, item):
@@ -57,7 +73,7 @@ class ThemesMeta(type):
 
 
 class Themes(metaclass=ThemesMeta):
-    xmas = Theme({Colors.RED: 3, Colors.GREEN: 3, Colors.GOLD: 1})
+    xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
                       Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})

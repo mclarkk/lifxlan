@@ -1,5 +1,56 @@
-# lifxlan
+# lifxlan3
 
+**lifxlan3** is my python 3.6+ take on the [lifxlan](https://github.com/mclarkk/lifxlan) library by meghan clark. 
+
+the 2 main differences are in the way lights are handled and in the way colors are handled:
+
+1. lights are now mainly accessed via `Group`s. `LifxLAN` is a special sub-class of `Group`, and `Group`s can act on lights quickly.
+1. `Colors` and `Themes` now exist to make mixing/matching/using `Color`s much simpler
+
+
+## quickstart
+
+a good place to get a feel for how this works is to check out [routines/core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py)
+
+but here's a quick example. (you should set `TOTAL_NUM_LIGHTS` in your `lifxlan/settings.py` ahead of time, but it's not necessary)
+
+```python
+"""set lights to theme for 8 seconds"""
+from lifxlan import LifxLAN, Themes
+from time import sleep
+
+lifx = LifxLAN()
+
+# can add groups together
+lifx = lifx['kitchen'] + lifx['living_room']
+
+# will restore original group's settings when complete
+with lifx.reset_to_orig():
+
+    # can combine themes
+    lifx.set_theme(Themes.snes + Themes.xmas)  # weird theme, but ok
+    lifx.turn_on()
+    sleep(8)
+```
+
+# core api
+
+## `Group`
+
+mostly, lights will be dealt with in groups. 
+
+`LifxLAN` is now a subclass of `Group`, but it's special in that it can query all `Light` objects on your LAN.
+
+a `Group` can act on multiple lights virtually simultaneously, and it shares much of `Light`s API (with the exception of non-sensical things like `set_label`)
+
+## `Colors` and `Themes`
+ 
+ todo...
+
+
+# original documentation
+
+---
 **lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
 
 ## How to Install

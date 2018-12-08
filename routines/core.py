@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import arrow
 
-from lifxlan import LifxLAN, Group, Colors
+from lifxlan import LifxLAN, Group, Colors, Themes
 from routines import ColorTheme, colors_to_themes
 
 
@@ -96,16 +96,16 @@ def set_theme(lifx: Group, *themes: ColorTheme,
 
 def __main():
     lifx = LifxLAN()
-    lifx = lifx['master']
+    lifx = lifx['living_room'] + lifx['kitchen']
     # lifx.set_color(Colors.DEFAULT)
     # blink_color(lifx, blink_time_secs=3)
     # rainbow(lifx, duration_secs=4, smooth=True)
-    breathe(lifx, colors=(Colors.SNES_LIGHT_PURPLE, Colors.SNES_DARK_PURPLE), min_brightness_pct=20)
+    # breathe(lifx, colors=(Colors.SNES_LIGHT_PURPLE, Colors.SNES_DARK_PURPLE), min_brightness_pct=20)
     # themes = Themes.xmas, Themes.snes, Themes.copilot
     # themes = [(Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE),
     #           (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE),
     #           (Colors.RED, Colors.GREEN)]
-    # set_theme(lifx, *themes, rotate_secs=10, duration_mins=10, transition_secs=5)
+    set_theme(lifx, Themes.xmas.override_brightness(60), rotate_secs=60, duration_mins=60, transition_secs=60)
     print(lifx.on_lights)
 
 

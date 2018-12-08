@@ -167,6 +167,10 @@ class Colors(metaclass=ColorsMeta):
     COPILOT_BLUE_GREY = Color.from_hex(0x386e8f)
     COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)
 
+    XMAS_RED = Color.from_hex(0xd42426)
+    XMAS_GREEN = Color.from_hex(0x18802b)
+    XMAS_GOLD = Color.from_hex(0xe5d08f)
+
     RAINBOW = RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
 
     @classmethod

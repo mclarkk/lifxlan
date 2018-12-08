@@ -35,9 +35,9 @@ semi = 0x3b
 enter = 0xa
 ctrl_r = 0x12
 
-mults = dict(hue=65535 / 360,
-             brightness=65535 / 10,
-             saturation=65535 / 10)
+mults = dict(hue=65535 / 360,  # base mult: 1 degree
+             brightness=65535 / 20,  # 10%
+             saturation=65535 / 20)  # 10%
 
 
 class AttrOffset(NamedTuple):
@@ -64,13 +64,23 @@ def _init_keys(qwerty=False):
     for k, v in zip(keys.upper().replace(';', ':'), _equal_offset(4, 10)):
         res[ord(k)] = AttrOffset('hue', v)
 
-    res[up << 8] = AttrOffset('brightness', 1)
-    res[down << 8] = AttrOffset('brightness', -1)
+    ao_up = res[up << 8] = AttrOffset('brightness', 1)
+    ao_down = res[down << 8] = AttrOffset('brightness', -1)
+
+    if not qwerty:
+        res[ord('k')] = ao_up
+        res[ord('j')] = ao_down
+
     res[left << 8] = AttrOffset('saturation', -1)
     res[right << 8] = AttrOffset('saturation', 1)
 
-    res[up << 16] = AttrOffset('brightness', 65535, False)
-    res[down << 16] = AttrOffset('brightness', 0, False)
+    AO_UP = res[up << 16] = AttrOffset('brightness', 65535, False)
+    AO_DOWN = res[down << 16] = AttrOffset('brightness', 0, False)
+
+    if not qwerty:
+        res[ord('K')] = AO_UP
+        res[ord('J')] = AO_DOWN
+
     res[left << 16] = AttrOffset('saturation', 65535, False)
     res[right << 16] = AttrOffset('saturation', 0, False)
 
@@ -145,10 +155,11 @@ def __main():
     # exhaust(_getch_test())
     # return
     lifx = LifxLAN()
-    lifx.set_color(Colors.DEFAULT)
+    # lifx.set_color(Colors.DEFAULT)
     print(lifx.on_lights)
     lifx = lifx['kitchen'] + lifx['living_room']
-    control(lifx, Themes.copilot)
+    # lifx = lifx['living room 1']
+    control(lifx, [Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE])
 
 
 if __name__ == '__main__':
