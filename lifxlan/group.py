@@ -301,9 +301,9 @@ class Group:
         return {k: Group(v, k) for k, v in groupby(devices, key)}
 
     @contextmanager
-    def reset_to_orig(self, duration=3000):
+    def reset_to_orig(self, duration=3000, *, orig_override=None):
         """reset group color/power per light to original settings block exits"""
-        cur_light_state = {l: copy(l) for l in self.devices}
+        cur_light_state = orig_override or {l: copy(l) for l in self.devices}
         try:
             yield
         finally:

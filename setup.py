@@ -15,7 +15,7 @@ setup(name='lifxlan',
       packages=['lifxlan'],
       install_requires=[
         "bitstring",
-        "netifaces", 'getch', 'numpy'
+        "netifaces", 'getch', 'numpy', 'arrow'
         ],
       zip_safe=False,
           # See https://pypi.python.org/pypi?%3Aaction=list_classifiers

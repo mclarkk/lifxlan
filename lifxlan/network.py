@@ -7,14 +7,14 @@ from typing import Optional, Dict, Type, List, Union
 from .unpack import unpack_lifx_message, Acknowledgement
 from .message import Message
 
-from .utils import init_socket
+from .utils import init_socket, init_log
 import netifaces as ni
 import time
 from .settings import TOTAL_NUM_LIGHTS
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 
 def _get_broadcast_addrs():

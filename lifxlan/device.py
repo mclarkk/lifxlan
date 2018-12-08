@@ -28,12 +28,14 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
 from .products import features_map, product_map, light_products
 from .settings import unknown, PowerSettings
 from .unpack import unpack_lifx_message
-from .utils import timer, exhaust, init_socket, WaitPool
+from .utils import timer, exhaust, init_socket, WaitPool, init_log
 
 DEFAULT_TIMEOUT = .8  # second
 DEFAULT_ATTEMPTS = 4
 
 VERBOSE = False
+
+log = init_log(__name__)
 
 
 def get_broadcast_addrs():
@@ -182,7 +184,12 @@ class Device(object):
         self._set_power(SetPower, power, rapid=rapid, **payload_kwargs)
 
     def _set_power(self, msg_type, power, rapid=False, **payload_kwargs):
-        self.power_level = PowerSettings.validate(power)
+        power = PowerSettings.validate(power)
+        pl = PowerSettings.validate(self.power_level)
+        if power == pl:
+            return
+        log.info(f'setting power to {power}: {payload_kwargs}')
+        self.power_level = power
         payload = {'power_level': self.power_level, **payload_kwargs}
         self._send_set_message(msg_type, payload, rapid=rapid)
 
@@ -356,7 +363,7 @@ class Device(object):
                     for ip_addr in UDP_BROADCAST_IP_ADDRS:
                         sock.sendto(msg.packed_message, (ip_addr, self.port))
                 if self.verbose:
-                    print("SEND: " + str(msg))
+                    log.info("SEND: " + str(msg))
                 sent_msg_count += 1
                 sleep(sleep_interval)  # Max num of messages device can handle is 20 per second.
 
@@ -392,12 +399,12 @@ class Device(object):
                                 sock.sendto(msg.packed_message, (ip_addr, self.port))
                         sent = True
                         if self.verbose:
-                            print("SEND: " + str(msg))
+                            log.info("SEND: " + str(msg))
                     try:
                         data, (ip_addr, port) = sock.recvfrom(1024)
                         response = unpack_lifx_message(data)
                         if self.verbose:
-                            print("RECV: " + str(response))
+                            log.info("RECV: " + str(response))
                         if type(response) in response_type:
                             if response.source_id == self.source_id and (
                                     response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):

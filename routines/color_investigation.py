@@ -3,11 +3,11 @@ from getch import getch
 import time
 from itertools import repeat
 
-from lifxlan import Colors, LifxLAN, Color
+from lifxlan import Colors, LifxLAN, Color, init_log
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 
 def hex_vs_from_package_compare():

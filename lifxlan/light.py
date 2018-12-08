@@ -12,15 +12,9 @@ from .device import Device
 from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared
 from .settings import unknown, Waveform
-from .utils import WaitPool
+from .utils import WaitPool, init_log
 
-# TODO: cleanup logging BS
-log = logging.getLogger(__file__)
-log.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-log.addHandler(handler)
+log = init_log(__name__)
 
 
 class Light(Device):
@@ -92,7 +86,6 @@ class Light(Device):
         self.set_power(0, duration)
 
     def set_power(self, power, duration=0, rapid=False):
-        log.info(f'setting power to {power} over {duration} msecs')
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
     def set_color_power(self, cp: ColorPower, duration=0, rapid=False):
@@ -103,7 +96,8 @@ class Light(Device):
 
     def _replace_color(self, color: Color, duration, rapid, **color_kwargs):
         """helper func for setting various Color attributes"""
-        self.set_color(color._replace(**color_kwargs), duration, rapid)
+        c = Color(*map(int, color._replace(**color_kwargs)))
+        self.set_color(c, duration, rapid)
 
     def set_hue(self, hue, duration=0, rapid=False):
         """hue to set; duration in ms"""

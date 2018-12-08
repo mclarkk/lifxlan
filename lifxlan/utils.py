@@ -1,11 +1,13 @@
+import logging
 import time
 from collections import deque
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import contextmanager
 from functools import wraps
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
-from typing import Optional, List, Generator, Any, Union
+from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
+from typing import Optional, List, Any, Union
+
 from .errors import WorkflowException
 
 
@@ -101,6 +103,7 @@ def exhaust(iterable):
 
 @contextmanager
 def init_socket(timeout):
+    """manage a socket so it gets closed after exiting with block"""
     sock = socket(AF_INET, SOCK_DGRAM)
     try:
         sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -113,3 +116,16 @@ def init_socket(timeout):
         yield sock
     finally:
         sock.close()
+
+
+def init_log(name):
+    """create logger using consistent settings"""
+    log = logging.getLogger(name)
+    log.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    return log
+
+

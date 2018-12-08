@@ -7,11 +7,11 @@ import time
 from enum import Enum
 from typing import Union, List, NamedTuple
 
-from lifxlan import Group, Light, LifxLAN, exhaust, Colors, ColorPower
+from lifxlan import Group, Light, LifxLAN, exhaust, Colors, ColorPower, init_log
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
                    'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.',

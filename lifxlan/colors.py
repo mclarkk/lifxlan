@@ -1,14 +1,14 @@
 import colorsys
-import logging
 import operator as op
 from functools import reduce
 from typing import List, NamedTuple
 
 from .settings import DEFAULT_KELVIN
+from .utils import init_log
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 
 class RGBk(NamedTuple):
@@ -72,27 +72,19 @@ class Color(NamedTuple):
     def offset_hue(self, degrees) -> 'Color':
         return self._replace(hue=int(abs(self.hue + degrees / 360 * self._mult) % self._mult))
 
-    def __add__(self, other) -> 'Color':
-        """avg colors together using math"""
-        return (self.rgb + other.rgb).color
-
-    def __iadd__(self, other):
-        return self + other
-
     def get_complements(self, degrees) -> List['Color']:
         """
         return list of colors offset by degrees
 
         this list will contain all unique colors that can be produced by this
-        degree offset (i.e., it will keep offsetting until it makes it around the color wheel
-        back to the starting point)
+        degree offset (i.e., it will keep offsetting until it makes it around the color wheel,
+        perhaps multiple times, back to the starting point)
 
         useful because it avoids rounding errors that can occur by doing something like:
         >>> c = Colors.YALE_BLUE
         >>> for _ in range(1000):
         >>>     c = c.offset_hue(30)
         """
-        hue_d = self.hue // 360
         res = [self]
         for n in range(1, self._max_complements):
             n_deg = n * degrees
@@ -106,6 +98,13 @@ class Color(NamedTuple):
 
         return res
 
+    def __add__(self, other) -> 'Color':
+        """avg colors together using math"""
+        return (self.rgb + other.rgb).color
+
+    def __iadd__(self, other):
+        return self + other
+
 
 class ColorsMeta(type):
     def __iter__(cls):
@@ -118,7 +117,7 @@ class ColorsMeta(type):
 
     def __str__(cls):
         colors = '\n\t'.join(map(str, cls))
-        return f'Colors:\n\t{colors}'
+        return f'{cls.__name__}:\n\t{colors}'
 
 
 class Colors(metaclass=ColorsMeta):

@@ -1,13 +1,13 @@
-import logging
 from itertools import count
 from typing import Dict, Tuple
 
-from .light import Light
 from .group import Group
+from .light import Light
+from .utils import init_log
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 downstairs = [[None, 'buffet'],
               ['living room 4', 'living room 1', 'kitchen 4', 'kitchen 1', 'creative space 4', 'creative space 1'],

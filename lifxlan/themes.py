@@ -1,14 +1,14 @@
-import logging
 import random
 from typing import List, Dict
 
 import numpy as np
 
 from .colors import Color, Colors
+from .utils import init_log
 
 __author__ = 'acushner'
 
-log = logging.getLogger(__name__)
+log = init_log(__name__)
 
 Weight = int
 
@@ -50,6 +50,7 @@ class Theme:
 class Themes:
     xmas = Theme({Colors.RED: 3, Colors.GREEN: 3, Colors.GOLD: 1})
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
-    steelers = Theme({Colors.STEELERS_GOLD: 2, Colors.STEELERS_BLUE: 2,
-                      Colors.STEELERS_RED: 2, Colors.STEELERS_SILVER: 1})
+    steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
+                      Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})
     snes = Theme.from_colors(*Colors.by_name('SNES'))
+    copilot = Theme.from_colors(*Colors.by_name('copilot'))
