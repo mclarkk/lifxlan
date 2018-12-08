@@ -6,7 +6,7 @@ from lifxlan import LifxLAN, Colors, Theme
 
 
 def main():
-    # instantiate LifxLAN client, it's wide to set TOTAL_NUM_LIGHTS in settings, but not necessary
+    # instantiate LifxLAN client, it's wise to set TOTAL_NUM_LIGHTS in settings, but not necessary
     # In fact, you don't need to provide LifxLAN with the number of bulbs at all.
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.

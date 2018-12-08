@@ -11,7 +11,7 @@ from .utils import *
 from .themes import Theme, Themes
 from .colors import Color, Colors
 
-__version__     = '1.3.0'
+__version__     = '2.0.0'
 __description__ = 'API for local communication with LIFX devices over a LAN.'
 __url__         = 'http://github.com/sweettuse/lifxlan'
 __author__      = 'Meghan Clark, adam cushner'

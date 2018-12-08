@@ -17,7 +17,6 @@ Weight = int
 class Theme:
     def __init__(self, colors: Dict[Color, Weight]):
         self._colors = colors
-        self._group_colors: List[Color] = []
 
     @classmethod
     def from_colors(cls, *colors: Color):
@@ -43,7 +42,6 @@ class Theme:
             for _, split in zip(range(weight), splits_iter):
                 res.extend([c] * len(split))
         random.shuffle(res)
-        self._group_colors = res
         return res
 
     def __iter__(self):

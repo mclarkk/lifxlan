@@ -1,11 +1,6 @@
-# Copilot
 *.idea*
 *.swp
 .commit
-ConfigsLocal.py
-/config/Configs_local.py
-.copilot_config
-/results/report.html
 
 # Mac Junk
 .DS_Store
