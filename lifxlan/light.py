@@ -76,7 +76,7 @@ class Light(Device):
     def set_color(self, color: Color, duration=0, rapid=False):
         if color:
             color = color.clamped
-            log.info(f'setting color to {color} over {duration} msecs')
+            log.info(f'setting {self.label!r} color to {color} over {duration} msecs')
             self.color = color
             self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
 

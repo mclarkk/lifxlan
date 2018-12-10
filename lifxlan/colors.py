@@ -70,14 +70,26 @@ class Color(NamedTuple):
         return RGBk(*map(int, colorsys.hsv_to_rgb(h, s, b)), self.kelvin)
 
     @property
+    def bounded(self) -> 'Color':
+        """force values into acceptable ranges - rotate around when exceeded"""
+        k = (self.kelvin - 2500) % (9000 - 2500) + 2500
+        return Color(*map(self._to_2_16, self[:3]), k)
+
+    @property
     def clamped(self) -> 'Color':
-        """force values into acceptable ranges"""
-        return Color(*map(self._to_2_16, self[:3]), min(max(self.kelvin, 2500), 9000))
+        """force values into acceptable ranges - min/max when exceeded"""
+        k = min(max(self.kelvin, 2500), 9000)
+        return Color(*map(self._validate_hsb, self[:3]), k)
 
     @staticmethod
     def _to_2_16(val):
-        """force val to be between 0 and 65535 inclusive"""
+        """force val to be between 0 and 65535 inclusive, rotate"""
         return int(min(65535, val % Color._mult))
+
+    @staticmethod
+    def _validate_hsb(val) -> int:
+        """clamp to range [0, 65535]"""
+        return int(min(max(val, 0), 65535))
 
     def offset_hue(self, degrees) -> 'Color':
         hue = self._to_2_16(self.hue + degrees / 360 * self._mult)

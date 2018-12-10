@@ -105,7 +105,8 @@ def __main():
     # themes = [(Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE),
     #           (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE),
     #           (Colors.RED, Colors.GREEN)]
-    set_theme(lifx, Themes.xmas.override_brightness(60), rotate_secs=60, duration_mins=60, transition_secs=60)
+    # lifx = lifx['creative_space']
+    set_theme(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
     print(lifx.on_lights)
 
 

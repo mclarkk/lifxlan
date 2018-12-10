@@ -22,7 +22,7 @@ class Theme:
         self._colors = colors
 
     def override_brightness(self, bright_pct):
-        brightness = bright_pct / 100 * 65535
+        brightness = int(bright_pct / 100 * 65535)
         self._colors = {c._replace(brightness=brightness): w for c, w in self._colors.items()}
         return self
 
