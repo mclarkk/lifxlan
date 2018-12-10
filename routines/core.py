@@ -6,7 +6,7 @@ from typing import Optional, Union
 import arrow
 
 from lifxlan import LifxLAN, Group, Colors, Themes
-from routines import ColorTheme, colors_to_themes
+from routines import ColorTheme, colors_to_theme
 
 
 def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
@@ -14,7 +14,7 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
             colors: Optional[ColorTheme] = None,
             duration_mins: Optional[Union[int, float]] = 20):
     """whatever lights you pass in will breathe"""
-    theme = colors_to_themes(colors)
+    theme = colors_to_theme(colors)
     half_period_ms = breath_time_secs * 1000.0
     sleep_time = breath_time_secs
     duration_secs = duration_mins * 60 or float('inf')
@@ -51,7 +51,7 @@ def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
 
 def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_secs=.5, how_long_secs=8):
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
-    theme = colors_to_themes(colors) or (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE)
+    theme = colors_to_theme(colors) or (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE)
     with lifx.reset_to_orig():
         for i, color in zip(range(num_cycles), cycle(theme)):
             lifx.set_color(color)
@@ -60,7 +60,7 @@ def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_sec
 
 def rainbow(lifx: Group, colors: Optional[ColorTheme] = Colors.RAINBOW,
             duration_secs=0.5, smooth=False):
-    theme = colors_to_themes(colors)
+    theme = colors_to_theme(colors)
     transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = duration_secs < 1
     with lifx.reset_to_orig():
@@ -82,7 +82,7 @@ def set_theme(lifx: Group, *themes: ColorTheme,
     """
     end_time = arrow.utcnow().shift(minutes=duration_mins or 100000)
 
-    themes = [colors_to_themes(t) for t in themes]
+    themes = [colors_to_theme(t) for t in themes]
     with lifx.reset_to_orig():
         for t in cycle(themes):
             if arrow.utcnow() > end_time:

@@ -5,8 +5,9 @@ from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from contextlib import contextmanager
 from functools import wraps
+from itertools import cycle
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
-from typing import Optional, List, Any, Union
+from typing import Optional, List, Any, Union, Iterable
 
 from .errors import WorkflowException
 
@@ -116,6 +117,20 @@ def init_socket(timeout):
         yield sock
     finally:
         sock.close()
+
+
+def even_split(array: Iterable, n_splits: int) -> List[List]:
+    """
+    split array as evenly as possible
+
+    note, flattening the result will not necessarily be in order of the original input
+
+    similar to np.array_split, only for 1d arrays
+    """
+    res = [[] for _ in range(n_splits)]
+    for v, r in zip(array, cycle(res)):
+        r.append(v)
+    return res
 
 
 def init_log(name):

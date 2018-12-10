@@ -33,6 +33,8 @@ def test_powers():
         time.sleep(.5)
 
 def __main():
+    print(Themes.xmas.get_colors(6))
+    return
     lifx = LifxLAN()
     lifx.set_color(Colors.DEFAULT)
     with lifx.reset_to_orig():

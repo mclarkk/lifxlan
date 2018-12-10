@@ -1,14 +1,16 @@
 """
-control lights using keyboard keys
+control lights using keyboard keys:
 
 homerow controls hue
 shift-homerow controls hue even more!
 
-up/down controls brightness
+shift-right/left maxes/mins saturation
 right/left controls saturation
 
+up/down controls brightness
 shift-up/down maxes/mins brightness
-shift-right/left maxes/mins saturation
+
+jk (dvorak)/cv (qwerty) control kelvin
 
 ctrl-r resets
 """
@@ -20,7 +22,7 @@ from typing import Optional, NamedTuple
 import arrow
 
 from lifxlan import init_log, Group, Themes, LifxLAN, Colors, exhaust
-from routines import ColorTheme, colors_to_themes
+from routines import ColorTheme, colors_to_theme
 
 __author__ = 'acushner'
 
@@ -37,7 +39,7 @@ ctrl_r = 0x12
 
 mults = dict(hue=65535 / 360,  # base mult: 1 degree
              brightness=65535 / 20,  # 10%
-             saturation=65535 / 20)  # 10%
+             saturation=65535 / 20)
 
 
 class AttrOffset(NamedTuple):
@@ -48,49 +50,61 @@ class AttrOffset(NamedTuple):
     @property
     def value(self):
         if self.as_offset:
-            return self.offset * mults[self.attr]
+            return self.offset * mults.get(self.attr, 1)
         return self.offset
 
 
 def _init_keys(qwerty=False):
+    dvorak = not qwerty
+
     def _equal_offset(n, mult=1):
         return [mult * v for v in chain(range(-n, 0), range(1, n + 1))]
 
     res = {}
 
-    keys = 'asdfjkl;' if qwerty else 'aoeuhtns'
+    # hue
+    keys = 'aoeuhtns' if dvorak else 'asdfjkl;'
     for k, v in zip(keys, _equal_offset(4)):
         res[ord(k)] = AttrOffset('hue', v)
     for k, v in zip(keys.upper().replace(';', ':'), _equal_offset(4, 10)):
         res[ord(k)] = AttrOffset('hue', v)
 
-    ao_up = res[up << 8] = AttrOffset('brightness', 1)
-    ao_down = res[down << 8] = AttrOffset('brightness', -1)
-
-    if not qwerty:
-        res[ord('k')] = ao_up
-        res[ord('j')] = ao_down
-
+    # saturation
     res[left << 8] = AttrOffset('saturation', -1)
     res[right << 8] = AttrOffset('saturation', 1)
-
-    AO_UP = res[up << 16] = AttrOffset('brightness', 65535, False)
-    AO_DOWN = res[down << 16] = AttrOffset('brightness', 0, False)
-
-    if not qwerty:
-        res[ord('K')] = AO_UP
-        res[ord('J')] = AO_DOWN
-
     res[left << 16] = AttrOffset('saturation', 65535, False)
     res[right << 16] = AttrOffset('saturation', 0, False)
 
+    # brightness
+    res[up << 8] = AttrOffset('brightness', 1)
+    res[down << 8] = AttrOffset('brightness', -1)
+    res[up << 16] = AttrOffset('brightness', 65535, False)
+    res[down << 16] = AttrOffset('brightness', 0, False)
+
+    # kelvin
+    res[ord('k' if dvorak else 'v')] = AttrOffset('kelvin', 25)
+    res[ord('j' if dvorak else 'c')] = AttrOffset('kelvin', -25)
+    res[ord('K' if dvorak else 'V')] = AttrOffset('kelvin', 100)
+    res[ord('J' if dvorak else 'C')] = AttrOffset('kelvin', -100)
+
+    # reset
     res[ctrl_r] = AttrOffset('reset', None)
 
     return res
 
 
 def _parse_chars():
-    """handle multi-byte chars such as 'up', 'ctrl-r', and 'shift-left'"""
+    """
+    handle multi-byte chars such as 'up', 'ctrl-r', and 'shift-left'
+
+    this is confusing.
+
+    simple ascii chars will appear as one byte, like 0x41 -> 'A'
+
+    some inputs, however, are multiple bytes, together at once.
+    consider pressing 'up', it appears as [0x1b, 0x5b, 0x41], which is in fact [ESC, '[', 'A']]
+    the below handles that by using some sort of state machine as represented by `tree`
+    """
 
     def _create_tree():
         return defaultdict(_create_tree)
@@ -100,20 +114,20 @@ def _parse_chars():
     mod1 = tree[esc][l_bracket]
     shift = mod1[one][semi][two]
 
-    cur_d = tree
+    node = tree
     state = 0
     while True:
         c = ord(getch())
 
-        cur_d = cur_d.get(c)
-        if cur_d is mod1 or cur_d is shift:
+        node = node.get(c)
+        if node is mod1 or node is shift:
             state += 1
-        if cur_d is not None:
+        if node is not None:
             continue
 
         yield c << (state * 8)
 
-        cur_d = tree
+        node = tree
         state = 0
 
 
@@ -124,43 +138,49 @@ def _get_offset():
             yield keys[c]
 
 
-def control(lifx: Group, colors: Optional[ColorTheme] = None):
-    theme = colors_to_themes(colors)
-
+def control(lifx: Group, color_theme: Optional[ColorTheme] = None):
     def _init_lights():
         lifx.turn_on()
         if theme:
             lifx.set_theme(theme)
 
-    with lifx.reset_to_orig() as settings:
+    theme = colors_to_theme(color_theme)
+
+    with lifx.reset_to_orig():
         _init_lights()
+
         for ao in _get_offset():
             if ao.attr == 'reset':
-                lifx.set_color_power(settings)
                 _init_lights()
             else:
                 getattr(lifx, f'set_{ao.attr}')(ao.value, offset=ao.as_offset)
 
 
-def _getch_test():
-    last_update = arrow.utcnow()
-    while True:
-        c = getch()
-        if (arrow.utcnow() - last_update).total_seconds() > .05:
-            print()
-        print('got', hex(ord(c)), c)
+def getch_test():
+    """run with this to see what chars lead to what bytes"""
+
+    def _getch_test():
+        last_update = arrow.utcnow()
+        while True:
+            c = getch()
+            if (arrow.utcnow() - last_update).total_seconds() > .05:
+                print()
+                last_update = arrow.utcnow()
+            print('got', hex(ord(c)))
+
+    exhaust(_getch_test())
 
 
 def __main():
-    # exhaust(_getch_test())
-    # return
+    # return getch_test()
     lifx = LifxLAN()
     # lifx.set_color(Colors.DEFAULT)
     print(lifx.on_lights)
     # lifx = lifx['kitchen'] + lifx['living_room']
-    lifx = lifx['creative_space']
+    lifx = lifx['master']
     # lifx = lifx['living room 1']
     control(lifx, [Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE])
+    # control(lifx, [Colors.DEFAULT])
 
 
 if __name__ == '__main__':

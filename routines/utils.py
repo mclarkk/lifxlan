@@ -9,7 +9,7 @@ log = init_log(__name__)
 ColorTheme = Optional[Union[Theme, Color, Iterable[Color]]]
 
 
-def colors_to_themes(val: ColorTheme):
+def colors_to_theme(val: ColorTheme):
     """convert a ColorTheme to Theme"""
     if isinstance(val, Color):
         return Theme.from_colors(val)
