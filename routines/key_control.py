@@ -4,8 +4,8 @@ control lights using keyboard keys:
 homerow controls hue
 shift-homerow controls hue even more!
 
-shift-right/left maxes/mins saturation
 right/left controls saturation
+shift-right/left maxes/mins saturation
 
 up/down controls brightness
 shift-up/down maxes/mins brightness
@@ -55,6 +55,7 @@ class AttrOffset(NamedTuple):
 
 
 def _init_keys(qwerty=False):
+    """map key presses to AttrOffset objects that determine how lights are controlled"""
     dvorak = not qwerty
 
     def _equal_offset(n, mult=1):
@@ -131,7 +132,7 @@ def _parse_chars():
         state = 0
 
 
-def _get_offset():
+def _get_offset() -> AttrOffset:
     keys = _init_keys()
     for c in _parse_chars():
         if c in keys:
