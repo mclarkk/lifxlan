@@ -553,12 +553,12 @@ class LightSetInfrared(Message):
 
 ##### MULTIZONE MESSAGES #####
 
-class MultiZoneStateMultiZone(Message):
+class MultizoneStateMultizone(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.count = payload["count"]
         self.index = payload["index"]
         self.color = payload["color"]
-        super(MultiZoneStateMultiZone, self).__init__(MSG_IDS[MultiZoneStateMultiZone], target_addr, source_id, seq_num,
+        super(MultizoneStateMultizone, self).__init__(MSG_IDS[MultizoneStateMultizone], target_addr, source_id, seq_num,
                                                       ack_requested, response_requested)
 
     def get_payload(self):
@@ -573,12 +573,12 @@ class MultiZoneStateMultiZone(Message):
         return payload
 
 
-class MultiZoneStateZone(Message):  # 503
+class MultizoneStateZone(Message):  # 503
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.count = payload["count"]
         self.index = payload["index"]
         self.color = payload["color"]
-        super(MultiZoneStateZone, self).__init__(MSG_IDS[MultiZoneStateZone], target_addr, source_id, seq_num,
+        super(MultizoneStateZone, self).__init__(MSG_IDS[MultizoneStateZone], target_addr, source_id, seq_num,
                                                  ack_requested, response_requested)
 
     def get_payload(self):
@@ -592,14 +592,14 @@ class MultiZoneStateZone(Message):  # 503
         return payload
 
 
-class MultiZoneSetColorZones(Message):
+class MultizoneSetColorZones(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.start_index = payload["start_index"]
         self.end_index = payload["end_index"]
         self.color = payload["color"]
         self.duration = payload["duration"]
         self.apply = payload["apply"]
-        super(MultiZoneSetColorZones, self).__init__(MSG_IDS[MultiZoneSetColorZones], target_addr, source_id, seq_num,
+        super(MultizoneSetColorZones, self).__init__(MSG_IDS[MultizoneSetColorZones], target_addr, source_id, seq_num,
                                                      ack_requested, response_requested)
 
     def get_payload(self):
@@ -617,11 +617,11 @@ class MultiZoneSetColorZones(Message):
         return payload
 
 
-class MultiZoneGetColorZones(Message):
+class MultizoneGetColorZones(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.start_index = payload["start_index"]
         self.end_index = payload["end_index"]
-        super(MultiZoneGetColorZones, self).__init__(MSG_IDS[MultiZoneGetColorZones], target_addr, source_id, seq_num,
+        super(MultizoneGetColorZones, self).__init__(MSG_IDS[MultizoneGetColorZones], target_addr, source_id, seq_num,
                                                      ack_requested, response_requested)
 
     def get_payload(self):
@@ -847,10 +847,10 @@ MSG_IDS = {GetService: 2,
            LightGetInfrared: 120,
            LightStateInfrared: 121,
            LightSetInfrared: 122,
-           MultiZoneSetColorZones: 501,
-           MultiZoneGetColorZones: 502,
-           MultiZoneStateZone: 503,
-           MultiZoneStateMultiZone: 506,
+           MultizoneSetColorZones: 501,
+           MultizoneGetColorZones: 502,
+           MultizoneStateZone: 503,
+           MultizoneStateMultizone: 506,
            GetDeviceChain: 701,
            StateDeviceChain: 702,
            SetUserPosition: 703,

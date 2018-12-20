@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from copy import copy
 from typing import Callable, Tuple
 
+from lifxlan.base_api import LightAPI
 from .colors import ColorPower, Color
 from .device import Device
 from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
@@ -17,7 +18,7 @@ from .utils import WaitPool, init_log
 log = init_log(__name__)
 
 
-class Light(Device):
+class Light(Device, LightAPI):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None

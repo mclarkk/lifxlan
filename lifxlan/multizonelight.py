@@ -4,18 +4,19 @@
 import math
 import os
 
+from lifxlan.base_api import MultizoneAPI
 from .light import Light
-from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
+from .msgtypes import MultizoneGetColorZones, MultizoneSetColorZones, MultizoneStateMultizone, MultizoneStateZone
 from .colors import Color
 
 
-class MultiZoneLight(Light):
+class MultizoneLight(Light, MultizoneAPI):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
-        super(MultiZoneLight, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
+        super(MultizoneLight, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
 
     # 0 indexed, NOT inclusive, works like python list indices
     def get_color_zones(self, start=None, end=None):
-        response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":0, "end_index":255})
+        response = self.req_with_resp(MultizoneGetColorZones, [MultizoneStateZone, MultizoneStateMultizone], {"start_index":0, "end_index":255})
         total_zones = response.count
         # validate indices
         if start is not None and end is not None:
@@ -34,7 +35,7 @@ class MultiZoneLight(Light):
         for i in range(total_zones):
             all_zones.append(None)
         for i in range(int(math.ceil(total_zones/8.0))):
-            response = self.req_with_resp(MultiZoneGetColorZones, [MultiZoneStateZone, MultiZoneStateMultiZone], {"start_index":0+(i*8), "end_index":7+(i*8)})
+            response = self.req_with_resp(MultizoneGetColorZones, [MultizoneStateZone, MultizoneStateMultizone], {"start_index":0+(i*8), "end_index":7+(i*8)})
             first_included_zone = response.index
             if first_included_zone + 8 > total_zones:
                 last_included_zone = total_zones-1
@@ -52,7 +53,7 @@ class MultiZoneLight(Light):
 
     def set_zone_color(self, start_index, end_index, color: Color, duration=0, rapid=False, apply=1):
         payload = dict(start_index=start_index, end_index=end_index, color=color, duration=duration, apply=apply)
-        self._send_set_message(MultiZoneSetColorZones, payload, rapid=rapid)
+        self._send_set_message(MultizoneSetColorZones, payload, rapid=rapid)
 
     # Sets colors for all zones given a list of HSVK colors
     def set_zone_colors(self, colors, duration=0, rapid=False):

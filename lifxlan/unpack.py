@@ -214,7 +214,7 @@ def unpack_lifx_message(packed_message):
         payload = {"infrared_brightness": infrared_brightness}
         message = LightSetInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
-    elif message_type == MSG_IDS[MultiZoneSetColorZones]: #501
+    elif message_type == MSG_IDS[MultizoneSetColorZones]: #501
         start_index = struct.unpack("<c", payload_str[0:1])[0]
         start_index = ord(start_index) # 8 bit
         end_index = struct.unpack("<c", payload_str[1:2])[0]
@@ -224,26 +224,26 @@ def unpack_lifx_message(packed_message):
         apply = struct.unpack("<c", payload_str[14:15])[0]
         apply = ord(apply) #8 bit
         payload = {"start_index": start_index, "end_index": end_index, "color": color, "duration": duration, "apply": apply}
-        message = MultiZoneSetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultizoneSetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
-    elif message_type == MSG_IDS[MultiZoneGetColorZones]: #502
+    elif message_type == MSG_IDS[MultizoneGetColorZones]: #502
         start_index = struct.unpack("<c", payload_str[0:1])[0]
         start_index = ord(start_index) # 8 bit
         end_index = struct.unpack("<c", payload_str[1:2])[0]
         end_index = ord(end_index) #8 bit
         payload = {"start_index": start_index, "end_index": end_index}
-        message = MultiZoneGetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultizoneGetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
-    elif message_type == MSG_IDS[MultiZoneStateZone]: #503
+    elif message_type == MSG_IDS[MultizoneStateZone]: #503
         count = struct.unpack("<c", payload_str[0:1])[0]
         count = ord(count) # 8 bit
         index = struct.unpack("<c", payload_str[1:2])[0]
         index = ord(index) #8 bit
         color = struct.unpack("<" + ("H" * 4), payload_str[2:10])
         payload = {"count": count, "index": index, "color": color}
-        message = MultiZoneStateZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultizoneStateZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
-    elif message_type == MSG_IDS[MultiZoneStateMultiZone]: #506
+    elif message_type == MSG_IDS[MultizoneStateMultizone]: #506
         count = struct.unpack("<c", payload_str[0:1])[0]
         count = ord(count) # 8 bit
         index = struct.unpack("<c", payload_str[1:2])[0]
@@ -253,7 +253,7 @@ def unpack_lifx_message(packed_message):
             color = struct.unpack("<" + ("H" * 4), payload_str[2+(i*8):10+(i*8)])
             colors.append(color)
         payload = {"count": count, "index": index, "color": colors}
-        message = MultiZoneStateMultiZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultizoneStateMultizone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[GetDeviceChain]: #701
         message = GetDeviceChain(target_addr, source_id, seq_num, {}, ack_requested, response_requested)

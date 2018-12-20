@@ -34,13 +34,12 @@ def test_powers():
 
 def __main():
     print(Themes.xmas.get_colors(6))
-    return
     lifx = LifxLAN()
-    lifx.set_color(Colors.DEFAULT)
+    # lifx.set_color(Colors.DEFAULT)
     with lifx.reset_to_orig():
         lifx.turn_on()
         lifx.set_theme(Themes.xmas)
-        time.sleep(20 * 60)
+        time.sleep(15)
     return
     return test_powers()
     return grid_test()

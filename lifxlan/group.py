@@ -4,12 +4,13 @@ from functools import partial, wraps
 from itertools import chain, repeat, groupby
 from typing import List, Union, Dict, Optional, Iterable, Any
 
+from lifxlan.base_api import LightAPI, MultizoneAPI
 from .colors import ColorPower, Color
 from .device import Device
 from .errors import WorkflowException
 from .light import Light
 from .msgtypes import GetService, StateService
-from .multizonelight import MultiZoneLight
+from .multizonelight import MultizoneLight
 from .network import broadcast_with_resp
 from .settings import Waveform, TOTAL_NUM_LIGHTS
 from .themes import Theme
@@ -26,7 +27,7 @@ def _call_on_lights(func=None, *, func_name_override=None, light_type='color_lig
     essentially acts as a pass-through to the underlying light objects themselves
 
     changing `light_type` in the decorator call will allow you to
-    forward calls to multizone and tile lights
+    forward calls to multizone and tile light types
     """
     if func is None:
         return partial(_call_on_lights, light_type=light_type, func_name_override=func_name_override)
@@ -64,7 +65,7 @@ class _GetFromLights:
         return {d: getattr(d, self.name) for d in getattr(instance, self.light_type)}
 
 
-class Group:
+class Group(LightAPI, MultizoneAPI):
     """
     this is the workhorse of the whole operation
 
@@ -390,7 +391,7 @@ class LifxLAN(Group):
             device = Light(*args)
             if device.is_light:
                 if device.supports_multizone:
-                    device = MultiZoneLight(*args)
+                    device = MultizoneLight(*args)
                 elif device.supports_chain:
                     device = TileChain(*args)
         return device

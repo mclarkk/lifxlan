@@ -177,10 +177,11 @@ def __main():
     lifx = LifxLAN()
     # lifx.set_color(Colors.DEFAULT)
     print(lifx.on_lights)
-    # lifx = lifx['kitchen'] + lifx['living_room']
-    lifx = lifx['master']
+    lifx = lifx['kitchen'] + lifx['living_room']
+    # lifx = lifx['master']
     # lifx = lifx['living room 1']
-    control(lifx, [Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE])
+    # control(lifx, [Colors.SNES_DARK_PURPLE, Colors.SNES_LIGHT_PURPLE])
+    control(lifx, Themes.copilot)
     # control(lifx, [Colors.DEFAULT])
 
 

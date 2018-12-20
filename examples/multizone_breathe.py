@@ -46,7 +46,7 @@ def main():
         except KeyboardInterrupt:
             strip.set_zone_colors(original_zones, 1000, True)
     else:
-        print("No lights with MultiZone capability detected.")
+        print("No lights with Multizone capability detected.")
 
 
 if __name__ == "__main__":

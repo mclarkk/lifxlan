@@ -10,6 +10,7 @@
 # x get rid of lan entirely? or move to a functional interface?
 #   x now a subclass of group
 # - do the wave in lights
+#   - use a graph to represent lights
 # - document usage - change README.md
 # - powerful repl?
 # - use context vars to change overarching light settings
