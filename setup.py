@@ -17,7 +17,7 @@ setup(name='lifxlan',
           'bitstring',
           'netifaces',
           'getch',
-          'arrow'
+          'arrow', 'click', 'sty'
       ],
       zip_safe=False,
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers

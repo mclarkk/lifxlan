@@ -3,6 +3,8 @@ import operator as op
 from functools import reduce
 from typing import List, NamedTuple
 
+import sty
+
 from .settings import DEFAULT_KELVIN
 from .utils import init_log
 
@@ -81,6 +83,10 @@ class Color(NamedTuple):
         k = min(max(self.kelvin, 2500), 9000)
         return Color(*map(self._validate_hsb, self[:3]), k)
 
+    def color_str(self, s, set_fg=True) -> str:
+        layer = sty.fg if set_fg else sty.bg
+        return f'{layer(*self.rgb[:3])}{s}{layer.rs}'
+
     @staticmethod
     def _to_2_16(val):
         """force val to be between 0 and 65535 inclusive, rotate"""
@@ -131,9 +137,9 @@ class Color(NamedTuple):
 
 class ColorsMeta(type):
     def __iter__(cls):
-        yield from ((name, val)
-                    for name, val in vars(cls).items()
-                    if isinstance(val, Color))
+        return ((name, val)
+                for name, val in vars(cls).items()
+                if isinstance(val, Color))
 
     def __getitem__(cls, item):
         return cls.__dict__[item]
@@ -158,32 +164,43 @@ class Colors(metaclass=ColorsMeta):
     WARM_WHITE = Color(58275, 0, 65535)
     GOLD = Color(58275, 0, 65535, 2500)
 
-    YALE_BLUE = Color.from_hex(0xf4d92)
+    RAINBOW = RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
+
+    COPILOT_BLUE = Color.from_hex(0x00b4e3)
+    COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)
+    COPILOT_BLUE_GREY = Color.from_hex(0x386e8f)
+    COPILOT_DARK_BLUE = Color.from_hex(0x193849)
 
     HANUKKAH_BLUE = Color.from_hex(0x09239b)
 
-    STEELERS_GOLD = Color.from_hex(0xffb612)
+    MARIO_BLUE = Color.from_hex(0x049cd8)
+    MARIO_YELLOW = Color.from_hex(0xfbd000)
+    MARIO_RED = Color.from_hex(0xe52521)
+    MARIO_GREEN = Color.from_hex(0x43b047)
+
+    PYTHON_LIGHT_BLUE = Color.from_hex(0x4b8bbe)
+    PYTHON_DARK_BLUE = Color.from_hex(0x306998)
+    PYTHON_LIGHT_YELLOW = Color.from_hex(0xffe873)
+    PYTHON_DARK_YELLOW = Color.from_hex(0xffd43b)
+    PYTHON_GREY = Color.from_hex(0x646464)
+
+    SNES_BLACK = Color.from_hex(0x211a21)
+    SNES_DARK_GREY = Color.from_hex(0x908a99)
+    SNES_DARK_PURPLE = Color.from_hex(0x4f43ae)
+    SNES_LIGHT_GREY = Color.from_hex(0xcec9cc)
+    SNES_LIGHT_PURPLE = Color.from_hex(0xb5b6e4)
+
     STEELERS_BLACK = Color.from_hex(0x101820)
     STEELERS_BLUE = Color.from_hex(0x00539b)
+    STEELERS_GOLD = Color.from_hex(0xffb612)
     STEELERS_RED = Color.from_hex(0xc60c30)
     STEELERS_SILVER = Color.from_hex(0xa5acaf)
 
-    SNES_LIGHT_PURPLE = Color.from_hex(0xb5b6e4)
-    SNES_DARK_PURPLE = Color.from_hex(0x4f43ae)
-    SNES_DARK_GREY = Color.from_hex(0x908a99)
-    SNES_LIGHT_GREY = Color.from_hex(0xcec9cc)
-    SNES_BLACK = Color.from_hex(0x211a21)
-
-    COPILOT_DARK_BLUE = Color.from_hex(0x193849)
-    COPILOT_BLUE = Color.from_hex(0x00b4e3)
-    COPILOT_BLUE_GREY = Color.from_hex(0x386e8f)
-    COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)
-
-    XMAS_RED = Color.from_hex(0xd42426)
-    XMAS_GREEN = Color.from_hex(0x18802b)
     XMAS_GOLD = Color.from_hex(0xe5d08f)
+    XMAS_GREEN = Color.from_hex(0x18802b)
+    XMAS_RED = Color.from_hex(0xd42426)
 
-    RAINBOW = RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
+    YALE_BLUE = Color.from_hex(0xf4d92)
 
     @classmethod
     def sum(cls, *colors: Color):

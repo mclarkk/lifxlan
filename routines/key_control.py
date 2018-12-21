@@ -118,7 +118,10 @@ def _parse_chars():
     node = tree
     state = 0
     while True:
-        c = ord(getch())
+        try:
+            c = ord(getch())
+        except OverflowError:
+            continue
 
         node = node.get(c)
         if node is mod1 or node is shift:

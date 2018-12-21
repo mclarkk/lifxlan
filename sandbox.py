@@ -2,7 +2,7 @@ import random
 from itertools import groupby
 from typing import Iterable
 
-from lifxlan import Color, exhaust, LifxLAN, Colors, Themes
+from lifxlan import Color, exhaust, LifxLAN, Colors, Themes, Theme
 import time
 
 from lifxlan.grid import Grid, downstairs
@@ -32,7 +32,11 @@ def test_powers():
         print(group.power)
         time.sleep(.5)
 
+
 def __main():
+    print(Themes.xmas.color_str('xmas'))
+    print((Themes.xmas + Theme.from_colors()).color_str('snth'))
+    return
     print(Themes.xmas.get_colors(6))
     lifx = LifxLAN()
     # lifx.set_color(Colors.DEFAULT)

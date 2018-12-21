@@ -13,9 +13,8 @@ Weight = int
 
 
 class Theme:
-    """
-    weighted collection of colors
-    """
+    """weighted collection of colors"""
+
     def __init__(self, colors: Dict[Color, Weight]):
         self._color_weights = colors
 
@@ -55,11 +54,19 @@ class Theme:
 
     def __add__(self, other):
         if isinstance(other, Color):
-            other_cols = {other: 1}
+            other_colors = {other: 1}
+        elif isinstance(other, dict):
+            other_colors = other
+        elif isinstance(other, Theme):
+            other_colors = other._color_weights
         else:
-            other_cols = other._color_weights
+            return NotImplemented
 
-        return Theme({**self._color_weights, **other_cols})
+        return Theme({**self._color_weights, **other_colors})
+
+    def color_str(self, s):
+        colors = ''.join(c.color_str(v * 4 * " ", set_fg=False) for c, v in self._color_weights.items())
+        return f'{s:20}|{colors}|'
 
 
 class ThemesMeta(type):
@@ -69,11 +76,28 @@ class ThemesMeta(type):
             res = copy(res)
         return res
 
+    def __iter__(cls):
+        return ((name, theme)
+                for name, theme in cls.__dict__.items()
+                if isinstance(theme, Theme))
+
+    def __getitem__(cls, item):
+        return cls.__dict__[item]
+
+    def get(cls, val, item=None):
+        if val in cls.__dict__:
+            return cls[val]
+        return item
+
 
 class Themes(metaclass=ThemesMeta):
-    xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
+    copilot = Theme.from_colors(*Colors.by_name('copilot'))
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
+    mario = Theme.from_colors(*Colors.by_name('mario'))
+    python = (Theme.from_colors(*Colors.by_name('python'))
+              + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})
+    rainbow = Theme.from_colors(*Colors.RAINBOW)
+    snes = Theme.from_colors(*Colors.by_name('SNES'))
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
                       Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})
-    snes = Theme.from_colors(*Colors.by_name('SNES'))
-    copilot = Theme.from_colors(*Colors.by_name('copilot'))
+    xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})

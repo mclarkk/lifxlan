@@ -12,6 +12,20 @@ from typing import Optional, List, Any, Union, Iterable
 from .errors import WorkflowException
 
 
+def init_log(name, level=logging.INFO):
+    """create logger using consistent settings"""
+    log = logging.getLogger(name)
+    log.setLevel(level)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    return log
+
+
+log = init_log(__name__)
+
+
 def timer(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -19,7 +33,7 @@ def timer(func):
         try:
             return func(*args, **kwargs)
         finally:
-            print(f'func {func.__name__!r} took {time.time() - start_time} seconds')
+            log.info(f'func {func.__name__!r} took {time.time() - start_time} seconds')
 
     return wrapper
 
@@ -131,16 +145,3 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
     for v, r in zip(array, cycle(res)):
         r.append(v)
     return res
-
-
-def init_log(name):
-    """create logger using consistent settings"""
-    log = logging.getLogger(name)
-    log.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
-    return log
-
-

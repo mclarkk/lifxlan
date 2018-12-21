@@ -15,9 +15,11 @@ from .network import broadcast_with_resp
 from .settings import Waveform, TOTAL_NUM_LIGHTS
 from .themes import Theme
 from .tilechain import TileChain
-from .utils import WaitPool, exhaust, timer
+from .utils import WaitPool, exhaust, timer, init_log
 
 rapid_default = True
+
+log = init_log(__name__)
 
 
 def _call_on_lights(func=None, *, func_name_override=None, light_type='color_lights'):
@@ -408,9 +410,9 @@ class LifxLAN(Group):
                 import warnings
                 msg = f'WARNING: found {num_resps} devices, but TOTAL_NUM_LIGHTS is set to {TOTAL_NUM_LIGHTS}'
                 warnings.warn(ResourceWarning(msg))
-                print(msg)
+                log.warn(msg)
             else:
-                print('no new lights found')
+                log.info('no new lights found')
         except Exception as e:
-            print(f'error in _check_for_new_lights: {e!r}')
+            log.error(f'error in _check_for_new_lights: {e!r}')
             raise e

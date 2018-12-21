@@ -1,4 +1,5 @@
 # lifxlan3
+_lights that change when you do stuff_
 
 **lifxlan3** is my python 3.6+ take on the [lifxlan](https://github.com/mclarkk/lifxlan) library by meghan clark. 
 
