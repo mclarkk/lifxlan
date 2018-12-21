@@ -1,19 +1,3 @@
-"""
-control lights using keyboard keys:
-
-homerow controls hue
-shift-homerow controls hue even more!
-
-right/left controls saturation
-shift-right/left maxes/mins saturation
-
-up/down controls brightness
-shift-up/down maxes/mins brightness
-
-jk (dvorak)/cv (qwerty) control kelvin
-
-ctrl-r resets
-"""
 from collections import defaultdict
 from getch import getch
 from itertools import chain
@@ -143,6 +127,22 @@ def _get_offset() -> AttrOffset:
 
 
 def control(lifx: Group, color_theme: Optional[ColorTheme] = None):
+    """
+    control lights using keyboard keys:
+
+    homerow controls hue
+    shift-homerow controls hue even more!
+
+    right/left controls saturation
+    shift-right/left maxes/mins saturation
+
+    up/down controls brightness
+    shift-up/down maxes/mins brightness
+
+    jk (dvorak)/cv (qwerty) control kelvin
+
+    ctrl-r resets
+    """
     def _init_lights():
         lifx.turn_on()
         if theme:

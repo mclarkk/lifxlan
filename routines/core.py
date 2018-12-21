@@ -41,25 +41,28 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
 
 
 def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
+    """toggle power on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
     with lifx.reset_to_orig():
         lifx.turn_off()
-        for i, power in zip(range(num_cycles), cycle(range(2))):
+        for _, power in zip(range(num_cycles), cycle(range(2))):
             lifx.set_power(power)
             sleep(blink_time_secs)
 
 
 def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_secs=.5, how_long_secs=8):
+    """change colors on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
     theme = colors_to_theme(colors) or (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE)
     with lifx.reset_to_orig():
-        for i, color in zip(range(num_cycles), cycle(theme)):
+        for _, color in zip(range(num_cycles), cycle(theme)):
             lifx.set_color(color)
             sleep(blink_time_secs)
 
 
-def rainbow(lifx: Group, colors: Optional[ColorTheme] = Colors.RAINBOW,
+def rainbow(lifx: Group, colors: Optional[ColorTheme] = Themes.rainbow,
             duration_secs=0.5, smooth=False):
+    """similar to blink_color"""
     theme = colors_to_theme(colors)
     transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = duration_secs < 1
@@ -69,16 +72,16 @@ def rainbow(lifx: Group, colors: Optional[ColorTheme] = Colors.RAINBOW,
             sleep(duration_secs)
 
 
-def set_theme(lifx: Group, *themes: ColorTheme,
-              rotate_secs: Optional[int] = 60,
-              duration_mins: Optional[int] = 20,
-              transition_secs=5,
-              all_lights=True):
+def cycle_themes(lifx: Group, *themes: ColorTheme,
+                 rotate_secs: Optional[int] = 60,
+                 duration_mins: Optional[int] = 20,
+                 transition_secs=5,
+                 all_lights=True):
     """
-    set lights to theme every rotate seconds.
+    set lights to theme every `rotate_secs`.
 
     will round robin `themes`.
-    rotation still works on one theme as it will re-assign the theme each rotate_seconds
+    rotation still works on one theme as it will re-assign the theme each `rotate_secs`
     """
     end_time = arrow.utcnow().shift(minutes=duration_mins or 100000)
 
@@ -106,7 +109,7 @@ def __main():
     #           (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE),
     #           (Colors.RED, Colors.GREEN)]
     # lifx = lifx['creative_space']
-    set_theme(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
+    cycle_themes(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
     print(lifx.on_lights)
 
 

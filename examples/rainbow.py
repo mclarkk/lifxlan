@@ -3,7 +3,7 @@
 import sys
 from time import sleep
 
-from lifxlan import LifxLAN, Colors
+from lifxlan import LifxLAN, Colors, Themes
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
 
 
 def rainbow(lan, duration_secs=0.5, smooth=False):
-    colors = Colors.RAINBOW
+    colors = Themes.rainbow
     transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = duration_secs < 1
     for color in colors:

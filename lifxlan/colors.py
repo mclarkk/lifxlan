@@ -46,6 +46,10 @@ class Color(NamedTuple):
     _mult = 2 ** 16
     _max_complements = 1024
 
+    # ==================================================================================================================
+    # CREATE COLORS FROM OTHER COLOR SPACES
+    # ==================================================================================================================
+
     @classmethod
     def from_hex(cls, h, kelvin=DEFAULT_KELVIN) -> 'Color':
         nums = []
@@ -61,6 +65,9 @@ class Color(NamedTuple):
         mult = cls._mult - 1
         return cls(*map(int, (h * mult, s * mult, b / 255 * mult, rgb.k)))
 
+    # ==================================================================================================================
+    # COLOR PROPERTIES
+    # ==================================================================================================================
     @property
     def hex(self) -> str:
         return self.rgb.hex
@@ -87,15 +94,9 @@ class Color(NamedTuple):
         layer = sty.fg if set_fg else sty.bg
         return f'{layer(*self.rgb[:3])}{s}{layer.rs}'
 
-    @staticmethod
-    def _to_2_16(val):
-        """force val to be between 0 and 65535 inclusive, rotate"""
-        return int(min(65535, val % Color._mult))
-
-    @staticmethod
-    def _validate_hsb(val) -> int:
-        """clamp to range [0, 65535]"""
-        return int(min(max(val, 0), 65535))
+    # ==================================================================================================================
+    # COLOR METHODS
+    # ==================================================================================================================
 
     def offset_hue(self, degrees) -> 'Color':
         hue = self._to_2_16(self.hue + degrees / 360 * self._mult)
@@ -127,6 +128,19 @@ class Color(NamedTuple):
 
         return res
 
+    @staticmethod
+    def _to_2_16(val):
+        """force val to be between 0 and 65535 inclusive, rotate"""
+        return int(min(65535, val % Color._mult))
+
+    @staticmethod
+    def _validate_hsb(val) -> int:
+        """clamp to range [0, 65535]"""
+        return int(min(max(val, 0), 65535))
+
+    # ==================================================================================================================
+    # ADD COLORS TOGETHER
+    # ==================================================================================================================
     def __add__(self, other) -> 'Color':
         """avg colors together using math"""
         return (self.rgb + other.rgb).color
@@ -136,6 +150,8 @@ class Color(NamedTuple):
 
 
 class ColorsMeta(type):
+    """make `Colors` more accessible"""
+
     def __iter__(cls):
         return ((name, val)
                 for name, val in vars(cls).items()
@@ -151,6 +167,7 @@ class ColorsMeta(type):
 
 class Colors(metaclass=ColorsMeta):
     DEFAULT = Color(43520, 0, 39321)
+
     RED = Color(65535, 65535, 65535, 3500)
     ORANGE = Color(6500, 65535, 65535, 3500)
     YELLOW = Color(9000, 65535, 65535, 3500)
@@ -163,8 +180,7 @@ class Colors(metaclass=ColorsMeta):
     COLD_WHITE = Color(58275, 0, 65535, 9000)
     WARM_WHITE = Color(58275, 0, 65535)
     GOLD = Color(58275, 0, 65535, 2500)
-
-    RAINBOW = RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK
+    BROWN = Color.from_hex(0xa0522d)
 
     COPILOT_BLUE = Color.from_hex(0x00b4e3)
     COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)

@@ -1,13 +1,20 @@
 # lifxlan3
-_lights that change when you do stuff_
+> lights that change when you do stuff
 
-**lifxlan3** is my python 3.6+ take on the [lifxlan](https://github.com/mclarkk/lifxlan) library by meghan clark. 
+**lifxlan3** is my python 3.6+ take on the [lifxlan](https://github.com/mclarkk/lifxlan) library by meghan clark. it uses [lifx's LAN protocol](https://lan.developer.lifx.com/) to interact with lights on your LAN.
 
-the 2 main differences are in the way lights are handled and in the way colors are handled:
+the two main differences are in the way lights are handled and in the way colors are handled:
 
-1. lights are now mainly accessed via `Group`s. `LifxLAN` is a special sub-class of `Group`, and `Group`s can act on lights quickly.
+1. `Group` objects are the main way of interacting with lights.
+    1. `Group`s act on lights virtually simultaneously.
+    1. `LifxLAN`, a special subclass of `Group`, can query for all lights
+    1. even a single `Light` should probably be used in `Group` unless you're trying to do something `Group` doesn't support, like set a label
 1. `Colors` and `Themes` now exist to make mixing/matching/using `Color`s much simpler
+    1. `Color` and `Theme` objects can be added together
+    1. they make playing around a bit easier 
 
+additionally, there's plenty of type hinting and doc stringing to help clarify the API.
+one of the best ways to get around the code is just import objects and run `help` on them, or just look at the source!
 
 ## quickstart
 
@@ -16,310 +23,90 @@ a good place to get a feel for how this works is to check out [routines/core.py]
 but here's a quick example. (you should set `TOTAL_NUM_LIGHTS` in your `lifxlan/settings.py` ahead of time, but it's not necessary)
 
 ```python
-"""set lights to theme for 8 seconds"""
-from lifxlan import LifxLAN, Themes
+"""set lights to a theme for 8 seconds"""
+from lifxlan import LifxLAN, Themes, Colors
 from time import sleep
 
+# will query LAN for all available devices in __init__ and get all extant lights' settings in parallel
 lifx = LifxLAN()
 
-# can add groups together
-lifx = lifx['kitchen'] + lifx['living_room']
+# can add groups and individual lights together
+lifx = lifx['kitchen'] + lifx['living room 1']
 
-# will restore original group's settings when complete
+# will restore group's original settings when complete
 with lifx.reset_to_orig():
 
-    # can combine themes
-    lifx.set_theme(Themes.snes + Themes.xmas)  # weird theme, but ok
+    # can combine themes and colors
+    lifx.set_theme(Themes.snes + Themes.xmas + Colors.PYTHON_LIGHT_BLUE)  # weird theme, but ok
     lifx.turn_on()
     sleep(8)
 ```
 
 # core api
 
-## `Group`
-
-mostly, lights will be dealt with in groups. 
-
-`LifxLAN` is now a subclass of `Group`, but it's special in that it can query all `Light` objects on your LAN.
-
-a `Group` can act on multiple lights virtually simultaneously, and it shares much of `Light`s API (with the exception of non-sensical things like `set_label`)
-
-## `Colors` and `Themes`
- 
- todo...
 
 
-# original documentation
+## [group](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
+
+a `Group` acts on multiple lights virtually simultaneously, and it shares much of `Light`s API (with the exception of non-sensical things like `set_label`)
+
+the best way to see what you can do with groups is to actually look at the [Group](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
+class. it's pretty well documented.
+
+`LifxLAN` is a subclass of `Group`, and will be the entry point for most functions.
+it's special in that it can query all `Light` objects on your LAN.
+
+
+
+## [colors](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/colors.py)
+
+`Color` objects represent colors in lifx's HSBk (hue, saturation, brightness, kelvin) values, meaning that HSB are all in [0, 65536) and kelvin in [2500, 9000]
+
+they can be:
+- added together which averages the colors
+- created from hex codes
+- converted to/from RGBk and vice versa
+
+the `Colors` class is just a collection of potentially commonly-used colors and other colors that i just wanted to have easy access to in the system.
+
+## [themes](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/themes.py)
+
+`Theme` objects represent weighted combinations of `Color`s.
+they can be used by `Group`s to set lights to your favorite themes in a weighted fashion.
+
+they can also be added together, and you can add individual `Color` objects to themes as well
+
+## [command line](https://github.com/sweettuse/lifxlan/blob/master/routines/cli.py)
+
+the `cli` uses [click](https://github.com/pallets/click) to provide easy access to the various routines that exist in this library.
+this will give you easy access to all the routines in [core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py)
+as well as other, separate ones, like [morse-code](https://github.com/sweettuse/lifxlan/blob/master/routines/morse_code.py)
+and [key-control](https://github.com/sweettuse/lifxlan/blob/master/routines/key_control.py).
+
+to see what commands are available, simply run ```python3 cli.py```
+
+to inspect your LAN and get a feel for what colors and themes are readily available, run ```python3 cli.py info```.
+this will give you a list of all your lights, all the auto groups of lights, and all colors and themes in a colorful terminal output (thank you [sty](https://github.com/feluxe/sty))
+
+## [routines](https://github.com/sweettuse/lifxlan/tree/master/routines)
+routines are just higher level functions that let you interact with your lights in fun ways.
+there are some simple routines in [core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py),
+but i wanted to call out two cool ones that are in separate files:
+
+- [morse-code](https://github.com/sweettuse/lifxlan/blob/master/routines/morse_code.py):
+translates a word or phrase into into morse code and blinks it out on your lights
+- [key-control](https://github.com/sweettuse/lifxlan/blob/master/routines/key_control.py):
+lets you use your keyboard to control hue, saturation, brightness and kelvin
+
+as mentioned above, these are easily run from the `cli`
+
+## other notes
+
+- thank you meghan clark for the effort you put into this api. i revamped the main classes like `Device`, `Light`, `Group`, etc, but left most of the lower level API alone. it works well and i was very happy i didn't have to write it.
+- this will only work in python3.6+ due to much f-string usage and reliance on dictionary ordering
 
 ---
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
-
-## How to Install
-
-To get the latest stable release:
-
-`sudo pip install lifxlan`
-
-However, to be guaranteed to get the most recent features and fixes you can install from source with:
-
-`sudo python setup.py install`
-
-## Run
-
-See the `examples` folder for example scripts that use **lifxlan**.  
-
-To be as generic as possible, the examples use automatic device discovery to find individual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
-
-## Overview
-
-You can do several things with this library:
-
-* Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
-* Build your own high-level API on top of the low-level networking messages.
-* Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
-
-#### High-Level API:
-
-* **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
-* **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
-* **light.py** - Provides the Light API. Subclass of Device.
-* **multizonelight.py** - Provides the MultizoneLight API. Subclass of Light.
-* **tilechain.py** - Provides the TileChain API. Subclass of Light.
-* **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
-
-##### LifxLAN API
-
-You can create a LifxLAN object to represent the local network:
-
-```
-lan = LifxLAN()
-lan = LifxLAN(num_lights)   #this will make discovery go faster if all lights are responsive
-```
-
-LifxLAN objects have the following methods:
-
-```
-# power can be "on"/"off", True/False, 0/1, or 0/65535
-# color is a list of HSBK values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration is the transition time in milliseconds
-# rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# arguments in [square brackets] are optional
-# name is the string label for the light, such as "Right Lamp"
-# names is a list of name strings, such as ["Left Lamp", "Right Lamp"]
-# group is a string label for a group, such as "Living Room"
-# location is the string label for a location, such as "My Home"
-
-lights                                                                                 # returns list of Light objects
-get_color_lights()                                                                           # returns list of Light objects that support color functionality
-get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
-multizone_lights                                                                       # returns list of MultizoneLight objects that support multizone functionality
-tilechain_lights                                                                       # returns a list of TileChain objects that support chain functionality
-get_device_by_name(name)                                                                     # returns a Device object (instantiated as the most specific Device subclass possible, such as MultizoneLight)
-get_devices_by_name(names)                                                                   # returns a Group object
-get_devices_by_group(group)                                                                  # returns a Group object
-get_devices_by_location(location)                                                            # returns a Group object
-set_power_all_lights(power, [duration], [rapid])                                             # set power for all lights on LAN
-set_color_all_lights(color, [duration], [rapid])                                             # set color for all lights on LAN
-set_waveform_all_lights(is_transient, color, period, cycles, duty_cycle, waveform, [rapid])  # see the Light API for more details
-get_power_all_lights()                                                                       # returns dict of Light, power pairs
-get_color_all_lights()                                                                       # returns dict of Light, color pairs
-```
-
-##### Device API
-
-In keeping with the LIFX protocol, all lights are devices, and so support the following methods:
-
-```
-# label is a string, 32 char max
-# power can be "on"/"off", True/False, 0/1, or 0/65535
-# rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-# arguments in [square brackets] are optional
-
-set_label(label)            
-set_power(power, [rapid])            
-get_mac_addr()
-get_ip_addr()
-get_service()                       # returns int, 1 = UDP
-get_port()                          
-label         
-power_level                         # returns 0 for off, 65535 for on
-get_host_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
-get_host_firmware_build_timestamp()
-get_host_firmware_version()
-get_wifi_info()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
-get_wifi_signal_mw()
-get_wifi_tx_bytes()
-get_wifi_rx_bytes()         
-get_wifi_firmware_info()           # returns (build_timestamp (in nanoseconds), version)
-get_wifi_firmware_build_timestamp()
-get_wifi_firmware_version()
-version_info                 # returns (vendor, product, version)
-location                      # Returns location id (bytearray length 16)
-get_location_tuple()                # Returns a tuple of location(bytearray lenght 16), location_label(string), and location_updated_at(unsigned 64 bit epoch timestamp)
-get_location_label()                # Returns location_label string
-get_location_updated_at             # Returns location_updated_at unsigned 64 bit int -> epoch timestamp
-group                         # Returns group id (bytearray length 16)
-get_group_tuple()                   # Returns a tuple of group(bytearray lenght 16), group_label(string), and group_updated_at(unsigned 64 bit epoch timestamp)
-get_group_label()                   # Returns group_label(string)
-get_group_updated_at                # Returns group_updated_at unsigned 64 bit int -> epoch timestamp
-get_vendor()
-get_product()
-get_version()
-get_time_info()                    # returns (time (current timestamp in ns), uptime (in ns), downtime (in ns, +/- 5 seconds))
-get_time()
-get_uptime()
-get_downtime()
-is_light()                          # returns True if device is some kind of light product
-supports_color                    # returns True if product features include color
-supports_temperature()              # returns True if product features include white color temperature
-supports_multizone()                # returns True if product features include multizone functionality
-supports_infrared()                 # returns True if product features include infrared functionality
-```
-
-##### Light API
-
-You can get Light objects automatically though LAN-based discovery (takes a few seconds), or by creating Light objects using a known MAC address and IP address:
-
-```
-lights = lan.lights                              # Option 1: Discovery
-light = Light("12:34:56:78:9a:bc", "192.168.1.42")     # Option 2: Direct
-```
-
-The Light API provides everything in the Device API, as well as:
-
-```
-# arguments in [square brackets] are optional
-# power can be "on"/"off", True/False, 0/1, or 0/65535
-# color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# duration is the transition time in milliseconds
-# rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# is_transient is 1/0. If 1, return to the original color after the specified number of cycles. If 0, set light to specified color
-# period is the length of one cycle in milliseconds
-# cycles is the number of times to repeat the waveform
-# duty_cycle is an integer between -32768 and 32767. Its effect is most obvious with the Pulse waveform
-#     set duty_cycle to 0 to spend an equal amount of time on the original color and the new color
-#     set duty_cycle to positive to spend more time on the original color
-#     set duty_cycle to negative to spend more time on the new color
-# waveform can be 0 = Saw, 1 = Sine, 2 = HalfSine, 3 = Triangle, 4 = Pulse (strobe)
-# infrared_brightness (0-65535) - is the maximum infrared brightness when the lamp automatically turns on infrared (0 = off)
-
-# NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
-
-set_power(power, [duration], [rapid])   
-set_color(color, [duration], [rapid])                                   
-set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
-power_level                                                                 # returns 0 or 65535
-get_color()                                                                 # returns color (HSBK list)
-get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
-set_infrared(infrared_brightness)
-```
-
-The Light API also provides macros for basic colors, like RED, BLUE, GREEN, etc. Setting colors is as easy as `mybulb.set_color(BLUE)`. See light.py for complete list of color macros.
-
-Finally, you can set parts of the color individually using the following four methods. However, the bulbs must receive all four values in each SetColor message. That means that using one of the following methods is always slower than using set_color(color) above because it will have to call get_color() first to get the other three values.
-
-```
-set_hue(hue, [duration], [rapid])                  # hue in range [0-65535]
-set_brightness(brightness, [duration], [rapid])    # brightness in range [0-65535]
-set_saturation(saturation, [duration], [rapid])    # saturation in range [0-65535]
-set_kelvin(kelvin, [duration], [rapid])         # kelvin in range [2500-9000]
-```
-
-##### MultizoneLight API
-
-Lights with Multizone capability, such as the LIFX Z, have all the same methods as the Light API, and also add the following:
-
-```
-# start and end refer to zone indices (inclusive).
-# duration is the transition time in milliseconds
-# rapid is True/False. True means there is no guarantee that the bulb will receive your message.
-# apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
-
-get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
-set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
-set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
-```
-
-The LIFX Z can be instantiated as either a Light or MultizoneLight object, but to use the Multizone API you'll need to instantiate it as a MultizoneLight. Just like with more generic Light objects, you can instantiate a MultizoneLight directly with `light = MultizoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all Multizone lights using `lights = lan.multizone_lights`, where lan is a LifxLAN object.
-
-##### TileChain API
-
-TileChain lights, such as the LIFX Tile, have all the same methods as the Light API, and also add the following:
-
-```
-# refresh_cache is a binary value. If True, send the query directly to the light to get the answer, and update the locally stored information (slower). If False, return the locally stored answer from a previous query (faster). Should almost always be False, unless the configuration of the Tiles is expected to change while the program is running (an unusual concern for most programs).
-# tile_count is the number of tiles on which to replicate the command, starting from the start_index tile.
-# x, y, and width will probably not be used. They allow the user to specify a rectangle of LEDs on the specified tile. The (x, y) coordinate gives the starting LED, and the width gives the width of the desired rectangle. The default values of these ((0, 0) and 8) specify the whole tile, and will probably not need to be changed.
-# colors is a list of 64 HSVK tuples.
-# tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
-# hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
-
-get_tile_info([refresh_cache])                                  # returns a list of Tile objects
-get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
-get_tile_colors(start_index, [tile_count], [x], [y], [width])   # returns colors for the specified tile(s).
-set_tile_colors(start_index, colors, [duration], [tile_count], [x], [y], [width], [rapid]) # sets the colors on the specified tile(s). For tile_count > 1, the colors will be duplicated.
-get_tilechain_colors()                                          # returns tilechain_colors
-set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
-project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
-get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
-```
-
-Here are some other available methods that you are much less likely to use:
-
-```
-# x and y below are in units of tile length, not LED rows/cols. In other words, the x and y below are not the same as the x and y above.
-
-recenter_coordinates()                  # This will permanently shift all the tile coordinates so that they are centered around a tile at (0, 0). Sometimes the app will result in a particular axis being off (e.g., the origin tile is (0, -0.5), so all the tile coordinates are shifted by -0.5). This method isn't necessary for any functionality, but makes the tile_info a little more human-readable.
-set_tile_coordinates(tile_index, x, y)  # Permanently sets the specified tile's coordinates to x and y (in tile length units) relative to the central tile. Tile coordinates are generally set through the LIFX app, and it is unlikely you will need to ever use this method unless you're doing something pretty weird. (If so, drop me a line!)
-get_tile_map([refresh_cache])           # Returns a 2D list with canvas_dimensions rows and cols where each element contains either a (tile_index, color_index) tuple or 0. This maps a pixel on the canvas to the tile number and LED number on that tile that the pixel corresponds to, or 0 if there is no tile in that location.
-```
-
-A LIFX Tile light can be instantiated as either a Light or TileChain object, but to use the TileChain API you'll need to instantiate it as a TileChain. Just like with more generic Light objects, you can instantiate a TileChain directly with `light = TileChain("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all tilechain lights using `lights = lan.tilechain_lights`, where lan is a LifxLAN object.
-
-##### Group API
-
-A Group is a collection of devices. Under the covers, a Group is just a list of device objects (like Devices, Lights, MultizoneLights) and a set of functions that send multi-threaded commands to the applicable devices in the group. The multi-threading allows changes to be made more or less simultaneously. At the very least, it is certainly faster than if you looped through each individual light one at a time. You can get a Group by group, location, or device names via the LifxLAN API. However, you can also instantiate a Group with any arbitrary list of device objects. Here are some ways to create groups:
-
-```
-# The following methods use discovery
-lan = LifxLAN()
-g = lan.get_devices_by_name(["Left Lamp", "Right Lamp"])
-g = lan.get_devices_by_group("Living Room")
-g = lan.get_devices_by_location("My Home")
-
-# This method is fastest
-right = Light("12:34:56:78:9a:bc", "192.168.0.2")
-left = Light("cb:a9:87:65:43:21", "192.168.0.3")
-g = Group([right, left])
-```
-Almost all of the Group API methods are commands. Commands will only be sent to the devices in the group that support that capability. If you want to get state information from the devices, you will need to access the list of devices and call their get methods directly.
-```
-# device_object is a Device or any of its subclasses like Light and MultizoneLight.
-# device_name is a string name of a device, like "Right Lamp"
-# power can be "on"/"off", True/False, 0/1, or 0/65535
-# color is a HSBK list of values: [hue (0-65535), saturation (0-65535), brightness (0-65535), Kelvin (2500-9000)]
-# infrared_brightness is an integer between 0 and 65535.
-# duration is the transition time in milliseconds
-# rapid is True/False. If True, don't wait for successful confirmation, just send multiple packets and move on
-# start and end refer to zone indices (inclusive).
-# apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
-
-add_device(device_object)
-remove_device(device_object)
-remove_device_by_name(device_name)
-get_device_list()
-set_power(power, [duration], [rapid])
-set_color(color, [duration], [rapid])
-set_hue(hue, [duration], [rapid])
-set_brightness(brightness, [duration], [rapid])
-set_saturation(saturation, [duration], [rapid])
-set_kelvin(kelvin, [duration], [rapid])
-set_infrared(infrared_brightness)
-set_zone_color(start, end, color, [duration], [rapid], [apply])
-set_zone_colors(colors, [duration], [rapid])
-```
+from the original documentation:
 
 #### LIFX LAN Protocol Implementation:
 

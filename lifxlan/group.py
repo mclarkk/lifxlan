@@ -283,7 +283,7 @@ class Group(LightAPI, MultizoneAPI):
 
     @contextmanager
     def reset_to_orig(self, duration=3000, *, orig_override=None):
-        """reset group color/power per light to original settings block exits"""
+        """reset group color/power per light to original settings on with block exit"""
         cur_light_state = orig_override
         if not cur_light_state:
             cur_light_state = {l: ColorPower(l.color, l.power) for l in self.devices}

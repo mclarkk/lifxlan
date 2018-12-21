@@ -15,6 +15,8 @@ __author__ = 'acushner'
 
 
 class LifxProxy(LifxLAN):
+    """proxy to LifxLAN. will only be created once when necessary"""
+
     def __init__(self):
         self._lights: LifxLAN = None
 
@@ -32,7 +34,7 @@ DEFAULT_COLOR = 'DEFAULT'
 DEFAULT_THEME = 'copilot'
 
 
-def _get_group(ctx, param, name_or_names) -> Group:
+def _parse_groups(ctx, param, name_or_names) -> Group:
     if name_or_names == DEFAULT_GROUP:
         return lifx
 
@@ -40,13 +42,13 @@ def _get_group(ctx, param, name_or_names) -> Group:
     return reduce(op.add, (lifx[n] for n in names))
 
 
-def _get_colors(ctx, param, colors):
+def _parse_colors(ctx, param, colors) -> List[Color]:
     if not colors:
         return []
     return [Colors[c.upper()] for c in colors.split(',')]
 
 
-def _get_themes(ctx, param, themes):
+def _parse_themes(ctx, param, themes) -> List[Theme]:
     if not themes:
         return []
     return [Themes[t.lower()] for t in themes.split(',')]
@@ -88,69 +90,18 @@ class Config:
 pass_conf = click.make_pass_decorator(Config, ensure=True)
 
 
-def group_opt(default=DEFAULT_GROUP):
-    return click.option('--groups', 'group',
-                        callback=_get_group,
-                        default=default,
-                        help='csv of light or group name[s]')
-
-
-def colors_opt(default=None):
-    return click.option('--colors', 'colors',
-                        callback=_get_colors,
-                        default=default,
-                        help='csv of color[s] to apply')
-
-
-def themes_opt(default=None):
-    return click.option('--themes', 'themes',
-                        callback=_get_themes,
-                        default=default,
-                        help='csv of theme[s] to apply')
-
-
 @click.group()
-@group_opt()
-@colors_opt()
-@themes_opt()
+@click.option('--groups', 'group', callback=_parse_groups, default=DEFAULT_GROUP,
+              help='csv of group or light name[s]')
+@click.option('--colors', 'colors', callback=_parse_colors, default=None,
+              help='csv of color[s] to apply')
+@click.option('--themes', 'themes', callback=_parse_themes, default=None,
+              help='csv of theme[s] to apply')
 @pass_conf
 def cli_main(conf: Config, group, colors, themes):
     conf.group = group
     conf.colors = colors
     conf.themes = themes
-
-
-@cli_main.command()
-@click.argument('phrase', nargs=-1, required=True)
-@click.option('--dot', callback=_get_colors, default=None,
-              help='set color for dot')
-@click.option('--dash', callback=_get_colors, default=None,
-              help='set color for dash (will default to dot if not provided')
-@pass_conf
-def morse_code(conf: Config, dot, dash, phrase):
-    """convert phrase into morse code"""
-    phrase = ' '.join(phrase)
-    echo(f'morse code: {phrase}')
-    s = routines.MCSettings()
-
-    if dot:
-        dot = ColorPower(dot[0], 1)
-    if dash:
-        dash = ColorPower(dash[0], 1)
-
-    dot = dot or s.dot
-    dash = dash or dot or s.dash
-
-    routines.morse_code(phrase, conf.group, routines.MCSettings(dot, dash))
-
-
-@cli_main.command()
-@click.option('-t', '--duration-secs', default=.5, help='how many secs for each color to appear')
-@click.option('--smooth', is_flag=True, help='smooth transition between colors')
-@pass_conf
-def rainbow(conf: Config, duration_secs, smooth):
-    """make lights cycle through rainbow color group"""
-    routines.rainbow(conf.group, conf.merged_colors or Colors.RAINBOW, duration_secs=duration_secs, smooth=smooth)
 
 
 @cli_main.command()
@@ -178,10 +129,42 @@ def info(light, color):
 
 
 @cli_main.command()
+@click.option('--dot', callback=_parse_colors, default=None,
+              help='set color for dot')
+@click.option('--dash', callback=_parse_colors, default=None,
+              help='set color for dash (will default to dot if not provided')
+@click.argument('phrase', nargs=-1, required=True)
+@pass_conf
+def morse_code(conf: Config, dot, dash, phrase):
+    """convert phrase into morse code"""
+    phrase = ' '.join(phrase)
+    echo(f'morse code: {phrase}')
+    s = routines.MCSettings()
+
+    if dot:
+        dot = ColorPower(dot[0], 1)
+    if dash:
+        dash = ColorPower(dash[0], 1)
+
+    dot = dot or s.dot
+    dash = dash or dot or s.dash
+
+    routines.morse_code(phrase, conf.group, routines.MCSettings(dot, dash))
+
+
+@cli_main.command()
+@click.option('-t', '--duration-secs', default=.5, help='how many secs for each color to appear')
+@click.option('--smooth', is_flag=True, help='smooth transition between colors')
+@pass_conf
+def rainbow(conf: Config, duration_secs, smooth):
+    """make lights cycle through rainbow color group"""
+    routines.rainbow(conf.group, conf.merged_colors or Themes.rainbow, duration_secs=duration_secs, smooth=smooth)
+
+
+@cli_main.command()
 @pass_conf
 def key_control(conf: Config):
     """control lights with the computer keyboard"""
-    conf.validate_colors()
     routines.key_control(conf.group, conf.color_theme)
 
 
@@ -220,10 +203,10 @@ def blink_power(conf: Config, blink_secs, how_long_secs):
 @click.option('-m', '--duration-mins', default=20, help='how many minutes the command will run')
 @click.option('--transition-secs', default=10, help='how many seconds to transition between themes')
 @pass_conf
-def set_theme(conf: Config, rotate_secs, duration_mins, transition_secs):
-    """rotate between themes - will cycle through themes/colors passed in"""
-    routines.set_theme(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
-                       transition_secs=transition_secs)
+def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
+    """cycle through themes/colors passed in"""
+    routines.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
+                          transition_secs=transition_secs)
 
 
 def __main():

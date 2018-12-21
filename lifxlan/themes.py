@@ -64,13 +64,19 @@ class Theme:
 
         return Theme({**self._color_weights, **other_colors})
 
+    def __iadd__(self, other):
+        self._color_weights = (self + other)._color_weights
+        return self
+
     def color_str(self, s):
         colors = ''.join(c.color_str(v * 4 * " ", set_fg=False) for c, v in self._color_weights.items())
         return f'{s:20}|{colors}|'
 
 
 class ThemesMeta(type):
+    """make `Themes` class more accessible"""
     def __getattribute__(cls, item):
+        """copy a theme when accessed so that the original theme can't be mutated"""
         res = type.__getattribute__(cls, item)
         if isinstance(res, Theme):
             res = copy(res)
@@ -91,12 +97,20 @@ class ThemesMeta(type):
 
 
 class Themes(metaclass=ThemesMeta):
+    """class for all pre-fab themes"""
     copilot = Theme.from_colors(*Colors.by_name('copilot'))
+    easter = Theme.from_colors(
+        *map(Color.from_hex, (0x28bb94, 0x66ddab, 0x612a6c, 0x421b52, 0xdb95c7, 0xd1719c))
+    )
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
     mario = Theme.from_colors(*Colors.by_name('mario'))
     python = (Theme.from_colors(*Colors.by_name('python'))
-              + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})
-    rainbow = Theme.from_colors(*Colors.RAINBOW)
+              + {Colors.PYTHON_DARK_BLUE: 3, Colors.PYTHON_LIGHT_BLUE: 3})
+    rainbow = Theme.from_colors(Colors.RED, Colors.ORANGE, Colors.YELLOW, Colors.GREEN,
+                                Colors.CYAN, Colors.BLUE, Colors.PURPLE, Colors.PINK)
+    rainbow_2 = Theme.from_colors(
+        *map(Color.from_hex, (0x401b86, 0x2546c9, 0x2ad424, 0xf0ec25, 0xf07537, 0xdb3a4c))
+    )
     snes = Theme.from_colors(*Colors.by_name('SNES'))
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
                       Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})
