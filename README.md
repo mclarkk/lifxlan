@@ -50,7 +50,7 @@ with lifx.reset_to_orig():
 
 a `Group` acts on multiple lights virtually simultaneously, and it shares much of `Light`s API (with the exception of non-sensical things like `set_label`)
 
-the best way to see what you can do with groups is to actually look at the [Group](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
+the best way to see what you can do with groups is to actually look at the [`Group`](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
 class. it's pretty well documented.
 
 `LifxLAN` is a subclass of `Group`, and will be the entry point for most functions.
@@ -96,7 +96,7 @@ but i wanted to call out two cool ones that are in separate files:
 - [morse-code](https://github.com/sweettuse/lifxlan/blob/master/routines/morse_code.py):
 translates a word or phrase into into morse code and blinks it out on your lights
 - [key-control](https://github.com/sweettuse/lifxlan/blob/master/routines/key_control.py):
-lets you use your keyboard to control hue, saturation, brightness and kelvin
+lets you use your keyboard to control hue, saturation, brightness and kelvin in real time
 
 as mentioned above, these are easily run from the `cli`
 
