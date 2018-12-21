@@ -219,7 +219,7 @@ class Colors(metaclass=ColorsMeta):
     YALE_BLUE = Color.from_hex(0xf4d92)
 
     @classmethod
-    def sum(cls, *colors: Color):
+    def sum(cls, *colors: Color) -> Color:
         """average together all colors provided"""
         return reduce(op.add, colors)
 

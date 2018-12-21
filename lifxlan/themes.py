@@ -70,7 +70,7 @@ class Theme:
 
     def color_str(self, s):
         colors = ''.join(c.color_str(v * 4 * " ", set_fg=False) for c, v in self._color_weights.items())
-        return f'{s:20}|{colors}|'
+        return f'{s:17}|{colors}|'
 
 
 class ThemesMeta(type):
@@ -105,7 +105,7 @@ class Themes(metaclass=ThemesMeta):
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
     mario = Theme.from_colors(*Colors.by_name('mario'))
     python = (Theme.from_colors(*Colors.by_name('python'))
-              + {Colors.PYTHON_DARK_BLUE: 3, Colors.PYTHON_LIGHT_BLUE: 3})
+              + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})
     rainbow = Theme.from_colors(Colors.RED, Colors.ORANGE, Colors.YELLOW, Colors.GREEN,
                                 Colors.CYAN, Colors.BLUE, Colors.PURPLE, Colors.PINK)
     rainbow_2 = Theme.from_colors(

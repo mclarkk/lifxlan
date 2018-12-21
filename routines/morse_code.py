@@ -44,17 +44,15 @@ class Morse(List[str]):
     def with_spaces(self) -> str:
         return ' '.join(' '.join(self)) + ' '
 
-    def to_on_off(self):
-        return [(OnOff.off if c == ' ' else OnOff.on, mc_char_len.get(c))
-                for c in self.with_spaces]
-
     @property
     def to_char_and_len(self):
         return [(c, mc_char_len[c]) for c in self.with_spaces]
 
     def simulate(self):
         print('simulating\n')
-        for on_off, val in self.to_on_off():
+        ons_offs = ((OnOff.off if c == ' ' else OnOff.on, mc_char_len.get(c))
+                    for c in self.with_spaces)
+        for on_off, val in ons_offs:
             sys.stdout.write(on_off.value)
             time.sleep(val)
         print('\ndone')
