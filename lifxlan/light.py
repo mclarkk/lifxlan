@@ -1,7 +1,6 @@
 # coding=utf-8
 # light.py
 # Author: Meghan Clark
-import logging
 import os
 from contextlib import contextmanager
 from copy import copy
@@ -147,7 +146,7 @@ class Light(Device, LightAPI):
     ############################################################################
 
     def __str__(self):
-        return f'{self.product_name} ({self.label!r})'
+        return self.color.color_str(f'{self.product_name} ({self.label!r})')
 
     __repr__ = __str__
 

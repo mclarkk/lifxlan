@@ -115,3 +115,5 @@ class Themes(metaclass=ThemesMeta):
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
                       Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})
     xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
+    xmas_lighter = xmas + {Colors.DEFAULT: 3}
+    eid = Theme.from_colors(Colors.GREEN, Colors.WHITE)

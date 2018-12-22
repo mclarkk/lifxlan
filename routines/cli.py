@@ -3,13 +3,10 @@ from functools import reduce
 from typing import List
 
 import click
-import sty
 from click import echo
 
-from lifxlan import exhaust, LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower
 import routines
-
-from routines.utils import ColorTheme, colors_to_theme
+from lifxlan import LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower
 
 __author__ = 'acushner'
 
@@ -107,14 +104,18 @@ def cli_main(conf: Config, group, colors, themes):
 @cli_main.command()
 @click.option('-l', '--light', is_flag=True, help='display info on all existing lights/groups')
 @click.option('-c', '--color', is_flag=True, help='display info related to colors/themes')
-def info(light, color):
+@click.option('-d', '--debug', is_flag=True, help='display light debug info')
+def info(light, color, debug):
     """display info about existing lights/groups and colors/themes"""
-    if not (light or color):
-        light = color = True
+    if not (light or color or debug):
+        light = color = True  # skip debug intentionally
 
     if light:
         echo(str(lifx))
         echo('\n'.join(map(str, lifx.auto_group().values())))
+
+    if debug:
+        echo('\n'.join(l.info_str() for l in lifx))
 
     if color:
         echo(80 * '=')
@@ -207,6 +208,13 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""
     routines.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
                           transition_secs=transition_secs)
+
+
+@cli_main.command()
+@pass_conf
+def reset(conf: Config):
+    """reset light colors to either DEFAULT or the first color you pass in"""
+    lifx.set_color(conf.colors[0] if conf.colors else Colors.DEFAULT)
 
 
 def __main():
