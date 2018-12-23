@@ -34,10 +34,11 @@ def test_powers():
 
 
 def __main():
-    import routines
-    print(help(routines.core))
-    print(help(routines.morse_code))
-    print(help(routines.key_control))
+    # import routines
+    # print(help(routines.core))
+    # print(help(routines.morse_code))
+    # print(help(routines.key_control))
+    lifx = LifxLAN()
     return
     print(Themes.xmas.color_str('xmas'))
     print((Themes.xmas + Theme.from_colors()).color_str('snth'))

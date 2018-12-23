@@ -386,6 +386,7 @@ class LifxLAN(Group):
         self.devices = self._devices_by_mac_addr.values()
         self.name = self.name or 'ALL'
         self.refresh()
+        self.devices = self.devices  # force re-sorting via property after refresh
 
     def _proc_device_response(self, r):
         args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self._verbose

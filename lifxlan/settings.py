@@ -3,7 +3,7 @@ from enum import Enum
 from .errors import InvalidParameterException
 
 unknown = 'UNKNOWN'
-TOTAL_NUM_LIGHTS = 17
+TOTAL_NUM_LIGHTS = 19
 DEFAULT_KELVIN = 3200
 
 

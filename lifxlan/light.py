@@ -146,7 +146,10 @@ class Light(Device, LightAPI):
     ############################################################################
 
     def __str__(self):
-        return self.color.color_str(f'{self.product_name} ({self.label!r})')
+        s = f'{self.product_name} ({self.label!r})'
+        if self.color:
+            s = self.color.color_str(s)
+        return s
 
     __repr__ = __str__
 
