@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import arrow
 
-from lifxlan import LifxLAN, Group, Colors, Themes, Waveform
+from lifxlan import LifxLAN, Group, Colors, Themes, Waveform, Color
 from routines import ColorTheme, colors_to_theme
 
 
@@ -97,24 +97,37 @@ def cycle_themes(lifx: Group, *themes: ColorTheme,
                 sleep(duration_mins * 60 or 10000)
 
 
+# ======================================================================================================================
+# testing
+def _set_waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Color,
+                   *, period_msec=4000, num_cycles=4, skew_ratio=.5, reduce_sleep_msecs=0):
+    lifx.turn_on()
+    lifx.set_color(start_color)
+    lifx.set_waveform(waveform, end_color, period_msec, num_cycles, skew_ratio=skew_ratio)
+    sleep((period_msec * num_cycles - reduce_sleep_msecs) / 1000)
+
+
 def fireworks(lifx: Group):
     """make lights look like fireworks"""
-
-
-def waveforms(lifx: Group, waveform: Waveform = Waveform.saw):
-    """test out waveforms"""
-    period_msec = 4000
-    num_cycles = 4
+    start_color = Colors.YALE_BLUE
     with lifx.reset_to_orig():
-        lifx.turn_on()
-        lifx.set_color(Colors.GREEN)
+        lifx.set_color(start_color)
         sleep(1)
-        lifx.turn_off()
-    with lifx.reset_to_orig():
-        lifx.turn_on()
-        lifx.set_waveform(waveform, Colors.PYTHON_LIGHT_BLUE, period_msec, num_cycles, skew_ratio=.5)
-        sleep(period_msec * num_cycles / 1000)
+        for pers in (500, 250, 125, 60, 30):
+            num_cycles = 750 // pers
+            _set_waveforms(lifx, Waveform.pulse, start_color, Colors.COLD_WHITE, period_msec=pers,
+                           num_cycles=num_cycles, reduce_sleep_msecs=50)
 
+
+def waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Color,
+              *, period_msec=4000, num_cycles=4, skew_ratio=.5):
+    """test out waveforms"""
+    with lifx.reset_to_orig():
+        _set_waveforms(lifx, waveform, start_color, end_color, period_msec=period_msec, num_cycles=num_cycles,
+                       skew_ratio=skew_ratio)
+
+
+# ======================================================================================================================
 
 def __main():
     lifx = LifxLAN()
@@ -129,7 +142,14 @@ def __main():
     #           (Colors.RED, Colors.GREEN)]
     # lifx = lifx['creative_space']
     # cycle_themes(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
-    waveforms(lifx, Waveform.saw)
+    # with lifx.reset_to_orig():
+    #     lifx.turn_on()
+    #     breathe(lifx, colors=Colors.YALE_BLUE, min_brightness_pct=20, max_brightness_pct=70)
+    # fireworks(lifx)
+    # waveforms(lifx, Waveform.pulse, Colors.SNES_DARK_PURPLE, Colors.PYTHON_LIGHT_BLUE, skew_ratio=.3)
+    lifx.turn_on()
+    sleep(3)
+    lifx.turn_off()
     print(lifx.off_lights)
 
 
