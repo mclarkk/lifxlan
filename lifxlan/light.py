@@ -55,10 +55,14 @@ class Light(Device, LightAPI):
     def color_power(self) -> ColorPower:
         return ColorPower(self.color, self.power)
 
-    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform, rapid=False):
-        self._send_set_message(LightSetWaveform,
-                               dict(transient=is_transient, color=color, period=period, cycles=cycles,
-                                    duty_cycle=duty_cycle, waveform=waveform.value), rapid=rapid)
+    def set_waveform(self, waveform: Waveform, color: Color, period_msec, num_cycles,
+                     *, skew_ratio=.5, is_transient=True, rapid=False):
+        skew_ratio = int(skew_ratio * 2 ** 16 - 2 ** 15)
+        payload = dict(transient=is_transient, color=color, period=period_msec, cycles=num_cycles,
+                       skew_ratio=skew_ratio, waveform=waveform.value)
+        disp = {**payload, 'waveform': waveform}
+        log.info(f'setting {self.label!r} waveform to {disp}')
+        self._send_set_message(LightSetWaveform, payload, rapid=rapid)
 
     def _refresh_light_state(self):
         """get and update color, power_level, and label from light"""

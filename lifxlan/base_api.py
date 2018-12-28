@@ -23,8 +23,8 @@ rapid_default = True
 
 class LightAPI(ABC):
     @abstractmethod
-    def set_waveform(self, is_transient, color: Color, period, cycles, duty_cycle, waveform: Waveform,
-                     rapid=rapid_default):
+    def set_waveform(self, waveform: Waveform, color: Color, period_msec, num_cycles,
+                     *, skew_ratio=.5, is_transient=True, rapid=False):
         """set waveform on color lights"""
 
     @abstractmethod

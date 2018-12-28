@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 import arrow
 
-from lifxlan import LifxLAN, Group, Colors, Themes
+from lifxlan import LifxLAN, Group, Colors, Themes, Waveform
 from routines import ColorTheme, colors_to_theme
 
 
@@ -97,9 +97,28 @@ def cycle_themes(lifx: Group, *themes: ColorTheme,
                 sleep(duration_mins * 60 or 10000)
 
 
+def fireworks(lifx: Group):
+    """make lights look like fireworks"""
+
+
+def waveforms(lifx: Group, waveform: Waveform = Waveform.saw):
+    """test out waveforms"""
+    period_msec = 4000
+    num_cycles = 4
+    with lifx.reset_to_orig():
+        lifx.turn_on()
+        lifx.set_color(Colors.GREEN)
+        sleep(1)
+        lifx.turn_off()
+    with lifx.reset_to_orig():
+        lifx.turn_on()
+        lifx.set_waveform(waveform, Colors.PYTHON_LIGHT_BLUE, period_msec, num_cycles, skew_ratio=.5)
+        sleep(period_msec * num_cycles / 1000)
+
+
 def __main():
     lifx = LifxLAN()
-    lifx = lifx['living_room'] + lifx['kitchen']
+    # lifx = lifx['living_room'] + lifx['kitchen']
     # lifx.set_color(Colors.DEFAULT)
     # blink_color(lifx, blink_time_secs=3)
     # rainbow(lifx, duration_secs=4, smooth=True)
@@ -109,8 +128,9 @@ def __main():
     #           (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE),
     #           (Colors.RED, Colors.GREEN)]
     # lifx = lifx['creative_space']
-    cycle_themes(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
-    print(lifx.on_lights)
+    # cycle_themes(lifx, Themes.xmas, rotate_secs=60, duration_mins=60, transition_secs=60)
+    waveforms(lifx, Waveform.saw)
+    print(lifx.off_lights)
 
 
 if __name__ == '__main__':

@@ -425,7 +425,7 @@ class LightSetWaveform(Message):
         self.color = payload["color"]
         self.period = payload["period"]
         self.cycles = payload["cycles"]
-        self.duty_cycle = payload["duty_cycle"]
+        self.skew_ratio = payload["skew_ratio"]
         self.waveform = payload["waveform"]
         super(LightSetWaveform, self).__init__(MSG_IDS[LightSetWaveform], target_addr, source_id, seq_num,
                                                ack_requested, response_requested)
@@ -435,14 +435,14 @@ class LightSetWaveform(Message):
         self.payload_fields.append(("Color", self.color))
         self.payload_fields.append(("Period", self.period))
         self.payload_fields.append(("Cycles", self.cycles))
-        self.payload_fields.append(("Duty Cycle", self.duty_cycle))
+        self.payload_fields.append(("Skew Ratio", self.skew_ratio))
         self.payload_fields.append(("Waveform", self.waveform))
         reserved_8 = little_endian(bitstring.pack("8", self.reserved))
         transient = little_endian(bitstring.pack("uint:8", self.transient))
         color = b"".join(little_endian(bitstring.pack("16", field)) for field in self.color)
         period = little_endian(bitstring.pack("uint:32", self.period))
         cycles = little_endian(bitstring.pack("float:32", self.cycles))
-        duty_cycle = little_endian(bitstring.pack("int:16", self.duty_cycle))
+        duty_cycle = little_endian(bitstring.pack("int:16", self.skew_ratio))
         waveform = little_endian(bitstring.pack("uint:8", self.waveform))
         payload = reserved_8 + transient + color + period + cycles + duty_cycle + waveform
         return payload
