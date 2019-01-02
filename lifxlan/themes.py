@@ -103,6 +103,7 @@ class Themes(metaclass=ThemesMeta):
         *map(Color.from_hex, (0x28bb94, 0x66ddab, 0x612a6c, 0x421b52, 0xdb95c7, 0xd1719c))
     )
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
+    july_4 = Theme.from_colors(Color.from_hex(0xe0162b), Colors.WHITE, Color.from_hex(0x0052a5))
     mario = Theme.from_colors(*Colors.by_name('mario'))
     python = (Theme.from_colors(*Colors.by_name('python'))
               + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})

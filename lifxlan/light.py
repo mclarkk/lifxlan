@@ -7,7 +7,7 @@ from copy import copy
 from typing import Callable, Tuple
 
 from lifxlan.base_api import LightAPI
-from .colors import ColorPower, Color
+from .colors import ColorPower, Color, Colors
 from .device import Device
 from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared
@@ -151,8 +151,8 @@ class Light(Device, LightAPI):
 
     def __str__(self):
         s = f'{self.product_name} ({self.label!r})'
-        if self.color:
-            s = self.color.color_str(s)
+        color = Colors.WHITE if self.power else Colors.SNES_DARK_GREY
+        s = color.color_str(s)
         return s
 
     __repr__ = __str__

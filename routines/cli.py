@@ -214,7 +214,7 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
 @pass_conf
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
-    lifx.set_color(conf.colors[0] if conf.colors else Colors.DEFAULT)
+    (conf.group or lifx).set_color(conf.colors[0] if conf.colors else Colors.DEFAULT)
 
 
 def __main():

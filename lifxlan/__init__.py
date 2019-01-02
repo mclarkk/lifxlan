@@ -10,6 +10,7 @@ from .tilechain import TileChain, Tile
 from .utils import *
 from .themes import Theme, Themes
 from .colors import Color, Colors
+from .grid import grid, GridLight, Dir
 
 __version__     = '2.0.0'
 __description__ = 'API for local communication with LIFX devices over a LAN.'

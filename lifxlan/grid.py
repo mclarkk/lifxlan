@@ -1,60 +1,67 @@
-from itertools import count
-from typing import Dict, Tuple
-
+from contextlib import suppress
+from enum import Enum
+from typing import Dict, Optional
 from .group import Group
 from .light import Light
-from .utils import init_log
 
 __author__ = 'acushner'
 
-log = init_log(__name__)
-
-downstairs = [[None, 'buffet'],
-              ['living room 4', 'living room 1', 'kitchen 4', 'kitchen 1', 'creative space 4', 'creative space 1'],
-              ['living room 3', 'living room 2', 'kitchen 3', 'kitchen 1', 'creative space 3', 'creative space 2'],
-              [None, 'floor']]
-
-Lights = {'living room 1': (1, 0),
-          'living room 2': (2, 0),
-          'living room 3': (2, 0),
-          'living room 4': (1, 0),
-          'kitchen 1': (0, 0),
-          'kitchen 2': (0, 0),
-          'kitchen 3': (0, 0),
-          'kitchen 4': (0, 0),
-          'creative space 1': (0, 0),
-          'creative space 2': (0, 0),
-          'creative space 3': (0, 0),
-          'creative space 4': (0, 0),
-          }
-
-Coord = Tuple[int, int]
+grid: Dict[str, 'GridLight'] = {}
 
 
-class Grid:
-    """represent lights in a grid formation"""
+def enlighten_grid(lights: Group):
+    for gl in grid.values():
+        gl.light = lights.get_device_by_name(gl.name)
+    return grid
 
-    def __init__(self, grid: Dict[Coord, Light], lights: Group):
-        self._coord_light_grid = grid
-        self._light_coord_grid: Dict[Light, Coord] = {v: k for k, v in grid.items()}
-        self._lights = lights
 
-    @classmethod
-    def from_rows(cls, rows, lights: Group):
-        res = {}
-        label_light_map = {v: k for k, v in lights.label.items()}
-        names = set(label_light_map)
-        rows = [[name for name in r if name is None or name in names] for r in rows]
-        r_count = count()
-        for r in rows:
-            if r:
-                r_idx = next(r_count)
-            c_count = count()
-            for name in r:
-                c_idx = next(c_count)
-                if name is not None:
-                    res[r_idx, c_idx] = label_light_map[name]
-        return cls(res, lights)
+class Dir(Enum):
+    up = 'up'  # for my place, 'up' is west
+    right = 'right'
+    down = 'down'
+    left = 'left'
+
+    def __neg__(self):
+        dirs = list(Dir)
+        return dirs[(dirs.index(self) + 2) % len(dirs)]
+
+    def __next__(self):
+        dirs = list(Dir)
+        return dirs[(dirs.index(self) + 1) % len(dirs)]
+
+
+class GridLight:
+    def __init__(self, name, light: Light = None):
+        self.name = name
+        self.neighbors: Dict[Dir, GridLight] = {}
+        self.light = light  # to be set later
+        grid[name] = self
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def add(self, direction: Dir, light: 'GridLight'):
+        self.neighbors[direction] = light
+        light.neighbors[-direction] = self
+
+    def __setitem__(self, direction: Dir, light: 'GridLight'):
+        self.add(direction, light)
+
+    def __str__(self):
+        return f'{type(self).__name__}: {self.name!r}'
+
+    def move(self, direction: Dir):
+        for _ in range(4):
+            with suppress(KeyError):
+                return self.neighbors[direction]
+            direction = next(direction)
+
+        raise Exception('No neighbor found!')
+
+    __repr__ = __str__
 
 
 def __main():
