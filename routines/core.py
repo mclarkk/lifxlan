@@ -109,14 +109,14 @@ def _set_waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_colo
 
 def fireworks(lifx: Group):
     """make lights look like fireworks"""
-    start_color = Colors.YALE_BLUE
+    start_color = Colors.SNES_LIGHT_PURPLE
     with lifx.reset_to_orig():
         lifx.set_color(start_color)
         sleep(1)
         for pers in (500, 250, 125, 60, 30):
-            num_cycles = 750 // pers
-            _set_waveforms(lifx, Waveform.pulse, start_color, Colors.COLD_WHITE, period_msec=pers,
-                           num_cycles=num_cycles, reduce_sleep_msecs=50)
+            num_cycles = 1000 // pers
+            _set_waveforms(lifx, Waveform.pulse, start_color, Colors.SNES_DARK_PURPLE, period_msec=pers,
+                           num_cycles=num_cycles, reduce_sleep_msecs=100)
 
 
 def waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Color,
@@ -147,9 +147,11 @@ def __main():
     #     breathe(lifx, colors=Colors.YALE_BLUE, min_brightness_pct=20, max_brightness_pct=70)
     # fireworks(lifx)
     # waveforms(lifx, Waveform.pulse, Colors.SNES_DARK_PURPLE, Colors.PYTHON_LIGHT_BLUE, skew_ratio=.3)
-    lifx.turn_on()
-    sleep(3)
-    lifx.turn_off()
+    lifx = lifx['living_room'] + lifx['kitchen'] + lifx['dining_room']
+    fireworks(lifx)
+    # lifx.turn_on()
+    # sleep(3)
+    # lifx.turn_off()
     print(lifx.off_lights)
 
 
