@@ -304,7 +304,7 @@ class Group(LightAPI, MultizoneAPI):
     def __getitem__(self, idx_or_name) -> 'Group':
         """get light by idx if int, by name otherwise, else try to grab from auto_group"""
         if isinstance(idx_or_name, int):
-            return Group([self.devices[idx_or_name]])
+            return self.devices[idx_or_name]
         res = self.get_device_by_name(idx_or_name)
         if res:
             return Group([res])

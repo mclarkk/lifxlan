@@ -37,7 +37,7 @@ def __main():
     # import routines
     # print(help(routines.core))
     # print(help(routines.morse_code))
-    # print(help(routines.key_control))
+    # print(help(routines.light_eq))
     lifx = LifxLAN()
     return
     print(Themes.xmas.color_str('xmas'))

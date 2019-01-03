@@ -1,6 +1,6 @@
-from contextlib import suppress
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict
+
 from .group import Group
 from .light import Light
 
@@ -9,9 +9,11 @@ __author__ = 'acushner'
 grid: Dict[str, 'GridLight'] = {}
 
 
-def enlighten_grid(lights: Group):
-    for gl in grid.values():
-        gl.light = lights.get_device_by_name(gl.name)
+def enlighten_grid(group: Group):
+    """set lifxlan.Light objects on each GridLight based on `group`"""
+    for light in group:
+        if light.label in grid:
+            grid[light.label].light = light
     return grid
 
 
@@ -31,10 +33,10 @@ class Dir(Enum):
 
 
 class GridLight:
-    def __init__(self, name, light: Light = None):
+    def __init__(self, name):
         self.name = name
         self.neighbors: Dict[Dir, GridLight] = {}
-        self.light = light  # to be set later
+        self.light: Light = None  # to be set later
         grid[name] = self
 
     def __hash__(self):
@@ -43,30 +45,15 @@ class GridLight:
     def __eq__(self, other):
         return self.name == other.name
 
-    def add(self, direction: Dir, light: 'GridLight'):
+    def __setitem__(self, direction: Dir, light: 'GridLight', one_way: bool = False):
         self.neighbors[direction] = light
-        light.neighbors[-direction] = self
+        if not one_way:
+            light.neighbors[-direction] = self
 
-    def __setitem__(self, direction: Dir, light: 'GridLight'):
-        self.add(direction, light)
+    def move(self, direction: Dir):
+        return self.neighbors.get(direction, self)
 
     def __str__(self):
         return f'{type(self).__name__}: {self.name!r}'
 
-    def move(self, direction: Dir):
-        for _ in range(4):
-            with suppress(KeyError):
-                return self.neighbors[direction]
-            direction = next(direction)
-
-        raise Exception('No neighbor found!')
-
     __repr__ = __str__
-
-
-def __main():
-    pass
-
-
-if __name__ == '__main__':
-    __main()

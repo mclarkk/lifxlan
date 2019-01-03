@@ -141,7 +141,10 @@ class Light(Device, LightAPI):
         try:
             yield
         finally:
-            self.set_color_power(ColorPower(orig.color, orig.power), duration)
+            self.reset(orig, duration)
+
+    def reset(self, light: 'Light', duration):
+        self.set_color_power(ColorPower(light.color, light.power), duration)
 
     ############################################################################
     #                                                                          #

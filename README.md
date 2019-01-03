@@ -18,7 +18,7 @@ one of the best ways to get around the code is just import objects and run `help
 
 ## quickstart
 
-a good place to get a feel for how this works is to check out [routines/core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py)
+a good place to get a feel for how this works is to check out [routines/core.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/core.py)
 
 but here's a quick example. (you should set `TOTAL_NUM_LIGHTS` in your `lifxlan/settings.py` ahead of time, but it's not necessary)
 
@@ -46,11 +46,11 @@ with lifx.reset_to_orig():
 
 
 
-## [group](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
+## [group](https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/group.py#L70)
 
 a `Group` acts on multiple lights virtually simultaneously, and it shares much of `Light`s API (with the exception of non-sensical things like `set_label`)
 
-the best way to see what you can do with groups is to actually look at the [`Group`](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/group.py#L70)
+the best way to see what you can do with groups is to actually look at the [`Group`](https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/group.py#L70)
 class. it's pretty well documented.
 
 `LifxLAN` is a subclass of `Group`, and will be the entry point for most functions.
@@ -58,7 +58,7 @@ it's special in that it can query all `Light` objects on your LAN.
 
 
 
-## [colors](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/colors.py)
+## [colors](https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/colors.py)
 
 `Color` objects represent colors in lifx's HSBk (hue, saturation, brightness, kelvin) values, meaning that HSB are all in [0, 65536) and kelvin in [2500, 9000]
 
@@ -69,34 +69,34 @@ they can be:
 
 the `Colors` class is just a collection of potentially commonly-used colors and other colors that i just wanted to have easy access to in the system.
 
-## [themes](https://github.com/sweettuse/lifxlan/blob/master/lifxlan/themes.py)
+## [themes](https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/themes.py)
 
 `Theme` objects represent weighted combinations of `Color`s.
 they can be used by `Group`s to set lights to your favorite themes in a weighted fashion.
 
 they can also be added together, and you can add individual `Color` objects to themes as well
 
-## [command line](https://github.com/sweettuse/lifxlan/blob/master/routines/cli.py)
+## [command line](https://github.com/sweettuse/lifxlan3/blob/master/routines/cli.py)
 
 the `cli` uses [click](https://github.com/pallets/click) to provide easy access to the various routines that exist in this library.
-this will give you easy access to all the routines in [core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py)
-as well as other, separate ones, like [morse-code](https://github.com/sweettuse/lifxlan/blob/master/routines/morse_code.py)
-and [key-control](https://github.com/sweettuse/lifxlan/blob/master/routines/key_control.py).
+this will give you easy access to all the routines in [core.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/core.py)
+as well as other, separate ones, like [morse-code](https://github.com/sweettuse/lifxlan3/blob/master/routines/morse_code.py)
+and [light-eq](https://github.com/sweettuse/lifxlan3/blob/master/routines/light_eq.py).
 
 to see what commands are available, simply run ```python3 cli.py```
 
 to inspect your LAN and get a feel for what colors and themes are readily available, run ```python3 cli.py info```.
 this will give you a list of all your lights, all the auto groups of lights, and all colors and themes in a colorful terminal output (thank you [sty](https://github.com/feluxe/sty))
 
-## [routines](https://github.com/sweettuse/lifxlan/tree/master/routines)
+## [routines](https://github.com/sweettuse/lifxlan3/tree/master/routines)
 routines are just higher level functions that let you interact with your lights in fun ways.
-there are some simple routines in [core.py](https://github.com/sweettuse/lifxlan/blob/master/routines/core.py),
+there are some simple routines in [core.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/core.py),
 but i wanted to call out two cool ones that are in separate files:
 
-- [morse-code](https://github.com/sweettuse/lifxlan/blob/master/routines/morse_code.py):
+- [morse-code](https://github.com/sweettuse/lifxlan3/blob/master/routines/morse_code.py):
 translates a word or phrase into into morse code and blinks it out on your lights
-- [key-control](https://github.com/sweettuse/lifxlan/blob/master/routines/key_control.py):
-lets you use your keyboard to control hue, saturation, brightness and kelvin in real time
+- [light-eq](https://github.com/sweettuse/lifxlan3/blob/master/routines/light_eq.py):
+lets you use your keyboard to light_eq hue, saturation, brightness and kelvin in real time
 
 as mentioned above, these are easily run from the `cli`
 

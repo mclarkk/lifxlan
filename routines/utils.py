@@ -20,9 +20,3 @@ def colors_to_theme(val: ColorTheme) -> Theme:
     return val
 
 
-def __main():
-    pass
-
-
-if __name__ == '__main__':
-    __main()

@@ -7,6 +7,7 @@ from click import echo
 
 import routines
 from lifxlan import LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower
+from routines import ColorTheme
 
 __author__ = 'acushner'
 
@@ -49,6 +50,15 @@ def _parse_themes(ctx, param, themes) -> List[Theme]:
     if not themes:
         return []
     return [Themes[t.lower()] for t in themes.split(',')]
+
+
+def _parse_color_themes(ctx, param, color_themes) -> Theme:
+    try:
+        res = _parse_colors(ctx, param, color_themes)
+        return routines.colors_to_theme(res)
+    except KeyError:
+        res = _parse_themes(ctx, param, color_themes)
+        return res[0]
 
 
 class Config:
@@ -162,11 +172,10 @@ def rainbow(conf: Config, duration_secs, smooth):
     routines.rainbow(conf.group, conf.merged_colors or Themes.rainbow, duration_secs=duration_secs, smooth=smooth)
 
 
-@cli_main.command()
+@cli_main.command(help=routines.light_eq.__doc__, short_help="control lights with the computer keyboard")
 @pass_conf
-def key_control(conf: Config):
-    """control lights with the computer keyboard"""
-    routines.key_control(conf.group, conf.color_theme)
+def light_eq(conf: Config):
+    routines.light_eq(conf.group, conf.color_theme)
 
 
 @cli_main.command()
@@ -208,6 +217,20 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""
     routines.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
                           transition_secs=transition_secs)
+
+
+@cli_main.command(help=routines.point_control.__doc__)
+@click.option('-p', '--point-color-theme', default='YALE_BLUE',
+              help='colors or theme of point to move around the lights',
+              callback=_parse_color_themes)
+@click.option('-b', '--base-color-theme', default='DEFAULT',
+              help='colors or theme for the background lights',
+              callback=_parse_color_themes)
+@click.option('-t', '--tail-secs', default=0.0,
+              help='number of seconds for trailing lights to transition back to original color')
+@pass_conf
+def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs):
+    routines.point_control(conf.group or lifx, point_color_theme, base_color_theme, tail_delay_secs=tail_secs)
 
 
 @cli_main.command()
