@@ -46,7 +46,6 @@ def init_grid(group: Group):
     floor[Dir.left] = lr3
     floor[Dir.right] = lr2
 
-    lr4[Dir.up] = lr3
     lr4[Dir.right] = lr1
     lr4[Dir.down] = lr3
 

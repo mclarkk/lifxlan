@@ -7,6 +7,7 @@ from click import echo
 
 import routines
 from lifxlan import LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower
+from routines.keyboard_utils import getch_test as _getch_test
 from routines import ColorTheme
 
 __author__ = 'acushner'
@@ -228,9 +229,18 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
               callback=_parse_color_themes)
 @click.option('-t', '--tail-secs', default=0.0,
               help='number of seconds for trailing lights to transition back to original color')
+@click.option('-h', '--head-secs', default=0.0,
+              help='number of seconds for next light to transition to new color')
 @pass_conf
-def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs):
-    routines.point_control(conf.group or lifx, point_color_theme, base_color_theme, tail_delay_secs=tail_secs)
+def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs, head_secs):
+    routines.point_control(conf.group or lifx, point_color_theme, base_color_theme, tail_delay_secs=tail_secs,
+                           head_delay_secs=head_secs)
+
+
+@cli_main.command(help='run test on getch - press keys and see bytes')
+@click.option('-s', '--separate-process', is_flag=True, default=False)
+def getch_test(separate_process):
+    _getch_test(separate_process)
 
 
 @cli_main.command()
@@ -238,6 +248,24 @@ def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme:
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
     (conf.group or lifx).set_color(conf.colors[0] if conf.colors else Colors.DEFAULT)
+
+
+@cli_main.command()
+@pass_conf
+def turn_off(conf: Config):
+    """turn off lights in group"""
+    if not conf.group:
+        raise ValueError('must specify group!')
+    conf.group.turn_off()
+
+
+@cli_main.command()
+@pass_conf
+def turn_on(conf: Config):
+    """turn on lights in group"""
+    if not conf.group:
+        raise ValueError('must specify group!')
+    conf.group.turn_on()
 
 
 def __main():
