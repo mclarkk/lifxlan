@@ -7,7 +7,6 @@ from typing import List, Union, Dict, Optional, Iterable, Any
 from lifxlan.base_api import LightAPI, MultizoneAPI
 from .colors import ColorPower, Color
 from .device import Device
-from .errors import WorkflowException
 from .light import Light
 from .msgtypes import GetService, StateService
 from .multizonelight import MultizoneLight
@@ -390,13 +389,12 @@ class LifxLAN(Group):
 
     def _proc_device_response(self, r):
         args = r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self._verbose
-        with suppress(WorkflowException):
-            device = Light(*args)
-            if device.is_light:
-                if device.supports_multizone:
-                    device = MultizoneLight(*args)
-                elif device.supports_chain:
-                    device = TileChain(*args)
+        device = Light(*args)
+        if device.is_light:
+            if device.supports_multizone:
+                device = MultizoneLight(*args)
+            elif device.supports_chain:
+                device = TileChain(*args)
         return device
 
     @timer

@@ -20,7 +20,6 @@ from socket import timeout
 from time import sleep, time
 from typing import NamedTuple, Optional, Dict
 
-from .errors import NoResponse
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
@@ -36,6 +35,10 @@ DEFAULT_ATTEMPTS = 4
 VERBOSE = False
 
 log = init_log(__name__)
+
+
+class NoResponse(Exception):
+    """raised when no response is recv'd"""
 
 
 def get_broadcast_addrs():
@@ -103,11 +106,6 @@ class Device(object):
         self.source_id = source_id
         self.ip_addr = ip_addr  # IP addresses can change, though...
 
-        # The following attributes can be set by calling refresh(), but that
-        # takes time so it is not done by default during initialization.
-        # However, refresh() will be called each time __str__ is called.
-        # Printing the device is therefore accurate but expensive.
-
         self.label = None
         self.location = None
         self.group = None
@@ -117,18 +115,6 @@ class Device(object):
         self.product_info = ProductInfo()
 
         self._wait_pool = WaitPool(12)
-
-        # For completeness, the following are state attributes of the device
-        # that become stale too fast to bother caching in the device object,
-        # though they can be accessed directly from the real device using the
-        # methods below:
-
-        # wifi signal mw
-        # wifi tx bytes
-        # wifi rx bytes
-        # time
-        # uptime
-        # downtime
 
     ###########################################################################
     #                                                                          #
@@ -194,7 +180,7 @@ class Device(object):
         self._send_set_message(msg_type, payload, rapid=rapid)
 
     # ==================================================================================================================
-    # REFRESH LOCAL VALUES
+    # REFRESH LOCAL VALUES (grab data from lights and cache)
     # ==================================================================================================================
     @property
     def _refresh_funcs(self):
@@ -259,7 +245,7 @@ class Device(object):
             self.product_info = ProductInfo(r.vendor, r.product, r.version)
 
     # ==================================================================================================================
-    # GET DATA
+    # GET DATA (grab data from lights but don't cache)
     # ==================================================================================================================
 
     def _get_wifi_info(self) -> WifiInfo:
@@ -306,6 +292,9 @@ class Device(object):
         return s
 
     def device_time_str(self, indent):
+
+        nanosec_to_hours = lambda ns: ns / (1000000000.0 * 60 * 60)
+
         time, uptime, downtime = self._get_time_info()
         time_s = datetime.utcfromtimestamp(time / 1000000000) if time else None
         uptime_s = round(nanosec_to_hours(uptime), 2) if uptime else None
@@ -421,18 +410,3 @@ class Device(object):
                 raise NoResponse(f'WorkflowException: Did not receive {response_type!r} from {self.mac_addr!r} '
                                  f'(Name: {self.label!r}) in response to {msg_type!r}')
             return device_response
-
-    # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
-    # def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=DEFAULT_TIMEOUT,
-    #                       max_attempts=DEFAULT_ATTEMPTS):
-    #     pass
-
-
-################################################################################
-#                                                                              #
-#                             Formatting Functions                             #
-#                                                                              #
-################################################################################
-
-def nanosec_to_hours(ns):
-    return ns / (1000000000.0 * 60 * 60)

@@ -1,10 +1,9 @@
 import os
+from threading import Thread
 
-from .errors import WorkflowException, InvalidParameterException
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
-from threading import Thread
 
 
 class TileChain(Light):
@@ -38,11 +37,12 @@ class TileChain(Light):
             self.tile_count = response.total_count
         return self.tile_count
 
-    def get_tile_colors(self, start_index, tile_count=1, x=0, y=0, width=8):
+    def _validate_tile_access(self, start_index):
         if (start_index < 0) or (start_index >= self.tile_count):
-            raise InvalidParameterException(
-                "{} is not a valid start_index for TileChain with {} tiles.".format(start_index, self.tile_count))
+            raise ValueError(f'{start_index} is not a valid start_index for TileChain with {self.tile_count} tiles.')
 
+    def get_tile_colors(self, start_index, tile_count=1, x=0, y=0, width=8):
+        self._validate_tile_access(start_index)
         colors = []
         for i in range(tile_count):
             payload = {"tile_index": start_index + i,
@@ -63,9 +63,7 @@ class TileChain(Light):
         return tilechain_colors
 
     def set_tile_colors(self, start_index, colors, duration=0, tile_count=1, x=0, y=0, width=8, rapid=False):
-        if (start_index < 0) or (start_index >= self.tile_count):
-            raise InvalidParameterException(
-                "{} is not a valid start_index for TileChain with {} tiles.".format(start_index, self.tile_count))
+        self._validate_tile_access(start_index)
 
         payload = {"tile_index": start_index,
                    "length": tile_count,
@@ -101,11 +99,8 @@ class TileChain(Light):
         matrix_x = len(hsvk_matrix[0])
         matrix_y = len(hsvk_matrix)
         if (matrix_x != canvas_x) or (matrix_y != canvas_y):
-            raise InvalidParameterException(
-                "Warning: TileChain canvas wants a {} x {} matrix, but given matrix is {} x {}.".format(canvas_x,
-                                                                                                        canvas_y,
-                                                                                                        matrix_x,
-                                                                                                        matrix_y))
+            raise ValueError(f'Warning: TileChain canvas wants a {canvas_x} x {canvas_y} matrix, '
+                             f'but given matrix is {matrix_x} x {matrix_y}.')
 
         tile_width = 8  # hardcoded, argh
         tile_height = 8

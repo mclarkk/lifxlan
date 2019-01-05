@@ -1,7 +1,5 @@
 from enum import Enum
 
-from .errors import InvalidParameterException
-
 unknown = 'UNKNOWN'
 TOTAL_NUM_LIGHTS = 19
 DEFAULT_KELVIN = 3200
@@ -25,8 +23,8 @@ class PowerSettings(Enum):
             return cls.on.as_int
         elif value in cls.off.value:
             return cls.off.as_int
-        raise InvalidParameterException(f'{value} is not a valid power level. valid levels:'
-                                        f'\non: {cls.on.value}\noff: {cls.off.value}')
+        raise ValueError(f'{value} is not a valid power level. valid levels:'
+                         f'\non: {cls.on.value}\noff: {cls.off.value}')
 
     @property
     def as_int(self):

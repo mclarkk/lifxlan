@@ -9,8 +9,6 @@ from itertools import cycle
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
 from typing import Optional, List, Any, Union, Iterable
 
-from .errors import WorkflowException
-
 
 def init_log(name, level=logging.INFO):
     """create logger using consistent settings"""
@@ -127,7 +125,7 @@ def init_socket(timeout):
         try:
             sock.bind(("", 0))  # allow OS to assign next available source port
         except Exception as err:
-            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
+            raise ConnectionError(f'WorkflowException: error {str(err)} while trying to open socket')
         yield sock
     finally:
         sock.close()
