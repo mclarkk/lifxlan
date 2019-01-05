@@ -15,8 +15,8 @@ def init_grid(group: Group):
     buffet = GridLight('buffet')
     floor = GridLight('floor')
 
-    dr2 = GridLight('dining room 1')
-    dr1 = GridLight('dining room 2')
+    dr1 = GridLight('dining room 1')
+    dr2 = GridLight('dining room 2')
 
     k1 = GridLight('kitchen 1')
     k2 = GridLight('kitchen 2')

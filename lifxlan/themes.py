@@ -69,7 +69,7 @@ class Theme:
         return self
 
     def color_str(self, s):
-        colors = ''.join(c.color_str(v * 4 * " ", set_fg=False) for c, v in self._color_weights.items())
+        colors = ''.join(c.color_str(v * 4 * " ", set_bg=True) for c, v in self._color_weights.items())
         return f'{s:17}|{colors}|'
 
 
@@ -103,7 +103,7 @@ class Themes(metaclass=ThemesMeta):
         *map(Color.from_hex, (0x28bb94, 0x66ddab, 0x612a6c, 0x421b52, 0xdb95c7, 0xd1719c))
     )
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
-    july_4 = Theme.from_colors(Color.from_hex(0xe0162b), Colors.WHITE, Color.from_hex(0x0052a5))
+    july_4th = Theme.from_colors(Color.from_hex(0xe0162b), Colors.WHITE, Color.from_hex(0x0052a5))
     mario = Theme.from_colors(*Colors.by_name('mario'))
     python = (Theme.from_colors(*Colors.by_name('python'))
               + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})

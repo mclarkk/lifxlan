@@ -12,8 +12,6 @@ __author__ = 'acushner'
 
 dir_map = {up << 8: Dir.up, down << 8: Dir.down, left << 8: Dir.left, right << 8: Dir.right}
 
-parse_keyboard_inputs()
-
 
 def _get_next_light(group: Group, gl: GridLight):
     for c in parse_keyboard_inputs():

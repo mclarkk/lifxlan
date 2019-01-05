@@ -18,6 +18,7 @@ def enlighten_grid(group: Group):
 
 
 class Dir(Enum):
+    """represent neighbor directions in light grid"""
     up = 'up'  # for my place, 'up' is west
     right = 'right'
     down = 'down'
@@ -33,6 +34,7 @@ class Dir(Enum):
 
 
 class GridLight:
+    """represent a light in a grid including its neighbors"""
     def __init__(self, name):
         self.name = name
         self.neighbors: Dict[Dir, GridLight] = {}
@@ -45,10 +47,11 @@ class GridLight:
     def __eq__(self, other):
         return self.name == other.name
 
-    def __setitem__(self, direction: Dir, light: 'GridLight', one_way: bool = False):
-        self.neighbors[direction] = light
+    def __setitem__(self, direction: Dir, neighbor: 'GridLight', one_way: bool = False):
+        """add neighbor to light"""
+        self.neighbors[direction] = neighbor
         if not one_way:
-            light.neighbors[-direction] = self
+            neighbor.neighbors[-direction] = self
 
     def move(self, direction: Dir):
         return self.neighbors.get(direction, self)

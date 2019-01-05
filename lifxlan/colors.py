@@ -90,8 +90,12 @@ class Color(NamedTuple):
         k = min(max(self.kelvin, 2500), 9000)
         return Color(*map(self._validate_hsb, self[:3]), k)
 
-    def color_str(self, s, set_fg=True) -> str:
-        layer = sty.fg if set_fg else sty.bg
+    def color_str(self, s, set_bg=False) -> str:
+        """
+        create str with different foreground(default)/background color for use in terminal
+        reset to default at end of str
+        """
+        layer = sty.bg if set_bg else sty.fg
         return f'{layer(*self.rgb[:3])}{s}{layer.rs}'
 
     # ==================================================================================================================
@@ -175,7 +179,9 @@ class Colors(metaclass=ColorsMeta):
     CYAN = Color(29814, 65535, 65535, 3500)
     BLUE = Color(43634, 65535, 65535, 3500)
     PURPLE = Color(50486, 65535, 65535, 3500)
+    MAGENTA = Color.from_hex(0xff00ff)
     PINK = Color(58275, 65535, 47142, 3500)
+
     WHITE = Color(58275, 0, 65535, 5500)
     COLD_WHITE = Color(58275, 0, 65535, 9000)
     WARM_WHITE = Color(58275, 0, 65535)
