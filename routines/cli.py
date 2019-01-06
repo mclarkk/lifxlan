@@ -1,6 +1,7 @@
 import operator as op
+import random
 from functools import reduce
-from typing import List
+from typing import List, Tuple, Optional
 
 import click
 from click import echo
@@ -20,17 +21,15 @@ class LifxProxy(LifxLAN):
         self._lights: LifxLAN = None
 
     def __getattribute__(self, item):
-        ga = super().__getattribute__
-        if ga('_lights') is None:
-            self._lights = LifxLAN()
-        return getattr(ga('_lights'), item)
+        lights = super().__getattribute__('_lights')
+        if lights is None:
+            lights = self._lights = LifxLAN()
+        return getattr(lights, item)
 
 
 lifx = LifxProxy()
 
 DEFAULT_GROUP = 'ALL'
-DEFAULT_COLOR = 'DEFAULT'
-DEFAULT_THEME = 'copilot'
 
 
 def _parse_groups(ctx, param, name_or_names) -> Group:
@@ -65,21 +64,27 @@ def _parse_color_themes(ctx, param, color_themes) -> Theme:
 class Config:
     def __init__(self):
         self.group: Group = None
-        self.brightness_pct: float = None
 
         # properties
+        self.brightness_pct: float = 100.0
         self.colors: List[Color] = []
         self.themes: List[Theme] = []
+
+    @property
+    def brightness_pct(self):
+        return self._brightness_pct
+
+    @brightness_pct.setter
+    def brightness_pct(self, val):
+        self._brightness_pct = min(100., max(0., val))
 
     @property
     def colors(self):
         return self._colors
 
     @colors.setter
-    def colors(self, val):
-        print(val)
-        self._colors = [self._replace_brightness(c) for c in val]
-        print(self._colors)
+    def colors(self, val: List[Color]):
+        self._colors = [self.replace_brightness(c) for c in val]
 
     @property
     def themes(self):
@@ -87,28 +92,20 @@ class Config:
 
     @themes.setter
     def themes(self, val: List[Theme]):
-        print([t.keys() for t in val])
-        self._themes = [Theme({self._replace_brightness(c): w
+        self._themes = [Theme({self.replace_brightness(c): w
                                for c, w in t.items()})
                         for t in val]
-        print([t.keys() for t in self._themes])
-
-    def merged_colors(self) -> List[Color]:
-        self.validate_colors()
-        themes = [c for t in self.themes for c in t] if self.themes else []
-        colors = self.colors or []
-        return colors + themes
 
     @property
-    def merged_themes(self) -> Theme:
-        self.validate_colors()
+    def color_theme(self) -> Optional[Theme]:
+        try:
+            self.validate_colors()
+        except ValueError:
+            return None
+
         color_theme = Theme.from_colors(*self.colors)
         themes = self.themes or []
         return reduce(op.add, themes + [color_theme])
-
-    @property
-    def color_theme(self):
-        return self.merged_themes
 
     def validate_colors(self):
         """ensure that at least one of themes/colors is populated"""
@@ -120,7 +117,7 @@ class Config:
             raise ValueError('must set group')
         return self.group
 
-    def _replace_brightness(self, c: Color) -> Color:
+    def replace_brightness(self, c: Color) -> Color:
         return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
 
     def __str__(self):
@@ -145,7 +142,6 @@ def cli_main(conf: Config, group, colors, themes, brightness_pct):
     conf.brightness_pct = brightness_pct
     conf.colors = colors
     conf.themes = themes
-    print(conf.brightness_pct)
 
 
 @cli_main.command()
@@ -206,7 +202,7 @@ def morse_code(conf: Config, dot, dash, phrase):
 @pass_conf
 def rainbow(conf: Config, duration_secs, smooth):
     """make lights cycle through rainbow color group"""
-    routines.rainbow(conf.group, conf.merged_colors or Themes.rainbow, duration_secs=duration_secs, smooth=smooth)
+    routines.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth)
 
 
 @cli_main.command(help=routines.light_eq.__doc__, short_help="control lights with the computer keyboard")
@@ -269,7 +265,7 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
               help='number of seconds for next light to transition to new color')
 @pass_conf
 def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs, head_secs):
-    routines.point_control(conf.group or lifx, point_color_theme, base_color_theme, tail_delay_secs=tail_secs,
+    routines.point_control(conf.group, point_color_theme, base_color_theme, tail_delay_secs=tail_secs,
                            head_delay_secs=head_secs)
 
 
@@ -283,7 +279,7 @@ def getch_test(separate_process):
 @pass_conf
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
-    (conf.group or lifx).set_color(conf.colors[0] if conf.colors else Colors.DEFAULT)
+    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.replace_brightness(Colors.DEFAULT)))
 
 
 @cli_main.command()
@@ -305,6 +301,19 @@ def turn_on(conf: Config):
 def set_color_theme(conf: Config):
     """set group to colors/theme"""
     conf.validate_group().set_theme(conf.color_theme)
+
+
+@cli_main.command()
+@click.option('-k', '--kelvin-range', nargs=2, default=(2500, 4000), help='range of kelvin to select from [2500, 9000]')
+@pass_conf
+def set_whites(conf: Config, kelvin_range: Tuple[int, int]):
+    """set lights to white in range of kelvin passed in"""
+    g = conf.validate_group()
+    l, h = (max(2500, min(v, 9000)) for v in kelvin_range)
+    c = conf.replace_brightness(Colors.DEFAULT)
+    t = Theme.from_colors(*(c._replace(kelvin=k)
+                            for k in random.choices(range(l, h + 1), k=len(g))))
+    g.set_theme(t, power_on=False)
 
 
 def __main():

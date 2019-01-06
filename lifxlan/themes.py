@@ -2,7 +2,7 @@ import random
 from copy import copy
 from typing import List, Dict
 
-from .colors import Color, Colors
+from .colors import Color, Colors, LifxColors
 from .utils import init_log, even_split
 
 __author__ = 'acushner'
@@ -109,22 +109,19 @@ class ThemesMeta(type):
 class Themes(metaclass=ThemesMeta):
     """class for all pre-fab themes"""
     copilot = Theme.from_colors(*Colors.by_name('copilot'))
-    easter = Theme.from_colors(
-        *map(Color.from_hex, (0x28bb94, 0x66ddab, 0x612a6c, 0x421b52, 0xdb95c7, 0xd1719c))
-    )
+    easter = Theme.from_colors(*map(Color.from_hex, (0x28bb94, 0x66ddab, 0x612a6c, 0x421b52, 0xdb95c7, 0xd1719c)))
+    eid = Theme.from_colors(Colors.GREEN, Colors.WHITE)
     hanukkah = Theme.from_colors(Colors.HANUKKAH_BLUE, Colors.WHITE)
     july_4th = Theme.from_colors(Color.from_hex(0xe0162b), Colors.WHITE, Color.from_hex(0x0052a5))
     mario = Theme.from_colors(*Colors.by_name('mario'))
-    python = (Theme.from_colors(*Colors.by_name('python'))
-              + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})
-    rainbow = Theme.from_colors(Colors.RED, Colors.ORANGE, Colors.YELLOW, Colors.GREEN,
-                                Colors.CYAN, Colors.BLUE, Colors.PURPLE, Colors.PINK)
-    rainbow_2 = Theme.from_colors(
-        *map(Color.from_hex, (0x401b86, 0x2546c9, 0x2ad424, 0xf0ec25, 0xf07537, 0xdb3a4c))
-    )
+    python = (Theme.from_colors(*Colors.by_name('python')) + {Colors.PYTHON_DARK_BLUE: 2, Colors.PYTHON_LIGHT_BLUE: 2})
+    rainbow = Theme.from_colors(Colors.RED, Colors.ORANGE, Colors.YELLOW, Colors.GREEN, Colors.CYAN, Colors.BLUE,
+                                Colors.PURPLE, Colors.PINK)
+    rainbow_2 = Theme.from_colors(*map(Color.from_hex, (0x401b86, 0x2546c9, 0x2ad424, 0xf0ec25, 0xf07537, 0xdb3a4c)))
     snes = Theme.from_colors(*Colors.by_name('SNES'))
     steelers = Theme({Colors.STEELERS_GOLD: 3, Colors.STEELERS_BLUE: 1,
                       Colors.STEELERS_RED: 1, Colors.STEELERS_SILVER: 1})
+    whites = Theme.from_colors(LifxColors.CoolWhite, LifxColors.WarmWhite, LifxColors.White, LifxColors.CoolWhite,
+                               LifxColors.Daylight)
     xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
     xmas_lighter = xmas + {Colors.DEFAULT: 3}
-    eid = Theme.from_colors(Colors.GREEN, Colors.WHITE)

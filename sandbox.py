@@ -5,7 +5,6 @@ from typing import Iterable
 from lifxlan import Color, exhaust, LifxLAN, Colors, Themes, Theme
 import time
 
-from lifxlan.grid import Grid, downstairs
 
 d = dict(a=3, b=3, c=1)
 
@@ -14,11 +13,6 @@ def get_vals(n):
     keys, vals = zip(*d.items())
     print(keys, vals)
     return random.choices(keys, vals, k=n)
-
-
-def grid_test():
-    lights = LifxLAN().lights
-    g = Grid.from_rows(downstairs, lights)
 
 
 def test_powers():
@@ -39,6 +33,8 @@ def __main():
     # print(help(routines.morse_code))
     # print(help(routines.light_eq))
     lifx = LifxLAN()
+    lr1 = lifx.get_device_by_name('living room 1')
+
     return
     print(Themes.xmas.color_str('xmas'))
     print((Themes.xmas + Theme.from_colors()).color_str('snth'))

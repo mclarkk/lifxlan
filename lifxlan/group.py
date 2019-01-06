@@ -375,6 +375,7 @@ class LifxLAN(Group):
     @timer
     def populate_devices(self, reset=False, total_num_lights=TOTAL_NUM_LIGHTS):
         """populate available devices"""
+        log.info('populating devices')
 
         if reset:
             self._devices_by_mac_addr.clear()

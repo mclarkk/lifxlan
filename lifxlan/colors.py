@@ -168,9 +168,18 @@ class ColorsMeta(type):
         colors = '\n\t'.join(map(str, cls))
         return f'{cls.__name__}:\n\t{colors}'
 
+    def sum(cls, *colors: Color) -> Color:
+        """average together all colors provided"""
+        return reduce(op.add, colors)
+
+    def by_name(cls, name) -> List[Color]:
+        """get colors if they contain `name` in their name"""
+        name = name.lower()
+        return [c for n, c in cls if name in n.lower()]
+
 
 class Colors(metaclass=ColorsMeta):
-    DEFAULT = Color(43520, 0, 39321)
+    DEFAULT = Color(43520, 0, 39321, 3200)
 
     RED = Color(65535, 65535, 65535, 3500)
     ORANGE = Color(6500, 65535, 65535, 3500)
@@ -184,7 +193,7 @@ class Colors(metaclass=ColorsMeta):
 
     WHITE = Color(58275, 0, 65535, 5500)
     COLD_WHITE = Color(58275, 0, 65535, 9000)
-    WARM_WHITE = Color(58275, 0, 65535)
+    WARM_WHITE = Color(58275, 0, 65535, 3200)
     GOLD = Color(58275, 0, 65535, 2500)
     BROWN = Color.from_hex(0xa0522d)
 
@@ -224,16 +233,33 @@ class Colors(metaclass=ColorsMeta):
 
     YALE_BLUE = Color.from_hex(0xf4d92)
 
-    @classmethod
-    def sum(cls, *colors: Color) -> Color:
-        """average together all colors provided"""
-        return reduce(op.add, colors)
 
-    @classmethod
-    def by_name(cls, name) -> List[Color]:
-        """get colors if they contain `name` in their name"""
-        name = name.lower()
-        return [c for n, c in cls if name in n.lower()]
+class LifxColors(metaclass=ColorsMeta):
+    """colors available via voice from lifx"""
+    WarmWhite = Color(hue=54612, saturation=0, brightness=32767, kelvin=2500)
+    SoftWhite = Color(hue=54612, saturation=0, brightness=32767, kelvin=2700)
+    White = Color(hue=54612, saturation=0, brightness=32767, kelvin=4000)
+    Daylight = Color(hue=54612, saturation=0, brightness=32767, kelvin=5500)
+    CoolWhite = Color(hue=54612, saturation=0, brightness=32767, kelvin=7000)
+
+    Blue = Color(hue=43690, saturation=65535, brightness=65535, kelvin=2500)
+    Crimson = Color(hue=63350, saturation=59551, brightness=65535, kelvin=2500)
+    Cyan = Color(hue=32767, saturation=65535, brightness=65535, kelvin=2500)
+    Fuchsia = Color(hue=54612, saturation=65535, brightness=65535, kelvin=2500)
+    Gold = Color(hue=9102, saturation=65535, brightness=65535, kelvin=2500)
+    Green = Color(hue=21845, saturation=65535, brightness=65535, kelvin=2500)
+    Lavender = Color(hue=46420, saturation=32767, brightness=65535, kelvin=2500)
+    Lime = Color(hue=13653, saturation=57670, brightness=65535, kelvin=2500)
+    Magenta = Color(hue=54612, saturation=65535, brightness=65535, kelvin=2500)
+    Orange = Color(hue=7099, saturation=65535, brightness=65535, kelvin=2500)
+    Pink = Color(hue=63350, saturation=16449, brightness=65535, kelvin=2500)
+    Purple = Color(hue=50425, saturation=56484, brightness=65535, kelvin=7000)
+    Red = Color(hue=0, saturation=65535, brightness=65535, kelvin=7000)
+    Salmon = Color(hue=3094, saturation=34078, brightness=65535, kelvin=7000)
+    SkyBlue = Color(hue=35862, saturation=27727, brightness=65535, kelvin=7000)
+    Teal = Color(hue=32767, saturation=65535, brightness=65535, kelvin=7000)
+    Turquoise = Color(hue=31675, saturation=47106, brightness=65535, kelvin=7000)
+    Violet = Color(hue=54612, saturation=29589, brightness=65535, kelvin=7000)
 
 
 class ColorPower(NamedTuple):

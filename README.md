@@ -120,6 +120,7 @@ Commands:
   rainbow          make lights cycle through rainbow color group
   reset            reset light colors to either DEFAULT or the first color...
   set-color-theme  set group to colors/theme
+  set-whites       set lights to white in range of kelvin passed in
   turn-off         turn off lights in group
   turn-on          turn on lights in group
 ```
