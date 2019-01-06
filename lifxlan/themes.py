@@ -52,6 +52,15 @@ class Theme:
     def __iter__(self):
         return iter(self._color_weights)
 
+    def keys(self):
+        return self._color_weights.keys()
+
+    def values(self):
+        return self._color_weights.values()
+
+    def items(self):
+        return self._color_weights.items()
+
     def __add__(self, other):
         if isinstance(other, Color):
             other_colors = {other: 1}
@@ -75,6 +84,7 @@ class Theme:
 
 class ThemesMeta(type):
     """make `Themes` class more accessible"""
+
     def __getattribute__(cls, item):
         """copy a theme when accessed so that the original theme can't be mutated"""
         res = type.__getattribute__(cls, item)

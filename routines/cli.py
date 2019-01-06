@@ -65,10 +65,34 @@ def _parse_color_themes(ctx, param, color_themes) -> Theme:
 class Config:
     def __init__(self):
         self.group: Group = None
+        self.brightness_pct: float = None
+
+        # properties
         self.colors: List[Color] = []
         self.themes: List[Theme] = []
 
     @property
+    def colors(self):
+        return self._colors
+
+    @colors.setter
+    def colors(self, val):
+        print(val)
+        self._colors = [self._replace_brightness(c) for c in val]
+        print(self._colors)
+
+    @property
+    def themes(self):
+        return self._themes
+
+    @themes.setter
+    def themes(self, val: List[Theme]):
+        print([t.keys() for t in val])
+        self._themes = [Theme({self._replace_brightness(c): w
+                               for c, w in t.items()})
+                        for t in val]
+        print([t.keys() for t in self._themes])
+
     def merged_colors(self) -> List[Color]:
         self.validate_colors()
         themes = [c for t in self.themes for c in t] if self.themes else []
@@ -91,6 +115,14 @@ class Config:
         if not (self.themes or self.colors):
             raise ValueError('must set at least themes or colors')
 
+    def validate_group(self) -> Group:
+        if not self.group:
+            raise ValueError('must set group')
+        return self.group
+
+    def _replace_brightness(self, c: Color) -> Color:
+        return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
+
     def __str__(self):
         return f'{self.colors}\n{self.themes}\n{self.group}'
 
@@ -99,17 +131,21 @@ pass_conf = click.make_pass_decorator(Config, ensure=True)
 
 
 @click.group()
-@click.option('--groups', 'group', callback=_parse_groups, default=DEFAULT_GROUP,
+@click.option('-G', '--groups', 'group', callback=_parse_groups, default=DEFAULT_GROUP,
               help='csv of group or light name[s]')
-@click.option('--colors', 'colors', callback=_parse_colors, default=None,
+@click.option('-C', '--colors', 'colors', callback=_parse_colors, default=None,
               help='csv of color[s] to apply')
-@click.option('--themes', 'themes', callback=_parse_themes, default=None,
+@click.option('-T', '--themes', 'themes', callback=_parse_themes, default=None,
               help='csv of theme[s] to apply')
+@click.option('-B', '--brightness-pct', default=100.,
+              help='how bright, from 0.0-100.0, you want the lights to be')
 @pass_conf
-def cli_main(conf: Config, group, colors, themes):
+def cli_main(conf: Config, group, colors, themes, brightness_pct):
     conf.group = group
+    conf.brightness_pct = brightness_pct
     conf.colors = colors
     conf.themes = themes
+    print(conf.brightness_pct)
 
 
 @cli_main.command()
@@ -254,18 +290,21 @@ def reset(conf: Config):
 @pass_conf
 def turn_off(conf: Config):
     """turn off lights in group"""
-    if not conf.group:
-        raise ValueError('must specify group!')
-    conf.group.turn_off()
+    conf.validate_group().turn_off()
 
 
 @cli_main.command()
 @pass_conf
 def turn_on(conf: Config):
     """turn on lights in group"""
-    if not conf.group:
-        raise ValueError('must specify group!')
-    conf.group.turn_on()
+    conf.validate_group().turn_on()
+
+
+@cli_main.command()
+@pass_conf
+def set_color_theme(conf: Config):
+    """set group to colors/theme"""
+    conf.validate_group().set_theme(conf.color_theme)
 
 
 def __main():
