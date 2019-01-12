@@ -49,7 +49,7 @@ def _getch_sep():
         yield c
 
 
-def parse_keyboard_inputs(*, separate_process=False):
+def parse_keyboard_inputs(*, separate_process=True):
     """
     read and parse keyboard inputs
 
@@ -89,7 +89,7 @@ def parse_keyboard_inputs(*, separate_process=False):
         state = 0
 
 
-def getch_test(separate_process=False):
+def getch_test(separate_process=True):
     """run with this to see what inputs lead to what bytes"""
     from lifxlan import exhaust
     import arrow

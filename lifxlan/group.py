@@ -257,7 +257,6 @@ class Group(LightAPI, MultizoneAPI):
     # ==================================================================================================================
     # ACCESS DEVICES MORE EASILY
     # ==================================================================================================================
-
     def get_device_by_name(self, name) -> Device:
         return next((d for d in self.devices if d.label == name), None)
 

@@ -18,24 +18,26 @@ dir_map = {up << 8: Dir.up, down << 8: Dir.down, left << 8: Dir.left, right << 8
 
 def _get_next_light(group: Group, gl: GridLight):
     for c in parse_keyboard_inputs(separate_process=True):
-        if c in dir_map:
-            cur_gl = gl
-            found_light = False
+        if c not in dir_map:
+            continue
 
-            # this while loop allows for non-contiguous groups of lights to be traversed
-            while not found_light:
-                next_gl = cur_gl.move(dir_map[c])
-                if next_gl == cur_gl:
-                    break
+        cur_gl = gl
+        found_light = False
 
-                if not group.get_device_by_name(next_gl.name):
-                    cur_gl = next_gl
-                    continue
+        # this while loop allows for non-contiguous groups of lights to be traversed
+        while not found_light:
+            next_gl = cur_gl.move(dir_map[c])
+            if next_gl == cur_gl:
+                break
 
-                found_light = True
-            else:
-                gl = next_gl
-                yield gl
+            if not group.get_device_by_name(next_gl.name):
+                cur_gl = next_gl
+                continue
+
+            found_light = True
+        else:
+            gl = next_gl
+            yield gl
 
 
 def _delay(f: Callable, delay_secs: float):
@@ -74,7 +76,7 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
         valid_light_names = list(set(grid) & {l.label for l in group})
 
         grid_light = grid[random.choice(valid_light_names)]
-        next_lights = _get_next_light(group, grid_light)
+        lights = _get_next_light(group, grid_light)
         try:
             while True:
                 p = threads[grid_light]
@@ -82,11 +84,13 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
                 set_f = partial(grid_light.light.set_color, next(point_colors), duration=(int(head_delay_secs * 1000)))
                 p.submit(_delay, set_f, head_delay_secs)
 
-                next_light = next(next_lights)
+                next_light = next(lights)
 
                 reset_f = partial(grid_light.light.reset, orig_settings[grid_light.name], int(tail_delay_secs * 1000))
                 p.submit(reset_f)
+
                 grid_light = next_light
+
         except Exception as e:
             # wait for all threads to complete in background if necessary so that `reset_to_orig` will be called last
             exhaust(map(wait, threads.values()))

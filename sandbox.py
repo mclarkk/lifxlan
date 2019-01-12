@@ -32,6 +32,13 @@ def __main():
     # print(help(routines.core))
     # print(help(routines.morse_code))
     # print(help(routines.light_eq))
+    from lifxlan.settings import default_override
+    print(default_override.get('library'))
+    print(default_override.get('library'))
+    print(default_override.get('library'))
+    print(default_override.get('library'))
+    print(default_override.get('library'))
+    return
     lifx = LifxLAN()
     lr1 = lifx.get_device_by_name('living room 1')
 

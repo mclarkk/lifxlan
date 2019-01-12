@@ -1,7 +1,9 @@
+from collections import defaultdict
 from enum import Enum
+from typing import Dict
 
 unknown = 'UNKNOWN'
-TOTAL_NUM_LIGHTS = 19
+TOTAL_NUM_LIGHTS = 20
 DEFAULT_KELVIN = 3200
 
 
@@ -34,3 +36,21 @@ class PowerSettings(Enum):
             return 0
         else:
             raise RuntimeError('you should not be here')
+
+
+class DefaultOverride(dict):
+    """proxy"""
+
+    @property
+    def _override(self):
+        from lifxlan import Colors
+        return {
+            'library': Colors.DEFAULT._replace(kelvin=3634)
+        }
+
+    def __getattribute__(self, item):
+        override = super().__getattribute__('_override')
+        return getattr(override, item)
+
+
+default_override = DefaultOverride()
