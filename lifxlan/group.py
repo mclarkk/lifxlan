@@ -73,7 +73,8 @@ class Group(LightAPI, MultizoneAPI):
     everything can be done through `Groups`. you will use this all the time
     """
 
-    def __init__(self, devices: Iterable[Device], name: Optional[str] = None):
+    def __init__(self, devices: Iterable[Device], name: Optional[str] = None, *, allow_dupes=False):
+        self.allow_dupes = allow_dupes
         self.devices = devices
         self.name = name or ''
         self._wait_pool = WaitPool(TOTAL_NUM_LIGHTS)
@@ -84,7 +85,9 @@ class Group(LightAPI, MultizoneAPI):
 
     @devices.setter
     def devices(self, devices):
-        self._devices = sorted(set(devices))
+        if not self.allow_dupes:
+            devices = set(devices)
+        self._devices = sorted(devices)
 
     def refresh(self):
         with self._wait_pool as wp:
@@ -112,8 +115,8 @@ class Group(LightAPI, MultizoneAPI):
 
     # noinspection PyTypeChecker
     @property
-    def multizone_lights(self) -> 'LightGroup':
-        return LightGroup(l for l in self.devices if l.supports_multizone)
+    def multizone_lights(self) -> 'MultizoneLightGroup':
+        return MultizoneLightGroup(l for l in self.devices if l.supports_multizone)
 
     # noinspection PyTypeChecker
     @property
@@ -333,6 +336,11 @@ class LightGroup(Group):
         super().__init__(lights)
 
 
+class MultizoneLightGroup(Group):
+    def __init__(self, lights: List[MultizoneLight]):
+        super().__init__(lights)
+
+
 def _populate(func):
     """used to ensure that `populate_devices` occurs after LifxLAN.__init__"""
 
@@ -358,12 +366,12 @@ class LifxLAN(Group):
 
     @_populate
     def __init__(self, name: Optional[str] = None, verbose=False):
+        super().__init__([], name)
         self.source_id = os.getpid()
         self._devices_by_mac_addr: Dict[str, Device] = {}
         self._verbose = verbose
-        self._wait_pool = WaitPool(40)
+        self._wait_pool = WaitPool(60)
         self._wait_pool.dispatch(self._check_for_new_lights)
-        self.name = name or ''
 
     ############################################################################
     #                                                                          #

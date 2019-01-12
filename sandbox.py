@@ -32,6 +32,11 @@ def __main():
     # print(help(routines.core))
     # print(help(routines.morse_code))
     # print(help(routines.light_eq))
+    t = LifxLAN()
+    l = t.multizone_lights[0]
+    print(l.zones)
+    l.set_theme(Themes.rainbow)
+    return
     from lifxlan.settings import default_override
     print(default_override.get('library'))
     print(default_override.get('library'))

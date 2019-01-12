@@ -1,7 +1,6 @@
 """
 have your light/lights transmit messages in morse code.
 """
-import logging
 import sys
 import time
 from enum import Enum

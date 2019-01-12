@@ -1,10 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
-from functools import partial
-from typing import List, Dict, Any, Optional, Union
 
-from .settings import Waveform
 from .colors import Color, ColorPower
+from .settings import Waveform
 
 __author__ = 'acushner'
 
@@ -66,7 +64,7 @@ class LightAPI(ABC):
 
 class MultizoneAPI:
     @abstractmethod
-    def set_zone_color(self, start, end, color, duration=0, rapid=rapid_default, apply=1):
+    def set_zone_color(self, color, duration=0, rapid=rapid_default, apply=1, start_index=None, end_index=None):
         """set zone color on multizone lights"""
 
     @abstractmethod
