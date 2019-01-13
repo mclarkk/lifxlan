@@ -1,10 +1,11 @@
 import random
+import time
 from concurrent.futures import wait
 from concurrent.futures.thread import ThreadPoolExecutor
 from copy import copy
 from functools import partial
 from itertools import cycle
-from typing import Optional, Callable
+from typing import Callable, Iterable
 
 from lifxlan import Dir, GridLight, Group, Colors, grid, LifxLAN, init_log, exhaust
 from routines import ColorTheme, init_grid, colors_to_theme
@@ -16,17 +17,15 @@ log = init_log(__name__)
 dir_map = {up << 8: Dir.up, down << 8: Dir.down, left << 8: Dir.left, right << 8: Dir.right}
 
 
-def _get_next_light(group: Group, gl: GridLight):
-    for c in parse_keyboard_inputs(separate_process=True):
-        if c not in dir_map:
-            continue
-
+def _get_next_light(group: Group, gl: GridLight,
+                    dirs: Iterable[Dir] = parse_keyboard_inputs(dir_map, separate_process=True)):
+    for dir in dirs:
         cur_gl = gl
         found_light = False
 
         # this while loop allows for non-contiguous groups of lights to be traversed
         while not found_light:
-            next_gl = cur_gl.move(dir_map[c])
+            next_gl = cur_gl.move(dir)
             if next_gl == cur_gl:
                 break
 

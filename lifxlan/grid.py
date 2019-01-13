@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Dict
 
-from .group import Group
 from .light import Light
 
 __author__ = 'acushner'
@@ -9,7 +8,9 @@ __author__ = 'acushner'
 grid: Dict[str, 'GridLight'] = {}
 
 
-def enlighten_grid(group: Group):
+def enlighten_grid(group):
+    from .group import Group
+    group: Group
     """set lifxlan.Light objects on each GridLight based on `group`"""
     for light in group:
         if light.label in grid:

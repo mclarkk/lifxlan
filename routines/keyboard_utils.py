@@ -1,7 +1,7 @@
-import time
 from collections import defaultdict
 from contextlib import suppress
-from multiprocessing import Process, Queue, Pipe, connection
+from multiprocessing import Process, Pipe
+from typing import Any, Optional, Dict
 
 up, down, right, left = 0x41, 0x42, 0x43, 0x44
 enter = 0xa
@@ -49,7 +49,7 @@ def _getch_sep():
         yield c
 
 
-def parse_keyboard_inputs(*, separate_process=True):
+def parse_keyboard_inputs(char_map: Optional[Dict[int, Any]] = None, *, separate_process=True):
     """
     read and parse keyboard inputs
 
@@ -66,6 +66,7 @@ def parse_keyboard_inputs(*, separate_process=True):
     NOTE: set `separate_process` to True if you're having trouble with multithreading and getch
     """
 
+    char_map = char_map or {}
     _create_tree = lambda: defaultdict(_create_tree)
 
     # this tree manages multi-byte chars
@@ -83,7 +84,9 @@ def parse_keyboard_inputs(*, separate_process=True):
         if node is not None:
             continue
 
-        yield c << (state * 8)
+        c <<= (state * 8)
+        if not char_map or c in char_map:
+            yield char_map.get(c, c)
 
         node = tree
         state = 0

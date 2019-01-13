@@ -32,6 +32,80 @@ lifx = LifxProxy()
 DEFAULT_GROUP = 'ALL'
 
 
+class Config:
+    """main command config object"""
+
+    def __init__(self):
+        self.group: Group = None
+
+        # properties
+        self.brightness_pct: float = 100.0
+        self.colors: List[Color] = []
+        self.themes: List[Theme] = []
+
+    @property
+    def brightness_pct(self):
+        return self._brightness_pct
+
+    @brightness_pct.setter
+    def brightness_pct(self, val):
+        self._brightness_pct = min(100., max(0., val))
+
+    @property
+    def colors(self):
+        return self._colors
+
+    @colors.setter
+    def colors(self, val: List[Color]):
+        self._colors = [self.adjust_color(c) for c in val]
+
+    @property
+    def themes(self):
+        return self._themes
+
+    @themes.setter
+    def themes(self, val: List[Theme]):
+        self._themes = [self.adjust_theme(t) for t in val]
+
+    def adjust_color(self, c: Color) -> Color:
+        return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
+
+    def adjust_theme(self, t: Theme):
+        """adjust theme for brightness_pct"""
+        return Theme({self.adjust_color(c): w for c, w in t.items()})
+
+    @property
+    def color_theme(self) -> Optional[Theme]:
+        try:
+            self.validate_colors()
+        except ValueError:
+            return None
+
+        color_theme = Theme.from_colors(*self.colors)
+        themes = self.themes or []
+        return reduce(op.add, themes + [color_theme])
+
+    def validate_colors(self):
+        """ensure that at least one of themes/colors is populated"""
+        if not (self.themes or self.colors):
+            raise ValueError('must set at least themes or colors')
+
+    def validate_group(self) -> Group:
+        if not self.group:
+            raise ValueError('must set group')
+        return self.group
+
+    def __str__(self):
+        return f'{self.colors}\n{self.themes}\n{self.group}'
+
+
+pass_conf = click.make_pass_decorator(Config, ensure=True)
+
+
+# ======================================================================================================================
+# callbacks
+# ======================================================================================================================
+
 def _parse_groups(ctx, param, name_or_names) -> Group:
     if name_or_names == DEFAULT_GROUP:
         return lifx
@@ -61,70 +135,9 @@ def _parse_color_themes(ctx, param, color_themes) -> Theme:
         return res[0]
 
 
-class Config:
-    def __init__(self):
-        self.group: Group = None
-
-        # properties
-        self.brightness_pct: float = 100.0
-        self.colors: List[Color] = []
-        self.themes: List[Theme] = []
-
-    @property
-    def brightness_pct(self):
-        return self._brightness_pct
-
-    @brightness_pct.setter
-    def brightness_pct(self, val):
-        self._brightness_pct = min(100., max(0., val))
-
-    @property
-    def colors(self):
-        return self._colors
-
-    @colors.setter
-    def colors(self, val: List[Color]):
-        self._colors = [self.replace_brightness(c) for c in val]
-
-    @property
-    def themes(self):
-        return self._themes
-
-    @themes.setter
-    def themes(self, val: List[Theme]):
-        self._themes = [Theme({self.replace_brightness(c): w
-                               for c, w in t.items()})
-                        for t in val]
-
-    @property
-    def color_theme(self) -> Optional[Theme]:
-        try:
-            self.validate_colors()
-        except ValueError:
-            return None
-
-        color_theme = Theme.from_colors(*self.colors)
-        themes = self.themes or []
-        return reduce(op.add, themes + [color_theme])
-
-    def validate_colors(self):
-        """ensure that at least one of themes/colors is populated"""
-        if not (self.themes or self.colors):
-            raise ValueError('must set at least themes or colors')
-
-    def validate_group(self) -> Group:
-        if not self.group:
-            raise ValueError('must set group')
-        return self.group
-
-    def replace_brightness(self, c: Color) -> Color:
-        return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
-
-    def __str__(self):
-        return f'{self.colors}\n{self.themes}\n{self.group}'
-
-
-pass_conf = click.make_pass_decorator(Config, ensure=True)
+# ======================================================================================================================
+# cli
+# ======================================================================================================================
 
 
 @click.group()
@@ -244,7 +257,7 @@ def blink_power(conf: Config, blink_secs, how_long_secs):
 @cli_main.command()
 @click.option('-s', '--rotate-secs', default=60, help='how many seconds between each theme application')
 @click.option('-m', '--duration-mins', default=20, help='how many minutes the command will run')
-@click.option('--transition-secs', default=10, help='how many seconds to transition between themes')
+@click.option('-t', '--transition-secs', default=10, help='how many seconds to transition between themes')
 @pass_conf
 def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""
@@ -265,8 +278,9 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
               help='number of seconds for next light to transition to new color')
 @pass_conf
 def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs, head_secs):
-    routines.point_control(conf.group, point_color_theme, base_color_theme, tail_delay_secs=tail_secs,
-                           head_delay_secs=head_secs)
+    routines.point_control(conf.group,
+                           conf.adjust_theme(point_color_theme), conf.adjust_theme(base_color_theme),
+                           tail_delay_secs=tail_secs, head_delay_secs=head_secs)
 
 
 @cli_main.command(help='run test on getch - press keys and see bytes')
@@ -279,7 +293,7 @@ def getch_test(separate_process):
 @pass_conf
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
-    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.replace_brightness(Colors.DEFAULT)))
+    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.adjust_color(Colors.DEFAULT)))
 
 
 @cli_main.command()
@@ -310,7 +324,7 @@ def set_whites(conf: Config, kelvin_range: Tuple[int, int]):
     """set lights to white in range of kelvin passed in"""
     g = conf.validate_group()
     l, h = (max(2500, min(v, 9000)) for v in kelvin_range)
-    c = conf.replace_brightness(Colors.DEFAULT)
+    c = conf.adjust_color(Colors.DEFAULT)
     t = Theme.from_colors(*(c._replace(kelvin=k)
                             for k in random.choices(range(l, h + 1), k=len(g))))
     g.set_theme(t, power_on=False)

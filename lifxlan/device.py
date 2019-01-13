@@ -171,6 +171,9 @@ class Device(object):
 
     def _set_power(self, msg_type, power, rapid=False, **payload_kwargs):
         power = PowerSettings.validate(power)
+        ps = PowerSettings.validate(self.power_level)
+        if ps is power:
+            return
         log.info(f'setting power to {power}: {payload_kwargs}')
         self.power_level = power
         payload = {'power_level': self.power_level, **payload_kwargs}

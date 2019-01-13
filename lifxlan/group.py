@@ -4,7 +4,7 @@ from functools import partial, wraps
 from itertools import chain, repeat, groupby
 from typing import List, Union, Dict, Optional, Iterable, Any
 
-from lifxlan.base_api import LightAPI, MultizoneAPI
+from lifxlan.base_api import LightAPI
 from .colors import ColorPower, Color
 from .device import Device
 from .light import Light
@@ -66,7 +66,7 @@ class _GetFromLights:
         return {d: getattr(d, self.name) for d in getattr(instance, self.light_type)}
 
 
-class Group(LightAPI, MultizoneAPI):
+class Group(LightAPI):
     """
     this is the workhorse of the whole operation
 
@@ -214,14 +214,6 @@ class Group(LightAPI, MultizoneAPI):
     def set_infrared(self, infrared_brightness):
         """set infrared on color lights"""
 
-    @_call_on_lights(light_type='multizone_lights')
-    def set_zone_color(self, start, end, color, duration=0, rapid=rapid_default, apply=1):
-        """set zone color on multizone lights"""
-
-    @_call_on_lights(light_type='multizone_lights')
-    def set_zone_colors(self, colors, duration=0, rapid=rapid_default):
-        """set zone colors on multizone lights"""
-
     def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True):
         colors = theme.get_colors(len(self))
         with self._wait_pool as wp:
@@ -280,7 +272,7 @@ class Group(LightAPI, MultizoneAPI):
             return split_names[0] if len(split_names) == 1 else '_'.join(split_names[:-1])
 
         devices = sorted(self.devices, key=key)
-        return {k: Group(v, k) for k, v in groupby(devices, key)}
+        return {k: Group(v, k, allow_dupes=self.allow_dupes) for k, v in groupby(devices, key)}
 
     @contextmanager
     def reset_to_orig(self, duration=3000, *, orig_override=None):
@@ -306,9 +298,12 @@ class Group(LightAPI, MultizoneAPI):
         """get light by idx if int, by name otherwise, else try to grab from auto_group"""
         if isinstance(idx_or_name, int):
             return self.devices[idx_or_name]
+        if isinstance(idx_or_name, slice):
+            return Group(self.devices[idx_or_name], allow_dupes=self.allow_dupes)
+
         res = self.get_device_by_name(idx_or_name)
         if res:
-            return Group([res])
+            return Group([res], allow_dupes=self.allow_dupes)
         return self.auto_group()[idx_or_name]
 
     def __str__(self):
@@ -318,10 +313,13 @@ class Group(LightAPI, MultizoneAPI):
         return f'{start_end}{type(self).__name__}{name_str} ({len(self.devices)} lights):\n{device_str}{start_end}'
 
     def __add__(self, other):
+        allow_dupes = self.allow_dupes
         if isinstance(other, Device):
-            return Group(self.devices + [other])
+            return Group(self.devices + [other], allow_dupes=allow_dupes)
         if isinstance(other, Iterable):
-            return Group(chain(self, other))
+            if isinstance(other, Group):
+                allow_dupes = allow_dupes or other.allow_dupes
+            return Group(chain(self, other), allow_dupes=allow_dupes)
         return NotImplemented
 
     def __iadd__(self, other):
@@ -338,7 +336,7 @@ class LightGroup(Group):
 
 class MultizoneLightGroup(Group):
     def __init__(self, lights: List[MultizoneLight]):
-        super().__init__(lights)
+        super().__init__(lights, allow_dupes=True)
 
 
 def _populate(func):

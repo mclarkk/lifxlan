@@ -69,9 +69,7 @@ def _init_keys(qwerty=False):
 
 def _get_offset() -> AttrOffset:
     keys = _init_keys()
-    for c in parse_keyboard_inputs():
-        if c in keys:
-            yield keys[c]
+    yield from parse_keyboard_inputs(keys)
 
 
 def light_eq(lifx: Group, color_theme: Optional[ColorTheme] = None):

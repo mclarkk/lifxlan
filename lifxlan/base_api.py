@@ -60,13 +60,3 @@ class LightAPI(ABC):
     @abstractmethod
     def turn_off(self, duration=0):
         """turn off lights"""
-
-
-class MultizoneAPI:
-    @abstractmethod
-    def set_zone_color(self, color, duration=0, rapid=rapid_default, apply=1, start_index=None, end_index=None):
-        """set zone color on multizone lights"""
-
-    @abstractmethod
-    def set_zone_colors(self, colors, duration=0, rapid=rapid_default):
-        """set zone colors on multizone lights"""
