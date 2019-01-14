@@ -269,7 +269,7 @@ class Device(object):
         if self.product == None:
             self.vendor, self.product, self.version = self.get_version_tuple()
         if self.product in product_map:
-            product_name = product_map[self.product]
+            product_name = product_map[self.product]['name']
         return product_name
 
     def get_product_features(self):

@@ -1,39 +1,42 @@
 # coding=utf-8
-product_map = {1: "Original 1000",
-               3: "Color 650",
-               10: "White 800 (Low Voltage)",
-               11: "White 800 (High Voltage)",
-               18: "White 900 BR30 (Low Voltage)",
-               20: "Color 1000 BR30",
-               22: "Color 1000",
-               27: "LIFX A19",
-               28: "LIFX BR30",
-               29: "LIFX+ A19",
-               30: "LIFX+ BR30",
-               31: "LIFX Z",
-               32: "LIFX Z 2",
-               36: "LIFX Downlight",
-               37: "LIFX Downlight",
-               38: "LIFX Beam",
-               43: "LIFX A19",
-               44: "LIFX BR30",
-               45: "LIFX+ A19",
-               46: "LIFX+ BR30",
-               49: "LIFX Mini",
-               50: "LIFX Mini Day and Dusk",
-               51: "LIFX Mini White",
-               52: "LIFX GU10",
-               55: "LIFX Tile",
-               59: "LIFX Mini Color",
-               60: "LIFX Mini Day and Dusk",
-               61: "LIFX Mini White"
+def light_product(name):
+    return {'name': name, 'is_light': True}
+
+product_map = {1: light_product("Original 1000"),
+               3: light_product("Color 650"),
+               10: light_product("White 800 (Low Voltage)"),
+               11: light_product("White 800 (High Voltage)"),
+               18: light_product("White 900 BR30 (Low Voltage)"),
+               20: light_product("Color 1000 BR30"),
+               22: light_product("Color 1000"),
+               27: light_product("LIFX A19"),
+               28: light_product("LIFX BR30"),
+               29: light_product("LIFX+ A19"),
+               30: light_product("LIFX+ BR30"),
+               31: light_product("LIFX Z"),
+               32: light_product("LIFX Z 2"),
+               36: light_product("LIFX Downlight"),
+               37: light_product("LIFX Downlight"),
+               38: light_product("LIFX Beam"),
+               43: light_product("LIFX A19"),
+               44: light_product("LIFX BR30"),
+               45: light_product("LIFX+ A19"),
+               46: light_product("LIFX+ BR30"),
+               49: light_product("LIFX Mini"),
+               50: light_product("LIFX Mini Day and Dusk"),
+               51: light_product("LIFX Mini White"),
+               52: light_product("LIFX GU10"),
+               55: light_product("LIFX Tile"),
+               59: light_product("LIFX Mini Color"),
+               60: light_product("LIFX Mini Day and Dusk"),
+               61: light_product("LIFX Mini White")
                }
 
 # Identifies which products are lights.
 # Currently all LIFX products that speak the LAN protocol are lights.
 # However, the protocol was written to allow addition of other kinds
 # of devices, so it's important to be able to differentiate.
-light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52, 55, 59, 60, 61]
+light_products = [k for k in product_map if product_map[k]['is_light']]
 
 features_map = {1: {"color": True,
                     "temperature": True,
