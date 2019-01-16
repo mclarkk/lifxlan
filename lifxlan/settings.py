@@ -1,9 +1,7 @@
-from collections import defaultdict
 from enum import Enum
-from typing import Dict
 
 unknown = 'UNKNOWN'
-TOTAL_NUM_LIGHTS = 20
+TOTAL_NUM_LIGHTS = 21
 DEFAULT_KELVIN = 3200
 
 

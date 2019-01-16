@@ -77,9 +77,14 @@ class Light(Device, LightAPI):
             response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
             self.infrared_brightness = response.infrared_brightness
 
-    def set_color(self, color: Color, duration=0, rapid=False):
+    def set_color(self, color: Color, duration=0, rapid=False, preserve_brightness=True):
         if color:
             color = color.clamped
+            # TODO: change to allow preserve_brightness to be set
+
+            if preserve_brightness:
+                color = color._replace(brightness=self.color.brightness)
+
             log.info(f'setting {self.label!r} color to {color} over {duration} msecs')
             self.color = color
             self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
@@ -93,10 +98,10 @@ class Light(Device, LightAPI):
     def set_power(self, power, duration=0, rapid=False):
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
-    def set_color_power(self, cp: ColorPower, duration=0, rapid=False):
+    def set_color_power(self, cp: ColorPower, duration=0, rapid=False, preserve_brightness=True):
         """set both color and power at the same time"""
         with self._wait_pool as wp:
-            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid)
+            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid, preserve_brightness=preserve_brightness)
             wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
     def _replace_color(self, color: Color, duration, rapid, offset=False, **color_kwargs):

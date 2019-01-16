@@ -1,13 +1,16 @@
 # - piano keyboard controlled lights
-# - use a graph to represent lights
+# - graph stuff
 #   - do the wave in lights
 #   - rainbow shimmering across lights
 #   - make a light snake that moves around the house in order
 #       - control said light snake using keyboard arrows
+#       - snake game on tile!
 #   - light game with 2 players trying to sneak past one another
 # - use context vars to change overarching light settings
 # - morse code training app
 # - create alexa skill
+# - set images on tile
+#   - website to upload images to tile
 
 # x document usage - change README.md
 # x powerful repl? (won't do: just use jupyter console)
@@ -20,3 +23,5 @@
 #   x now a subclass of group
 # x dynamic Color objects based on math
 # x automatically generate pleasing Color groups (like the tones in copilot)
+# x move light point around existing lights
+# x use a graph to represent lights

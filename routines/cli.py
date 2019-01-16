@@ -67,11 +67,15 @@ class Config:
     def themes(self, val: List[Theme]):
         self._themes = [self.adjust_theme(t) for t in val]
 
-    def adjust_color(self, c: Color) -> Color:
+    def adjust_color(self, c: Color) -> Optional[Color]:
+        if not c:
+            return None
         return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
 
     def adjust_theme(self, t: Theme):
         """adjust theme for brightness_pct"""
+        if not t:
+            return None
         return Theme({self.adjust_color(c): w for c, w in t.items()})
 
     @property
@@ -126,7 +130,9 @@ def _parse_themes(ctx, param, themes) -> List[Theme]:
     return [Themes[t.lower()] for t in themes.split(',')]
 
 
-def _parse_color_themes(ctx, param, color_themes) -> Theme:
+def _parse_color_themes(ctx, param, color_themes) -> Optional[Theme]:
+    if not color_themes:
+        return None
     try:
         res = _parse_colors(ctx, param, color_themes)
         return routines.colors_to_theme(res)
@@ -269,7 +275,7 @@ def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
 @click.option('-p', '--point-color-theme', default='YALE_BLUE',
               help='colors or theme of point to move around the lights',
               callback=_parse_color_themes)
-@click.option('-b', '--base-color-theme', default='DEFAULT',
+@click.option('-b', '--base-color-theme', default=None,
               help='colors or theme for the background lights',
               callback=_parse_color_themes)
 @click.option('-t', '--tail-secs', default=0.0,

@@ -1,6 +1,8 @@
 import os
 from threading import Thread
+from typing import Optional
 
+from .utils import exhaust
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
@@ -19,73 +21,55 @@ class TileChain(Light):
 
     # returns information about all tiles
     def get_tile_info(self, refresh_cache=False):
-        if (self.tile_info is None) or (refresh_cache == True):
+        if self.tile_info is None or refresh_cache:
             response = self.req_with_resp(GetDeviceChain, StateDeviceChain)
-            tiles = []
-            for tile in response.tile_devices:
-                t = Tile(tile["user_x"], tile["user_y"], tile["width"], tile["height"], tile["device_version_vendor"],
-                         tile["device_version_product"], tile["device_version_version"], tile["firmware_build"],
-                         tile["firmware_version"])
-                tiles.append(t)
-            self.tile_info = tiles[:response.total_count]
+            self.tile_info = [Tile.from_response(t) for t, _ in zip(response.tile_devices, range(response.total_count))]
             self.tile_count = response.total_count
         return self.tile_info
 
     def get_tile_count(self, refresh_cache=False):
-        if (self.tile_count is None) or (refresh_cache == True):
+        if self.tile_count is None or refresh_cache:
             response = self.req_with_resp(GetDeviceChain, StateDeviceChain)
             self.tile_count = response.total_count
         return self.tile_count
 
-    def _validate_tile_access(self, start_index):
-        if (start_index < 0) or (start_index >= self.tile_count):
-            raise ValueError(f'{start_index} is not a valid start_index for TileChain with {self.tile_count} tiles.')
+    def _validate_tile_access(self, tile_idx):
+        if (tile_idx < 0) or (tile_idx >= self.tile_count):
+            raise ValueError(f'{tile_idx} is not a valid tile_idx for TileChain with {self.tile_count} tiles.')
 
-    def get_tile_colors(self, start_index, tile_count=1, x=0, y=0, width=8):
-        self._validate_tile_access(start_index)
-        colors = []
-        for i in range(tile_count):
-            payload = {"tile_index": start_index + i,
-                       "length": 1,
-                       "reserved": 0,
-                       "x": x,
-                       "y": y,
-                       "width": width}
-            response = self.req_with_resp(GetTileState64, StateTileState64, payload)
-            colors.append(response.colors)
-        return colors
+    def _get_tile_range(self, tile_idx, num_tiles) -> range:
+        end_tile_idx = min((num_tiles or self.tile_count) + tile_idx + 1, self.tile_count)
+        return range(tile_idx, end_tile_idx)
 
-    def get_tilechain_colors(self):
-        tilechain_colors = []
-        for i in range(self.tile_count):
-            tile_colors = self.get_tile_colors(i)
-            tilechain_colors.append(tile_colors[0])
-        return tilechain_colors
+    def get_tile_colors(self, tile_idx, x=0, y=0, width=8):
+        """get colors for individual tile"""
+        self._validate_tile_access(tile_idx)
+        payload = dict(tile_index=tile_idx, length=1, reserved=0, x=x, y=y, width=width)
+        return self.req_with_resp(GetTileState64, StateTileState64, payload)
+
+    def get_tilechain_colors(self, start_tile_idx=0, num_tiles: Optional[int] = None):
+        """get colors for num_tiles starting from start_tile_idx"""
+        with self._wait_pool as wp:
+            funcs = ((self.get_tile_colors, tile_idx) for tile_idx in self._get_tile_range(start_tile_idx, num_tiles))
+            exhaust(map(wp.submit, funcs))
+        return wp.results
 
     def set_tile_colors(self, start_index, colors, duration=0, tile_count=1, x=0, y=0, width=8, rapid=False):
+        """set colors for individual tile"""
         self._validate_tile_access(start_index)
 
-        payload = {"tile_index": start_index,
-                   "length": tile_count,
-                   "colors": colors,
-                   "duration": duration,
-                   "reserved": 0,
-                   "x": x,
-                   "y": y,
-                   "width": width}
+        payload = dict(tile_index=start_index, length=tile_count, colors=colors, duration=duration, reserved=0, x=x,
+                       y=y, width=width)
         self._send_set_message(SetTileState64, payload, rapid=rapid)
 
-    def set_tilechain_colors(self, tilechain_colors, duration=0, rapid=False):
-        threads = []
-        for i in range(self.tile_count):
-            t = Thread(target=self.set_tile_colors, args=((i, tilechain_colors[i], duration, 1, 0, 0, 8, rapid)))
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
+    def set_tilechain_colors(self, tilechain_colors, start_tile_idx=0, duration=0, rapid=False):
+        """set colors for num_tiles starting from start_tile_idx"""
+        with self._wait_pool as wp:
+            funcs = ((self.set_tile_colors, i, c, duration, 1, 0, 0, 8, rapid)
+                     for i, c in enumerate(tilechain_colors, start=start_tile_idx))
+            exhaust(map(wp.submit, funcs))
 
     def recenter_coordinates(self):
-        num_tiles = self.get_tile_count()
         x_vals, y_vals = self.get_xy_vals()
         x_vals = self.center_axis(x_vals)
         y_vals = self.center_axis(y_vals)
@@ -185,9 +169,8 @@ class TileChain(Light):
             num_tiles = self.get_tile_count()
             tile_width = 8  # TO DO: get these programmatically for each light from the tile info
             tile_height = 8  # TO DO: get these programmatically for each light from the tile info
-            (x, y) = self.get_canvas_dimensions()
-            # print(x, y)
-            tile_map = [[0 for i in range(x)] for j in range(y)]
+            x, y = self.get_canvas_dimensions()
+            tile_map = [[0] * x for _ in range(y)]
 
             tiles = self.get_tile_info()
             x_vals, y_vals = self.get_xy_vals()
@@ -214,9 +197,13 @@ class TileChain(Light):
 
 
 class Tile(object):
-    def __init__(self, user_x, user_y, width=8, height=8, device_version_vendor=None, device_version_product=None,
-                 device_version_version=None, firmware_build=None, firmware_version=None):
+    def __init__(self, accel_meas_x, accel_meas_y, accel_meas_z, user_x, user_y, width=8, height=8,
+                 device_version_vendor=None, device_version_product=None, device_version_version=None,
+                 firmware_build=None, firmware_version=None):
         super(Tile, self).__init__()
+        self.accel_meas_x = accel_meas_x
+        self.accel_meas_y = accel_meas_y
+        self.accel_meas_z = accel_meas_z
         self.user_x = user_x
         self.user_y = user_y
         self.width = width
@@ -226,6 +213,12 @@ class Tile(object):
         self.device_version_version = device_version_version
         self.firmware_build = firmware_build
         self.firmware_version = firmware_version
+
+    @classmethod
+    def from_response(cls, resp):
+        fields = ('accel_meas_x accel_meas_y accel_meas_z user_x user_y width height device_version_vendor '
+                  'device_version_product device_version_version firmware_build firmware_version')
+        return cls(*map(resp.get, fields.split()))
 
     def __str__(self):
         s = "\nTile at {}, {}:".format(self.user_x, self.user_y)

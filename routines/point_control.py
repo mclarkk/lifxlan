@@ -65,12 +65,13 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
     init_grid(group)
     threads = defaultdict(lambda: ThreadPoolExecutor(1))
 
-    base_theme = colors_to_theme(base_theme or Colors.DEFAULT)
+    base_theme = colors_to_theme(base_theme) or None
     point_colors = cycle(colors_to_theme(point_color))
 
     with group.reset_to_orig():
         group.turn_on()
-        group.set_theme(base_theme)
+        if base_theme:
+            group.set_theme(base_theme)
         orig_settings = {l.label: copy(l) for l in group}
         valid_light_names = list(set(grid) & {l.label for l in group})
 

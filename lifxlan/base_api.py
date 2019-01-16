@@ -26,11 +26,11 @@ class LightAPI(ABC):
         """set waveform on color lights"""
 
     @abstractmethod
-    def set_color(self, color: Color, duration=0, rapid=rapid_default):
+    def set_color(self, color: Color, duration=0, rapid=rapid_default, preserve_brightness=True):
         """set color on color lights"""
 
     @abstractmethod
-    def set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+    def set_color_power(self, cp: ColorPower, duration=0, rapid=True, preserve_brightness=True):
         """set color and power on color lights"""
 
     @abstractmethod
