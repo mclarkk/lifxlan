@@ -7,9 +7,8 @@ from contextlib import contextmanager
 from functools import wraps
 from itertools import cycle
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
+from threading import local
 from typing import Optional, List, Any, Union, Iterable
-
-import cv2
 
 
 def init_log(name, level=logging.INFO):
@@ -56,7 +55,7 @@ class WaitPool:
 
     def __init__(self, pool: Optional[Union[int, ThreadPoolExecutor]] = None):
         self._pool = self._init_pool(pool)
-        self._futures = []
+        self._local = local()
 
     @staticmethod
     def _init_pool(pool: Optional[Union[int, ThreadPoolExecutor]]):
@@ -74,26 +73,33 @@ class WaitPool:
 
     @property
     def futures(self):
-        return self._futures
+        try:
+            f = self._local.futures
+        except AttributeError:
+            f = self._local.futures = []
+        return f
 
     @property
     def results(self) -> List[Any]:
-        return [f.result() for f in self._futures]
+        return [f.result() for f in self.futures]
 
     def wait(self):
         wait(self.futures)
 
     def __getattr__(self, item):
         """proxy for underlying pool object"""
+        desc = type(self).__dict__.get(item)
+        if hasattr(desc, '__get__'):
+            return desc.__get__(self)
         return getattr(self._pool, item)
 
     def submit(self, fn, *args, **kwargs):
         fut = self._pool.submit(fn, *args, **kwargs)
-        self._futures.append(fut)
+        self.futures.append(fut)
         return fut
 
     def map(self, fn, *iterables):
-        self._futures.extend(self._pool.submit(fn, *args) for args in zip(*iterables))
+        self.futures.extend(self._pool.submit(fn, *args) for args in zip(*iterables))
 
     def dispatch(self, fn, *args, **kwargs):
         """run on thread pool but don't wait for completion"""
@@ -101,7 +107,7 @@ class WaitPool:
 
     def __enter__(self):
         # TODO: use thread-local storage for futures
-        self._futures.clear()
+        self.futures.clear()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -149,5 +155,6 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
 
 
 def img_to_rgb(filename):
+    import cv2
     i = cv2.imread(filename)
     return [[p[::-1] for p in row] for row in i]

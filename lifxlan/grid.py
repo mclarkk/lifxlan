@@ -9,9 +9,9 @@ grid: Dict[str, 'GridLight'] = {}
 
 
 def enlighten_grid(group):
+    """set lifxlan.Light objects on each GridLight based on `group`"""
     from .group import Group
     group: Group
-    """set lifxlan.Light objects on each GridLight based on `group`"""
     for light in group:
         if light.label in grid:
             grid[light.label].light = light
