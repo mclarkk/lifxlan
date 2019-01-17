@@ -1,11 +1,10 @@
 import os
-from threading import Thread
 from typing import Optional
 
-from .utils import exhaust
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
+from .utils import exhaust
 
 
 class TileChain(Light):
@@ -16,11 +15,11 @@ class TileChain(Light):
         self.tile_map = None
         self.canvas_dimensions = None
         self.get_tile_info()
-        self.get_tile_map()
-        self.get_canvas_dimensions()
+        self._get_tile_map()
+        self._get_canvas_dimensions()
 
-    # returns information about all tiles
     def get_tile_info(self, refresh_cache=False):
+        """set tile info and count"""
         if self.tile_info is None or refresh_cache:
             response = self.req_with_resp(GetDeviceChain, StateDeviceChain)
             self.tile_info = [Tile.from_response(t) for t, _ in zip(response.tile_devices, range(response.total_count))]
@@ -28,12 +27,14 @@ class TileChain(Light):
         return self.tile_info
 
     def get_tile_count(self, refresh_cache=False):
+        """set tile count"""
         if self.tile_count is None or refresh_cache:
             response = self.req_with_resp(GetDeviceChain, StateDeviceChain)
             self.tile_count = response.total_count
         return self.tile_count
 
     def _validate_tile_access(self, tile_idx):
+        """ensure valid tile index"""
         if (tile_idx < 0) or (tile_idx >= self.tile_count):
             raise ValueError(f'{tile_idx} is not a valid tile_idx for TileChain with {self.tile_count} tiles.')
 
@@ -69,17 +70,18 @@ class TileChain(Light):
                      for i, c in enumerate(tilechain_colors, start=start_tile_idx))
             exhaust(map(wp.submit, funcs))
 
-    def recenter_coordinates(self):
-        x_vals, y_vals = self.get_xy_vals()
-        x_vals = self.center_axis(x_vals)
-        y_vals = self.center_axis(y_vals)
-        centered_coordinates = list(zip(x_vals, y_vals))
-        for (tile_index, (user_x, user_y)) in enumerate(centered_coordinates):
-            self.set_tile_coordinates(tile_index, user_x, user_y)
+    # def recenter_coordinates(self):
+    #     x_vals, y_vals = self._get_xy_vals()
+    #     x_vals = self._center_axis(x_vals)
+    #     y_vals = self._center_axis(y_vals)
+    #     centered_coordinates = list(zip(x_vals, y_vals))
+    #     for (tile_index, (user_x, user_y)) in enumerate(centered_coordinates):
+    #         self._set_tile_coordinates(tile_index, user_x, user_y)
 
     def project_matrix(self, hsvk_matrix, duration=0, rapid=False):
+        """used for projecting one big color matrix across all tiles"""
         num_tiles = self.get_tile_count()
-        canvas_x, canvas_y = self.get_canvas_dimensions()
+        canvas_x, canvas_y = self._get_canvas_dimensions()
         matrix_x = len(hsvk_matrix[0])
         matrix_y = len(hsvk_matrix)
         if (matrix_x != canvas_x) or (matrix_y != canvas_y):
@@ -89,8 +91,8 @@ class TileChain(Light):
         tile_width = 8  # hardcoded, argh
         tile_height = 8
         default_color = (0, 0, 0, 0)
-        tile_map = self.get_tile_map()
-        tile_colors = [[default_color for i in range(tile_width * tile_height)] for j in range(num_tiles)]
+        tile_map = self._get_tile_map()
+        tile_colors = [[default_color for _ in range(tile_width * tile_height)] for _ in range(num_tiles)]
 
         rows = canvas_y
         cols = canvas_x
@@ -100,25 +102,21 @@ class TileChain(Light):
                     (tile_num, color_num) = tile_map[row][col]
                     tile_colors[tile_num][color_num] = hsvk_matrix[row][col]
 
-        threads = []
-        for (i, tile_color) in enumerate(tile_colors):
-            t = Thread(target=self.set_tile_colors, args=((i, tile_color, duration, 1, 0, 0, 8, rapid)))
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
+        self.set_tilechain_colors(tile_colors, start_tile_idx=0, duration=duration, rapid=rapid)
 
-    ### HELPER FUNCTIONS
+    # ==================================================================================================================
+    # HELPER FUNCTIONS
+    # ==================================================================================================================
 
     # danger zoooooone
-    def set_tile_coordinates(self, tile_index, x, y):
+    def _set_tile_coordinates(self, tile_index, x, y):
         self.req_with_ack(SetUserPosition, {"tile_index": tile_index, "reserved": 0, "user_x": x, "user_y": y})
         # update cached information
         self.get_tile_info(refresh_cache=True)
-        self.get_tile_map(refresh_cache=True)
-        self.get_canvas_dimensions(refresh_cache=True)
+        self._get_tile_map(refresh_cache=True)
+        self._get_canvas_dimensions(refresh_cache=True)
 
-    def get_xy_vals(self):
+    def _get_xy_vals(self):
         tiles = self.get_tile_info()
         num_tiles = self.get_tile_count()
         x_vals = []
@@ -126,11 +124,11 @@ class TileChain(Light):
         for tile in tiles[:num_tiles]:
             x_vals.append(tile.user_x)
             y_vals.append(tile.user_y)
-        x_vals = self.center_axis(x_vals)
-        y_vals = self.center_axis(y_vals)
+        x_vals = self._center_axis(x_vals)
+        y_vals = self._center_axis(y_vals)
         return x_vals, y_vals
 
-    def center_axis(self, axis_vals):
+    def _center_axis(self, axis_vals):
         if 0.0 not in axis_vals:
             smallest_val = min([abs(val) for val in axis_vals])
             closest_val = 0.0
@@ -141,16 +139,16 @@ class TileChain(Light):
         return axis_vals
 
     # all become non-negative -- shifts (0, 0) to the left/top
-    def shift_axis_upper_left(self, axis_vals, is_y=False):
+    def _shift_axis_upper_left(self, axis_vals, is_y=False):
         if is_y:
             axis_vals = [-1 * val for val in axis_vals]
         smallest_val = min(axis_vals)
         axis_vals = [(-1 * smallest_val) + val for val in axis_vals]
         return axis_vals
 
-    def get_canvas_dimensions(self, refresh_cache=False):
+    def _get_canvas_dimensions(self, refresh_cache=False):
         if (self.canvas_dimensions is None) or refresh_cache:
-            x_vals, y_vals = self.get_xy_vals()
+            x_vals, y_vals = self._get_xy_vals()
             min_x = min(x_vals)
             max_x = max(x_vals)
             min_y = min(y_vals)
@@ -164,18 +162,18 @@ class TileChain(Light):
             self.canvas_dimensions = (canvas_x, canvas_y)
         return self.canvas_dimensions
 
-    def get_tile_map(self, refresh_cache=False):
+    def _get_tile_map(self, refresh_cache=False):
         if (self.tile_map is None) or refresh_cache:
             num_tiles = self.get_tile_count()
             tile_width = 8  # TO DO: get these programmatically for each light from the tile info
             tile_height = 8  # TO DO: get these programmatically for each light from the tile info
-            x, y = self.get_canvas_dimensions()
+            x, y = self._get_canvas_dimensions()
             tile_map = [[0] * x for _ in range(y)]
 
             tiles = self.get_tile_info()
-            x_vals, y_vals = self.get_xy_vals()
-            x_vals = self.shift_axis_upper_left(x_vals)
-            y_vals = self.shift_axis_upper_left(y_vals, is_y=True)
+            x_vals, y_vals = self._get_xy_vals()
+            x_vals = self._shift_axis_upper_left(x_vals)
+            y_vals = self._shift_axis_upper_left(y_vals, is_y=True)
 
             for i in range(num_tiles):
                 tile = tiles[i]

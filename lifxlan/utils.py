@@ -9,6 +9,8 @@ from itertools import cycle
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
 from typing import Optional, List, Any, Union, Iterable
 
+import cv2
+
 
 def init_log(name, level=logging.INFO):
     """create logger using consistent settings"""
@@ -98,6 +100,7 @@ class WaitPool:
         return self._pool.submit(fn, *args, **kwargs)
 
     def __enter__(self):
+        # TODO: use thread-local storage for futures
         self._futures.clear()
         return self
 
@@ -143,3 +146,8 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
     for v, r in zip(array, cycle(res)):
         r.append(v)
     return res
+
+
+def img_to_rgb(filename):
+    i = cv2.imread(filename)
+    return [[p[::-1] for p in row] for row in i]
