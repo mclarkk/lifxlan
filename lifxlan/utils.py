@@ -106,7 +106,6 @@ class WaitPool:
         return self._pool.submit(fn, *args, **kwargs)
 
     def __enter__(self):
-        # TODO: use thread-local storage for futures
         self.futures.clear()
         return self
 
@@ -154,7 +153,3 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
     return res
 
 
-def img_to_rgb(filename):
-    import cv2
-    i = cv2.imread(filename)
-    return [[p[::-1] for p in row] for row in i]

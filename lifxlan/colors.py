@@ -180,6 +180,7 @@ class ColorsMeta(type):
 
 class Colors(metaclass=ColorsMeta):
     DEFAULT = Color(43520, 0, 39321, 3200)
+    OFF = Color(0, 0, 0, 0)
 
     RED = Color(65535, 65535, 65535, 3500)
     ORANGE = Color(6500, 65535, 65535, 3500)

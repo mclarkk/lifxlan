@@ -11,6 +11,7 @@ l_bracket = 0x5b
 one = 0x31
 two = 0x32
 semi = 0x3b
+ctrl_w = 0x17
 
 
 def _getch_ord() -> int:
@@ -39,7 +40,10 @@ def _getch_sep():
 
     def _getch_helper():
         while True:
-            writer.send(_getch_ord())
+            try:
+                writer.send(_getch_ord())
+            except KeyboardInterrupt:
+                return
 
     t = Process(target=_getch_helper, daemon=True)
     t.start()

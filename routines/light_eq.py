@@ -3,16 +3,15 @@ from itertools import chain
 from typing import Optional, NamedTuple
 
 from lifxlan import init_log, Group, Themes, LifxLAN
-from routines import ColorTheme, colors_to_theme, parse_keyboard_inputs, left, right, up, down, ctrl_r
+from routines import ColorTheme, colors_to_theme, parse_keyboard_inputs, left, right, up, down, ctrl_r, ctrl_w
 
 __author__ = 'acushner'
 
 log = init_log(__name__)
 
-
 mults = dict(hue=65535 / 360,  # base mult: 1 degree
-             brightness=65535 / 20,
-             saturation=65535 / 20)
+             brightness=65535 / 40,
+             saturation=65535 / 40)
 
 
 class AttrOffset(NamedTuple):
@@ -46,8 +45,8 @@ def _init_keys(qwerty=False):
     # saturation
     res[left << 8] = AttrOffset('saturation', -1)
     res[right << 8] = AttrOffset('saturation', 1)
-    res[left << 16] = AttrOffset('saturation', 65535, False)
-    res[right << 16] = AttrOffset('saturation', 0, False)
+    res[left << 16] = AttrOffset('saturation', 0, False)
+    res[right << 16] = AttrOffset('saturation', 65535, False)
 
     # brightness
     res[up << 8] = AttrOffset('brightness', 1)
@@ -63,6 +62,9 @@ def _init_keys(qwerty=False):
 
     # reset
     res[ctrl_r] = AttrOffset('reset', None)
+
+    # write light settings to screen
+    res[ctrl_w] = AttrOffset('print', None)
 
     return res
 
@@ -91,6 +93,8 @@ def light_eq(lifx: Group, color_theme: Optional[ColorTheme] = None):
     - jk (dvorak)/cv (qwerty) control kelvin
 
     - ctrl-r resets
+
+    - ctrl-w prints info to screen
     """
 
     def _init_lights():
@@ -106,6 +110,11 @@ def light_eq(lifx: Group, color_theme: Optional[ColorTheme] = None):
         for ao in _get_offset():
             if ao.attr == 'reset':
                 _init_lights()
+
+            elif ao.attr == 'print':
+                for l in lifx:
+                    print(l, l.color)
+
             else:
                 getattr(lifx, f'set_{ao.attr}')(ao.value, offset=ao.as_offset)
 

@@ -196,9 +196,11 @@ def info(light, color, debug):
               help='set color for dot')
 @click.option('--dash', callback=_parse_colors, default=None,
               help='set color for dash (will default to dot if not provided')
+@click.option('--delay-msec', default=routines.TIME_QUANTUM_MS,
+              help='how much delay in msec between dots and dashes')
 @click.argument('phrase', nargs=-1, required=True)
 @pass_conf
-def morse_code(conf: Config, dot, dash, phrase):
+def morse_code(conf: Config, dot, dash, delay_msec, phrase):
     """convert phrase into morse code"""
     phrase = ' '.join(phrase)
     echo(f'morse code: {phrase}')
@@ -212,7 +214,7 @@ def morse_code(conf: Config, dot, dash, phrase):
     dot = dot or s.dot
     dash = dash or dot or s.dash
 
-    routines.morse_code(phrase, conf.group, routines.MCSettings(dot, dash))
+    routines.morse_code(phrase, conf.group, delay_msec, routines.MCSettings(dot, dash))
 
 
 @cli_main.command()
@@ -299,7 +301,8 @@ def getch_test(separate_process):
 @pass_conf
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
-    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.adjust_color(Colors.DEFAULT)))
+    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.adjust_color(Colors.DEFAULT)),
+                                   preserve_brightness=True)
 
 
 @cli_main.command()

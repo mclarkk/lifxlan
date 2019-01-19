@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import partial, wraps
 
 unknown = 'UNKNOWN'
 TOTAL_NUM_LIGHTS = 21
@@ -36,19 +37,33 @@ class PowerSettings(Enum):
             raise RuntimeError('you should not be here')
 
 
-class DefaultOverride(dict):
-    """proxy"""
+_global_dict = {}
+
+
+class GlobalSettings:
+    """
+    proxy because i can't import `Colors` here
+    and it makes it possible to update these values as the program is running
+    """
 
     @property
-    def _override(self):
+    def _global(self):
         from lifxlan import Colors
-        return {
-            'library': Colors.DEFAULT._replace(kelvin=3634)
-        }
+        if not _global_dict:
+            _global_dict['library'] = Colors.DEFAULT._replace(kelvin=3634)
+            _global_dict['preserve_brightness'] = False
+        return _global_dict
 
-    def __getattribute__(self, item):
-        override = super().__getattribute__('_override')
-        return getattr(override, item)
+    def __getitem__(self, item):
+        return self._global[item]
+
+    def __setitem__(self, key, value):
+        self._global[key] = value
+
+    def get(self, item, default=None):
+        if item in self._global:
+            return self[item]
+        return default
 
 
-default_override = DefaultOverride()
+global_settings = GlobalSettings()

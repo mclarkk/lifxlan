@@ -11,7 +11,7 @@ from .colors import ColorPower, Color, Colors
 from .device import Device
 from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared
-from .settings import unknown, Waveform
+from .settings import unknown, Waveform, global_settings
 from .utils import WaitPool, init_log
 
 log = init_log(__name__)
@@ -55,6 +55,12 @@ class Light(Device, LightAPI):
     def color_power(self) -> ColorPower:
         return ColorPower(self.color, self.power)
 
+    @staticmethod
+    def validate_pb(pb):
+        """validate value for `preserve_brightness`"""
+        res = global_settings['preserve_brightness'] if pb is None else pb
+        return res
+
     def set_waveform(self, waveform: Waveform, color: Color, period_msec, num_cycles,
                      *, skew_ratio=.5, is_transient=True, rapid=False):
         skew_ratio = int(skew_ratio * 2 ** 16 - 2 ** 15)
@@ -77,12 +83,11 @@ class Light(Device, LightAPI):
             response = self.req_with_resp(LightGetInfrared, LightStateInfrared)
             self.infrared_brightness = response.infrared_brightness
 
-    def set_color(self, color: Color, duration=0, rapid=False, preserve_brightness=True):
+    def set_color(self, color: Color, duration=0, rapid=False, preserve_brightness: bool = None):
         if color:
             color = color.clamped
-            # TODO: change to allow preserve_brightness to be set
 
-            if preserve_brightness:
+            if self.validate_pb(preserve_brightness):
                 color = color._replace(brightness=self.color.brightness)
 
             log.info(f'setting {self.label!r} color to {color} over {duration} msecs')
@@ -98,10 +103,11 @@ class Light(Device, LightAPI):
     def set_power(self, power, duration=0, rapid=False):
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
-    def set_color_power(self, cp: ColorPower, duration=0, rapid=False, preserve_brightness=True):
+    def set_color_power(self, cp: ColorPower, duration=0, rapid=False, preserve_brightness: bool = None):
         """set both color and power at the same time"""
         with self._wait_pool as wp:
-            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid, preserve_brightness=preserve_brightness)
+            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid,
+                      preserve_brightness=self.validate_pb(preserve_brightness))
             wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
     def _replace_color(self, color: Color, duration, rapid, offset=False, **color_kwargs):
