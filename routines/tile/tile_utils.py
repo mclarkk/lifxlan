@@ -272,8 +272,8 @@ class ColorMatrix(List[List[Color]]):
 
     @property
     def color_str(self):
-        res = [80 * '=', f'ColorMatrix: {Counter(self.flattened)}']
-        res.extend(c.color_str('  ', set_bg=True) for row in self for c in row)
+        res = [80 * '=', f'ColorMatrix: Shape{self.shape}']
+        res.extend(''.join(c.color_str('  ', set_bg=True) for c in row) for row in self)
         res.append(80 * '=')
         res.append('')
         return '\n'.join(res)

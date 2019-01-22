@@ -14,8 +14,11 @@ log = init_log(__name__)
 
 @lru_cache()
 def get_tile_chain() -> TileChain:
-    lifx = LifxLAN()
-    return lifx.tilechain_lights[0]
+    try:
+        lifx = LifxLAN()
+        return lifx.tilechain_lights[0]
+    except:
+        return None
 
 
 def _cm_test(c: Color) -> ColorMatrix:
@@ -49,7 +52,7 @@ def animate(fn: str, *, center: bool = False, sleep_secs: float = .75):
 
 
 def set_cm(cm: ColorMatrix, offset=RC(0, 0)):
-    cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
+    orig_cm = cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
     cm.set_max_brightness_pct(60)
     tiles = cm.to_tiles()
 
@@ -60,8 +63,11 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0)):
         idx_colors_map[t_info.idx] = cm.flattened
 
     tc = get_tile_chain()
-    tc.set_tilechain_colors(idx_colors_map)
-    _cmp_colors(idx_colors_map)
+    try:
+        tc.set_tilechain_colors(idx_colors_map)
+        _cmp_colors(idx_colors_map)
+    except:
+        print(orig_cm.color_str)
 
 
 def _cmp_colors(idx_colors_map):
@@ -126,7 +132,7 @@ def __main():
     # tc = get_tile_chain()
     # tc.set_tile_colors(0, to_n_colors(Colors.OFF))
     # return bernard_colors()
-    return animate('./imgs/maniac_bernard.png')
+    # return animate('./imgs/zelda_red_octorock.png')
     # return ghosts()
     # return red_octorock()
     return link()
