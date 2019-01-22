@@ -336,7 +336,7 @@ def set_whites(conf: Config, kelvin_range: Tuple[int, int]):
     c = conf.adjust_color(Colors.DEFAULT)
     t = Theme.from_colors(*(c._replace(kelvin=k)
                             for k in random.choices(range(l, h + 1), k=len(g))))
-    g.set_theme(t, power_on=False)
+    g.set_theme(t, power_on=None)
 
 
 def __main():

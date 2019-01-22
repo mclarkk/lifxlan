@@ -108,7 +108,8 @@ class Light(Device, LightAPI):
         with self._wait_pool as wp:
             wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid,
                       preserve_brightness=self.validate_pb(preserve_brightness))
-            wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
+            if cp.power is not None:
+                wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
     def _replace_color(self, color: Color, duration, rapid, offset=False, **color_kwargs):
         """helper func for setting various Color attributes"""

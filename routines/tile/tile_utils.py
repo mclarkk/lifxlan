@@ -1,14 +1,12 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 from contextlib import suppress
 from functools import lru_cache
 from itertools import islice, cycle, groupby
-from math import ceil
-from time import sleep
-from typing import List, NamedTuple, Tuple, Dict, Optional
+from typing import List, NamedTuple, Tuple, Dict, Optional, Iterable
 
 from PIL import Image
 
-from lifxlan import RGBk, Color, LifxLAN, TileChain, Colors, init_log
+from lifxlan import RGBk, Color, Colors, init_log
 from routines import colors_to_theme, ColorTheme
 
 __author__ = 'acushner'
@@ -84,7 +82,7 @@ tile_map: Dict[RC, TileInfo] = {RC(0, 0): TileInfo(2, RC(0, 0)),
 
 
 class ColorMatrix(List[List[Color]]):
-    """represent Colors in a 2d-array (roughly) form that allows for easy setting of Tilechain Lights"""
+    """represent Colors in a 2d-array form that allows for easy setting of TileChain lights"""
 
     def __getitem__(self, item):
         if isinstance(item, tuple):
@@ -115,7 +113,7 @@ class ColorMatrix(List[List[Color]]):
         return cls([default for _ in range(num_cols)] for _ in range(num_rows))
 
     @classmethod
-    def to_shape(cls, shape: Shape = default_shape, *, colors):
+    def from_colors(cls, colors: List[Color], shape: Shape = (8, 8)):
         """convert a list of colors into a ColorMatrix of shape `shape`"""
         num_rows, num_cols = shape
         if len(colors) != num_rows * num_cols:
@@ -129,7 +127,7 @@ class ColorMatrix(List[List[Color]]):
 
     @property
     def flattened(self) -> List[Color]:
-        """flatten ColorMatrix to 1d-array (opposite of `to_shape`)"""
+        """flatten ColorMatrix to 1d-array (opposite of `from_colors`)"""
         return [c for row in self for c in row]
 
     @property
@@ -272,109 +270,16 @@ class ColorMatrix(List[List[Color]]):
         """convert zipped transpositions back to list of lists and ultimately a ColorMatrix"""
         return cls([list(r) for r in zipped_vals])
 
+    @property
+    def color_str(self):
+        res = [80 * '=', f'ColorMatrix: {Counter(self.flattened)}']
+        res.extend(c.color_str('  ', set_bg=True) for row in self for c in row)
+        res.append(80 * '=')
+        res.append('')
+        return '\n'.join(res)
+
 
 # utils
 
 def to_n_colors(*colors, n=64):
     return list(islice(cycle(colors), n))
-
-
-@lru_cache()
-def get_tile_chain() -> TileChain:
-    lifx = LifxLAN()
-    return lifx.tilechain_lights[0]
-
-
-def _cm_test(c: Color) -> ColorMatrix:
-    cm = ColorMatrix.from_shape(default_shape)
-    cm[0, 0] = cm[0, 1] = cm[1, 0] = cm[1, 1] = c
-    return cm
-
-
-def id_tiles(tc: TileChain, rotate=False):
-    """set tiles to different colors in the corner to ID tile"""
-    colors = 'MAGENTA', 'YELLOW', 'YALE_BLUE', 'GREEN', 'BROWN'
-    for ti in tile_map.values():
-        name = colors[ti.idx]
-        print(ti.idx, name)
-        cm = _cm_test(Colors[name])
-        if rotate:
-            cm = cm.rotate_from_origin(ti.origin)
-        tc.set_tile_colors(ti.idx, cm.flattened)
-
-
-# interactive
-
-def animate(fn: str, *, center: bool = False, sleep_secs: float = .75):
-    """split color matrix and change images every `sleep_secs` seconds"""
-    cm = ColorMatrix.from_filename(fn)
-    for i, cm in enumerate(cycle(cm.split())):
-        log.info('.')
-        c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
-        set_cm(cm, offset=RC(0, c_offset))
-        sleep(sleep_secs)
-
-
-def set_cm(cm: ColorMatrix, offset=RC(0, 0)):
-    cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
-    cm.set_max_brightness_pct(60)
-    tiles = cm.to_tiles()
-
-    idx_colors_map = {}
-    for t_idx, cm in tiles.items():
-        t_info = tile_map[t_idx]
-        cm.replace({default_color: Color(1, 1, 100, 9000)})
-        idx_colors_map[t_info.idx] = cm.flattened
-
-    tc = get_tile_chain()
-    tc.set_tilechain_colors(idx_colors_map)
-
-
-def mario_one():
-    set_cm(ColorMatrix.from_filename('./imgs/ms.png').strip())
-
-
-def link_one():
-    cm = ColorMatrix.from_filename('./imgs/link.png')
-    set_cm(cm)
-
-
-def mm():
-    animate('./imgs/mm_walk.png', center=True)
-
-
-def link():
-    animate('./imgs/link_all.png')
-
-
-def red_octorock():
-    fn = './imgs/zelda_red_octorock.png'
-    # return ColorMatrix.from_filename(fn).strip()
-    animate(fn)
-
-
-def ghosts():
-    animate('./imgs/zelda_ghosts.png')
-
-
-def split_test():
-    cm = ColorMatrix.from_filename('/tmp/m_small.png')
-    cm.split()
-
-
-def __main():
-    # print(RC(8, 8) - RC(4, 5))
-    # return split_test()
-    # tc = get_tile_chain()
-    # tc.set_tile_colors(0, to_n_colors(Colors.OFF))
-    # return animate('./imgs/zelda_enemies.png')
-    # return ghosts()
-    # return red_octorock()
-    return link()
-    return link_one()
-    return mm()
-    return mario_one()
-
-
-if __name__ == '__main__':
-    __main()
