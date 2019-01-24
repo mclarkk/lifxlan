@@ -4,7 +4,6 @@ Click
 getch
 netifaces
 Pillow
-pyspark
 python-dateutil
 six
 sty
