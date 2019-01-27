@@ -4,7 +4,7 @@ from typing import Optional
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
-from .utils import exhaust, timer, init_log, WaitPool
+from .utils import exhaust, init_log, WaitPool
 
 log = init_log(__name__)
 
@@ -64,9 +64,8 @@ class TileChain(Light):
 
         payload = dict(tile_index=start_index, length=tile_count, colors=colors, duration=duration, reserved=0, x=x,
                        y=y, width=width)
-        self._send_set_message(SetTileState64, payload, rapid=rapid)
+        return self._send_set_message(SetTileState64, payload, rapid=rapid)
 
-    @timer
     def set_tilechain_colors(self, idx_colors_map, duration=0, rapid=True):
         """set colors for num_tiles starting from start_tile_idx"""
         with self._wait_pool as wp:

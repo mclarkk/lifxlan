@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter
 from contextlib import suppress
 from functools import lru_cache
 from itertools import islice, cycle, groupby
@@ -227,7 +227,10 @@ class ColorMatrix(List[List[Color]]):
         return cm
 
     def replace(self, color_map: Dict[Color, ColorTheme]):
-        """replace colors from keys of color_map with colors from values in ColorMatrix"""
+        """
+        modifies self
+        replace colors from keys of color_map with colors from values in ColorMatrix
+        """
         s = slice(0, 3)
         color_map = {k[s]: cycle(colors_to_theme(v)) for k, v in color_map.items()}
 
@@ -289,6 +292,12 @@ class ColorMatrix(List[List[Color]]):
         res.append(80 * '=')
         res.append('')
         return '\n'.join(res)
+
+    @property
+    def describe(self) -> str:
+        colors = self.flattened
+        d = sorted(Counter(colors).items(), key=lambda kv: kv[1], reverse=True)
+        return '\n'.join(f'{str(c):>68}: {c.color_str(" " * count, set_bg=True)}' for c, count in d)
 
     def cast(self, converter: Type) -> 'ColorMatrix':
         """

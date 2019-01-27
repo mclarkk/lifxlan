@@ -1,15 +1,12 @@
 from contextlib import suppress
 from functools import lru_cache
 from math import ceil
+from pprint import pprint
 from time import sleep
-from typing import Optional
-
-from PIL import Image
+from typing import Optional, Dict
 
 from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer
-from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color, Shape
-
-from pprint import pprint
+from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
 
 __author__ = 'acushner'
 
@@ -43,12 +40,30 @@ def id_tiles(tc: TileChain, rotate=False):
 
 # interactive
 
+_color_replacements: Dict[str, Dict[Color, Color]] = dict(
+    crono={Color(hue=54612, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
+    ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    ff4={Color(hue=32767, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
+    mario_kart={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF},
+    lttp={Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
+          Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF})
+
+
+def _get_color_replacements(filename):
+    for k, v in _color_replacements.items():
+        if k in filename:
+            return v
+    return {}
+
+
 def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16)):
     """split color matrix and change images every `sleep_secs` seconds"""
     cm = ColorMatrix.from_filename(filename)
+    color_map = _get_color_replacements(filename)
     for i, cm in enumerate(cycle(cm.split())):
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
+        cm.replace(color_map)
         set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal)
         sleep(sleep_secs)
 
@@ -58,6 +73,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16), in_terminal=False,
     orig_cm = cm = cm.strip().get_range(RC(0, 0) + offset, size + offset)
     if in_terminal:
         print(cm.color_str)
+        print(cm.describe)
         print(cm.resize().color_str)
         print(cm.resize((4, 4)).color_str)
         return
@@ -116,7 +132,7 @@ def _cmp_colors(idx_colors_map):
 
 def __main():
     # return id_tiles(get_tile_chain(), rotate=True)
-    return animate('./imgs/link_all.png', in_terminal=True)
+    return animate('./imgs/lttp_link.png', in_terminal=True)
     return animate('./imgs/maniac_bernard.png')
 
 
