@@ -178,20 +178,20 @@ class Group(LightAPI):
         """set waveform on color lights"""
 
     @_call_on_lights
-    def set_color(self, color: Color, duration=0, rapid=rapid_default):
+    def set_color(self, color: Color, duration=0, rapid=rapid_default, preserve_brightness: bool = None):
         """set color on color lights"""
 
     def set_color_power(self, cp: Union[ColorPower, Dict[Light, ColorPower]],
-                        duration=0, rapid=True):
+                        duration=0, rapid=True, preserve_brightness: bool = None):
         """set color and power on color lights"""
         if isinstance(cp, ColorPower):
             return self._set_color_power(cp, duration, rapid)
 
         with self._wait_pool as wp:
-            exhaust(wp.submit(l.set_color_power, _cp, duration, rapid) for l, _cp in cp.items())
+            exhaust(wp.submit(l.set_color_power, _cp, duration, rapid, preserve_brightness) for l, _cp in cp.items())
 
     @_call_on_lights(func_name_override='set_color_power')
-    def _set_color_power(self, cp: ColorPower, duration=0, rapid=True):
+    def _set_color_power(self, cp: ColorPower, duration=0, rapid=True, preserve_brightness: bool = None):
         """set color and power on color lights"""
 
     @_call_on_lights
@@ -214,11 +214,11 @@ class Group(LightAPI):
     def set_infrared(self, infrared_brightness):
         """set infrared on color lights"""
 
-    def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True):
+    def set_theme(self, theme: Theme, power_on=True, duration=0, rapid=True, preserve_brightness=None):
         colors = theme.get_colors(len(self))
         with self._wait_pool as wp:
-            exhaust(
-                wp.submit(l.set_color_power, ColorPower(c, power_on), duration, rapid) for l, c in zip(self, colors))
+            exhaust(wp.submit(l.set_color_power, ColorPower(c, power_on), duration, rapid, preserve_brightness)
+                    for l, c in zip(self, colors))
 
     @_call_on_lights
     def turn_on(self, duration=0):

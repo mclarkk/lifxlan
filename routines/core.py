@@ -6,9 +6,10 @@ from typing import Optional, Union
 import arrow
 
 from lifxlan import LifxLAN, Group, Colors, Themes, Waveform, Color
-from routines import ColorTheme, colors_to_theme
+from routines import ColorTheme, colors_to_theme, preserve_brightness
 
 
+@preserve_brightness
 def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
             max_brightness_pct=60,
             colors: Optional[ColorTheme] = None,
@@ -40,6 +41,7 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
             print("Restoring original color and power to all lights...")
 
 
+@preserve_brightness
 def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
     """toggle power on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
@@ -50,6 +52,7 @@ def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
             sleep(blink_time_secs)
 
 
+@preserve_brightness
 def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_secs=.5, how_long_secs=8):
     """change colors on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
@@ -72,6 +75,7 @@ def rainbow(lifx: Group, colors: Optional[ColorTheme] = Themes.rainbow,
             sleep(duration_secs)
 
 
+@preserve_brightness
 def cycle_themes(lifx: Group, *themes: ColorTheme,
                  rotate_secs: Optional[int] = 60,
                  duration_mins: Optional[int] = 20,

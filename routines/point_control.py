@@ -8,7 +8,7 @@ from itertools import cycle
 from typing import Callable, Iterable
 
 from lifxlan import Dir, GridLight, Group, Colors, grid, LifxLAN, init_log, exhaust
-from routines import ColorTheme, init_grid, colors_to_theme
+from routines import ColorTheme, init_grid, colors_to_theme, preserve_brightness
 from routines.keyboard_utils import *
 
 __author__ = 'acushner'
@@ -45,6 +45,7 @@ def _delay(f: Callable, delay_secs: float):
         time.sleep(delay_secs)
 
 
+@preserve_brightness
 def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[ColorTheme] = None,
                   *, tail_delay_secs: float = 0, head_delay_secs: float = 0):
     """

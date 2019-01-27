@@ -9,7 +9,7 @@ from .multizonelight import *
 from .tilechain import TileChain, Tile
 from .utils import *
 from .themes import Theme, Themes
-from .colors import Color, Colors
+from .colors import Color, Colors, RGBk
 from .grid import grid, GridLight, Dir, enlighten_grid
 
 __version__     = '2.0.0'

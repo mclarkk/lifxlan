@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Union, List, NamedTuple
 
 from lifxlan import Group, Light, LifxLAN, exhaust, Colors, ColorPower, init_log
+from routines import preserve_brightness
 
 __author__ = 'acushner'
 
@@ -20,7 +21,10 @@ MORSE_CODE_DICT = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F
                    '?': '..--..', '/': '-..-.', '-': '-....-', '(': '-.--.', ')': '-.--.-'}
 
 TIME_QUANTUM_MS = 240
-mc_char_len = {k: v * TIME_QUANTUM_MS / 1000 for k, v in (('.', 1), ('-', 3), (' ', 1))}
+
+
+def mc_char_len(delay_time_ms=TIME_QUANTUM_MS):
+    return {k: v * delay_time_ms / 1000 for k, v in (('.', 1), ('-', 3), (' ', 1))}
 
 
 class OnOff(Enum):
@@ -36,20 +40,17 @@ class Morse(List[str]):
         return res
 
     @property
-    def ms_time(self):
-        return TIME_QUANTUM_MS + sum(mc_char_len[c] for c in self.with_spaces)
-
-    @property
     def with_spaces(self) -> str:
         return ' '.join(' '.join(self)) + ' '
 
-    @property
-    def to_char_and_len(self):
-        return [(c, mc_char_len[c]) for c in self.with_spaces]
+    def to_char_and_len(self, delay_time_ms=TIME_QUANTUM_MS):
+        char_len = mc_char_len(delay_time_ms)
+        return [(c, char_len[c]) for c in self.with_spaces]
 
     def simulate(self):
         print('simulating\n')
-        ons_offs = ((OnOff.off if c == ' ' else OnOff.on, mc_char_len.get(c))
+        char_len = mc_char_len()
+        ons_offs = ((OnOff.off if c == ' ' else OnOff.on, char_len.get(c))
                     for c in self.with_spaces)
         for on_off, val in ons_offs:
             sys.stdout.write(on_off.value)
@@ -68,15 +69,17 @@ class MCSettings(NamedTuple):
         return self[self._char_idx_map[char]]
 
 
+@preserve_brightness
 def morse_code(word_or_phrase: str,
                light_group: Union[Light, Group],
+               delay_time_msec=TIME_QUANTUM_MS,
                settings: MCSettings = MCSettings()):
     """translate `word_or_phrase` into morse code that will appear on your lights"""
     light_group = Group([light_group]) if isinstance(light_group, Light) else light_group
     m = Morse.from_str(word_or_phrase)
 
     with light_group.reset_to_orig(3000):
-        for c, length in m.to_char_and_len:
+        for c, length in m.to_char_and_len(delay_time_msec):
             light_group.set_color_power(settings.cp_from_char(c))
             time.sleep(length)
 

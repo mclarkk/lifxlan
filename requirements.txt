@@ -1,0 +1,7 @@
+bitstring
+netifaces
+getch
+arrow
+click
+sty
+Pillow

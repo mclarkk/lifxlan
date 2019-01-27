@@ -32,12 +32,16 @@ def __main():
     # print(help(routines.core))
     # print(help(routines.morse_code))
     # print(help(routines.light_eq))
+    from lifxlan.settings import global_settings
+    print(global_settings.items())
+    global_settings.preserve_brightness = False
+    print(global_settings.items())
+    return
     t = LifxLAN()
     l = t.multizone_lights[0]
     print(l.zones)
     l.set_theme(Themes.rainbow)
     return
-    from lifxlan.settings import default_override
     print(default_override.get('library'))
     print(default_override.get('library'))
     print(default_override.get('library'))
