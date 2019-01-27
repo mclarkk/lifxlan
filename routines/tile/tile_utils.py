@@ -2,7 +2,7 @@ from collections import defaultdict, Counter
 from contextlib import suppress
 from functools import lru_cache
 from itertools import islice, cycle, groupby
-from typing import List, NamedTuple, Tuple, Dict, Optional, Iterable
+from typing import List, NamedTuple, Tuple, Dict, Optional, Type
 
 from PIL import Image
 
@@ -75,10 +75,11 @@ class DupesValids(NamedTuple):
         return [(v[0][0], v[-1][1]) for v in valids]
 
 
-tile_map: Dict[RC, TileInfo] = {RC(0, 0): TileInfo(2, RC(0, 0)),
-                                RC(0, 1): TileInfo(1, RC(1, 0)),
-                                RC(1, 0): TileInfo(3, RC(1, 0)),
-                                RC(1, 1): TileInfo(4, RC(0, 1))}
+tile_map: Dict[RC, TileInfo] = {RC(0, 2): TileInfo(2, RC(1, 0)),
+                                RC(1, 3): TileInfo(1, RC(1, 0)),
+                                RC(0, 0): TileInfo(3, RC(1, 1)),
+                                RC(2, 2): TileInfo(0, RC(1, 0)),
+                                RC(1, 1): TileInfo(4, RC(0, 0))}
 
 
 class ColorMatrix(List[List[Color]]):
@@ -143,6 +144,7 @@ class ColorMatrix(List[List[Color]]):
     def width(self) -> int:
         return self.shape[1]
 
+    @property
     def by_coords(self) -> Tuple[RC, Color]:
         """yield coordinates and their colors"""
         yield from ((RC(r, c), color)
@@ -152,7 +154,7 @@ class ColorMatrix(List[List[Color]]):
     def set_max_brightness_pct(self, brightness_pct):
         """set brightness in all colors to at most `brightness_pct` pct"""
         brightness = 65535 * min(100.0, max(0.0, brightness_pct)) // 100
-        for rc, c in self.by_coords():
+        for rc, c in self.by_coords:
             self[rc] = c._replace(brightness=min(c.brightness, brightness))
 
     def strip(self, strip_color: Optional[Color] = None) -> 'ColorMatrix':
@@ -201,7 +203,7 @@ class ColorMatrix(List[List[Color]]):
         """
         row_info = self.duplicates(split_color)
         col_info = self.T.duplicates(split_color)
-        return [self.get_range(RC(r_start, c_start), RC(r_end, c_end), default_color)
+        return [self.get_range(RC(r_start, c_start), RC(r_end + 1, c_end + 1), default_color)
                 for r_start, r_end in row_info.by_group
                 for c_start, c_end in col_info.by_group]
 
@@ -221,7 +223,7 @@ class ColorMatrix(List[List[Color]]):
         s = slice(0, 3)
         color_map = {k[s]: cycle(colors_to_theme(v)) for k, v in color_map.items()}
 
-        for rc, c in self.by_coords():
+        for rc, c in self.by_coords:
             if c[s] in color_map:
                 self[rc] = next(color_map[c[s]])
 
@@ -239,7 +241,7 @@ class ColorMatrix(List[List[Color]]):
         |_______|_______|
         """
         res = defaultdict(lambda: ColorMatrix.from_shape(shape, default=bg))
-        for rc, color in self.by_coords():
+        for rc, color in self.by_coords:
             rc += offset
             tile, new_rc = divmod(rc, shape)
             res[tile][new_rc] = color
@@ -277,6 +279,15 @@ class ColorMatrix(List[List[Color]]):
         res.append(80 * '=')
         res.append('')
         return '\n'.join(res)
+
+    def cast(self, converter: Type):
+        """
+        modifies self
+
+        cast individual colors using the converter (probably Color or RGBk)
+        """
+        for idx, color in self.by_coords:
+            self[idx] = converter(*color)
 
 
 # utils

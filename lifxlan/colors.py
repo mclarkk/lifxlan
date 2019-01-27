@@ -28,6 +28,14 @@ class RGBk(NamedTuple):
     def color(self) -> 'Color':
         return Color.from_rgb(self)
 
+    def color_str(self, s, set_bg=False) -> str:
+        """
+        create str with different foreground(default)/background color for use in terminal
+        reset to default at end of str
+        """
+        layer = sty.bg if set_bg else sty.fg
+        return f'{layer(*self[:3])}{s}{layer.rs}'
+
     @staticmethod
     def _add_components(v1, v2):
         return int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
@@ -95,8 +103,7 @@ class Color(NamedTuple):
         create str with different foreground(default)/background color for use in terminal
         reset to default at end of str
         """
-        layer = sty.bg if set_bg else sty.fg
-        return f'{layer(*self.rgb[:3])}{s}{layer.rs}'
+        return self.rgb.color_str(s, set_bg)
 
     # ==================================================================================================================
     # COLOR METHODS

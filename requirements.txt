@@ -1,9 +1,7 @@
-arrow
 bitstring
-Click
-getch
 netifaces
-Pillow
-python-dateutil
-six
+getch
+arrow
+click
 sty
+Pillow

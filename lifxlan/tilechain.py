@@ -62,7 +62,6 @@ class TileChain(Light):
 
         payload = dict(tile_index=start_index, length=tile_count, colors=colors, duration=duration, reserved=0, x=x,
                        y=y, width=width)
-        pprint(payload)
         self._send_set_message(SetTileState64, payload, rapid=rapid)
 
     def set_tilechain_colors(self, idx_colors_map, duration=0, rapid=False):

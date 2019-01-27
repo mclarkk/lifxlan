@@ -1,6 +1,8 @@
+from contextlib import suppress
 from functools import lru_cache
 from math import ceil
 from time import sleep
+from typing import Optional
 
 from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log
 from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
@@ -13,12 +15,10 @@ log = init_log(__name__)
 
 
 @lru_cache()
-def get_tile_chain() -> TileChain:
-    try:
+def get_tile_chain() -> Optional[TileChain]:
+    with suppress(IndexError):
         lifx = LifxLAN()
         return lifx.tilechain_lights[0]
-    except:
-        return None
 
 
 def _cm_test(c: Color) -> ColorMatrix:
@@ -41,18 +41,22 @@ def id_tiles(tc: TileChain, rotate=False):
 
 # interactive
 
-def animate(fn: str, *, center: bool = False, sleep_secs: float = .75):
+def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False):
     """split color matrix and change images every `sleep_secs` seconds"""
-    cm = ColorMatrix.from_filename(fn)
+    cm = ColorMatrix.from_filename(filename)
     for i, cm in enumerate(cycle(cm.split())):
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
-        set_cm(cm, offset=RC(0, c_offset))
+        set_cm(cm, offset=RC(0, c_offset), in_terminal=in_terminal)
         sleep(sleep_secs)
 
 
-def set_cm(cm: ColorMatrix, offset=RC(0, 0)):
-    orig_cm = cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
+def set_cm(cm: ColorMatrix, offset=RC(0, 0), in_terminal=False):
+    cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
+    if in_terminal:
+        print(cm.color_str)
+        return
+
     cm.set_max_brightness_pct(60)
     tiles = cm.to_tiles()
 
@@ -63,11 +67,8 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0)):
         idx_colors_map[t_info.idx] = cm.flattened
 
     tc = get_tile_chain()
-    try:
-        tc.set_tilechain_colors(idx_colors_map)
-        _cmp_colors(idx_colors_map)
-    except:
-        print(orig_cm.color_str)
+    tc.set_tilechain_colors(idx_colors_map)
+    _cmp_colors(idx_colors_map)
 
 
 def _cmp_colors(idx_colors_map):
@@ -127,12 +128,15 @@ def bernard_colors():
 
 
 def __main():
+    # tc = get_tile_chain()
+    # return id_tiles(tc, True)
     # print(RC(8, 8) - RC(4, 5))
     # return split_test()
     # tc = get_tile_chain()
     # tc.set_tile_colors(0, to_n_colors(Colors.OFF))
     # return bernard_colors()
-    # return animate('./imgs/zelda_red_octorock.png')
+    return animate('./imgs/link_all.png', in_terminal=True)
+    return animate('./imgs/maniac_bernard.png')
     # return ghosts()
     # return red_octorock()
     return link()
