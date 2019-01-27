@@ -1,16 +1,18 @@
 import os
-from pprint import pprint
 from typing import Optional
 
 from .light import Light
 from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
-from .utils import exhaust
+from .utils import exhaust, timer, init_log, WaitPool
+
+log = init_log(__name__)
 
 
 class TileChain(Light):
     def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
         super(TileChain, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
+        self._wait_pool = WaitPool(5)
         self.tile_info = None
         self.tile_count = None
         self.tile_map = None
@@ -64,45 +66,12 @@ class TileChain(Light):
                        y=y, width=width)
         self._send_set_message(SetTileState64, payload, rapid=rapid)
 
-    def set_tilechain_colors(self, idx_colors_map, duration=0, rapid=False):
+    @timer
+    def set_tilechain_colors(self, idx_colors_map, duration=0, rapid=True):
         """set colors for num_tiles starting from start_tile_idx"""
         with self._wait_pool as wp:
             exhaust(wp.submit(self.set_tile_colors, i, c, duration, 1, 0, 0, 8, rapid)
                     for i, c in idx_colors_map.items())
-
-    # def recenter_coordinates(self):
-    #     x_vals, y_vals = self._get_xy_vals()
-    #     x_vals = self._center_axis(x_vals)
-    #     y_vals = self._center_axis(y_vals)
-    #     centered_coordinates = list(zip(x_vals, y_vals))
-    #     for (tile_index, (user_x, user_y)) in enumerate(centered_coordinates):
-    #         self._set_tile_coordinates(tile_index, user_x, user_y)
-
-    # def project_matrix(self, hsvk_matrix, duration=0, rapid=False):
-    #     """used for projecting one big color matrix across all tiles"""
-    #     num_tiles = self.get_tile_count()
-    #     canvas_x, canvas_y = self._get_canvas_dimensions()
-    #     matrix_x = len(hsvk_matrix[0])
-    #     matrix_y = len(hsvk_matrix)
-    #     if (matrix_x != canvas_x) or (matrix_y != canvas_y):
-    #         raise ValueError(f'Warning: TileChain canvas wants a {canvas_x} x {canvas_y} matrix, '
-    #                          f'but given matrix is {matrix_x} x {matrix_y}.')
-    #
-    #     tile_width = 8  # hardcoded, argh
-    #     tile_height = 8
-    #     default_color = (0, 0, 0, 0)
-    #     tile_map = self._get_tile_map()
-    #     tile_colors = [[default_color for _ in range(tile_width * tile_height)] for _ in range(num_tiles)]
-    #
-    #     rows = canvas_y
-    #     cols = canvas_x
-    #     for row in range(rows):
-    #         for col in range(cols):
-    #             if tile_map[row][col] != 0:
-    #                 (tile_num, color_num) = tile_map[row][col]
-    #                 tile_colors[tile_num][color_num] = hsvk_matrix[row][col]
-    #
-    #     self.set_tilechain_colors(tile_colors, start_tile_idx=0, duration=duration, rapid=rapid)
 
     # ==================================================================================================================
     # HELPER FUNCTIONS

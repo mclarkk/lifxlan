@@ -1,7 +1,8 @@
-from collections import defaultdict, Counter
+from collections import defaultdict
 from contextlib import suppress
 from functools import lru_cache
 from itertools import islice, cycle, groupby
+from types import SimpleNamespace
 from typing import List, NamedTuple, Tuple, Dict, Optional, Type
 
 from PIL import Image
@@ -49,7 +50,18 @@ class TileInfo(NamedTuple):
     origin: RC
 
 
+tile_map: Dict[RC, TileInfo] = {RC(1, 1): TileInfo(2, RC(0, 1)),
+                                RC(1, 0): TileInfo(1, RC(0, 1)),
+                                RC(0, 1): TileInfo(3, RC(1, 0)),
+                                RC(2, -1): TileInfo(0, RC(0, 0)),
+                                RC(0, 0): TileInfo(4, RC(0, 0))}
+
+
 class DupesValids(NamedTuple):
+    """
+    used by ColorMatrix to figure out which pixel rows/columns are either all the same
+    this is useful to help find bounding boxes for things
+    """
     d: frozenset
     v: frozenset
 
@@ -73,13 +85,6 @@ class DupesValids(NamedTuple):
         gb = groupby(zip(t, t[1:]), key=lambda p: (p[1] - p[0]) == 1)
         valids = (list(v) for k, v in gb if k)
         return [(v[0][0], v[-1][1]) for v in valids]
-
-
-tile_map: Dict[RC, TileInfo] = {RC(0, 2): TileInfo(2, RC(1, 0)),
-                                RC(1, 3): TileInfo(1, RC(1, 0)),
-                                RC(0, 0): TileInfo(3, RC(1, 1)),
-                                RC(2, 2): TileInfo(0, RC(1, 0)),
-                                RC(1, 1): TileInfo(4, RC(0, 0))}
 
 
 class ColorMatrix(List[List[Color]]):
@@ -109,7 +114,7 @@ class ColorMatrix(List[List[Color]]):
 
     @classmethod
     def from_shape(cls, shape: Shape = default_shape, default: Color = default_color) -> 'ColorMatrix':
-        """create a ColorMatrix with `shape` set to `default`"""
+        """create a ColorMatrix with shape `shape` and colors set to `default`"""
         num_rows, num_cols = shape
         return cls([default for _ in range(num_cols)] for _ in range(num_rows))
 
@@ -150,6 +155,9 @@ class ColorMatrix(List[List[Color]]):
         yield from ((RC(r, c), color)
                     for r, row in enumerate(self)
                     for c, color in enumerate(row))
+
+    def copy(self) -> 'ColorMatrix':
+        return ColorMatrix([c for c in row] for row in self)
 
     def set_max_brightness_pct(self, brightness_pct):
         """set brightness in all colors to at most `brightness_pct` pct"""
@@ -245,7 +253,7 @@ class ColorMatrix(List[List[Color]]):
             rc += offset
             tile, new_rc = divmod(rc, shape)
             res[tile][new_rc] = color
-        return {tile_idx: cm.rotate_from_origin(tile_map[tile_idx].origin)
+        return {tile_idx: cm.rotate_from_origin(tile_map.get(tile_idx, SimpleNamespace(origin=RC(0, 0))).origin)
                 for tile_idx, cm in res.items()}
 
     def rotate_from_origin(self, origin: RC) -> 'ColorMatrix':
@@ -275,19 +283,44 @@ class ColorMatrix(List[List[Color]]):
     @property
     def color_str(self):
         res = [80 * '=', f'ColorMatrix: Shape{self.shape}']
-        res.extend(''.join(c.color_str('  ', set_bg=True) for c in row) for row in self)
+        # encode groups with (color, num_repeats) tuples for less overhead
+        groups = (((c, sum(1 for _ in v)) for c, v in groupby(row)) for row in self)
+        res.extend(''.join(c.color_str('  ' * total, set_bg=True) for c, total in row) for row in groups)
         res.append(80 * '=')
         res.append('')
         return '\n'.join(res)
 
-    def cast(self, converter: Type):
+    def cast(self, converter: Type) -> 'ColorMatrix':
         """
-        modifies self
-
         cast individual colors using the converter (probably Color or RGBk)
         """
-        for idx, color in self.by_coords:
-            self[idx] = converter(*color)
+        return ColorMatrix([converter(c) for c in row] for row in self)
+
+    def resize(self, shape: Shape = (8, 8)) -> 'ColorMatrix':
+        """resize image using pillow and return a new ColorMatrix"""
+        if self.shape == shape:
+            return self.copy()
+
+        cm = self.cast(lambda color: color.rgb[:3])
+
+        im = Image.new('RGB', cm.shape, 'black')
+        pixels = im.load()
+        for c in range(im.width):
+            for r in range(im.height):
+                with suppress(IndexError):
+                    pixels[c, r] = cm[r][c]
+
+        y, x = shape
+        im = im.resize((x, y), Image.ANTIALIAS)
+        pixels = im.load()
+        res = ColorMatrix.from_shape(shape)
+
+        for c in range(im.width):
+            for r in range(im.height):
+                with suppress(IndexError):
+                    res[r][c] = pixels[c, r]
+
+        return res.cast(lambda rgb: Color.from_rgb(RGBk(*rgb)))
 
 
 # utils

@@ -4,8 +4,10 @@ from math import ceil
 from time import sleep
 from typing import Optional
 
-from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log
-from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
+from PIL import Image
+
+from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer
+from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color, Shape
 
 from pprint import pprint
 
@@ -41,20 +43,23 @@ def id_tiles(tc: TileChain, rotate=False):
 
 # interactive
 
-def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False):
+def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16)):
     """split color matrix and change images every `sleep_secs` seconds"""
     cm = ColorMatrix.from_filename(filename)
     for i, cm in enumerate(cycle(cm.split())):
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
-        set_cm(cm, offset=RC(0, c_offset), in_terminal=in_terminal)
+        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal)
         sleep(sleep_secs)
 
 
-def set_cm(cm: ColorMatrix, offset=RC(0, 0), in_terminal=False):
-    cm = cm.strip().get_range(RC(0, 0) + offset, RC(16, 16) + offset)
+@timer
+def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16), in_terminal=False, with_mini=True):
+    orig_cm = cm = cm.strip().get_range(RC(0, 0) + offset, size + offset)
     if in_terminal:
         print(cm.color_str)
+        print(cm.resize().color_str)
+        print(cm.resize((4, 4)).color_str)
         return
 
     cm.set_max_brightness_pct(60)
@@ -66,9 +71,12 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), in_terminal=False):
         cm.replace({default_color: Color(1, 1, 100, 9000)})
         idx_colors_map[t_info.idx] = cm.flattened
 
+    if with_mini:
+        idx_colors_map[tile_map[RC(2, -1)].idx] = orig_cm.resize((8, 8)).flattened
+
     tc = get_tile_chain()
     tc.set_tilechain_colors(idx_colors_map)
-    _cmp_colors(idx_colors_map)
+    # _cmp_colors(idx_colors_map)
 
 
 def _cmp_colors(idx_colors_map):
@@ -87,62 +95,29 @@ def _cmp_colors(idx_colors_map):
     print('there - here')
     pprint(there_here)
     print()
-    a = 4
 
 
-def mario_one():
-    set_cm(ColorMatrix.from_filename('./imgs/ms.png').strip())
-
-
-def link_one():
-    cm = ColorMatrix.from_filename('./imgs/link.png')
-    set_cm(cm)
-
-
-def mm():
-    animate('./imgs/mm_walk.png', center=True)
-
-
-def link():
-    animate('./imgs/link_all.png')
-
-
-def red_octorock():
-    fn = './imgs/zelda_red_octorock.png'
-    # return ColorMatrix.from_filename(fn).strip()
-    animate(fn)
-
-
-def ghosts():
-    animate('./imgs/zelda_ghosts.png')
-
-
-def split_test():
-    cm = ColorMatrix.from_filename('/tmp/m_small.png')
-    cm.split()
-
-
-def bernard_colors():
-    cm = ColorMatrix.from_filename('./imgs/maniac_bernard.png')
-    cm = cm
+# images
+# link.png
+# link_all.png
+# m_small.png
+# maniac_bernard.png
+# maniac_heads.png
+# mario.png
+# mm.png
+# mm_walk.png
+# punch_out_lm.png
+# punch_out_mike.png
+# zelda_blue_octorock.png
+# zelda_enemies.png
+# zelda_ghosts.png
+# zelda_red_octorock.png
 
 
 def __main():
-    # tc = get_tile_chain()
-    # return id_tiles(tc, True)
-    # print(RC(8, 8) - RC(4, 5))
-    # return split_test()
-    # tc = get_tile_chain()
-    # tc.set_tile_colors(0, to_n_colors(Colors.OFF))
-    # return bernard_colors()
+    # return id_tiles(get_tile_chain(), rotate=True)
     return animate('./imgs/link_all.png', in_terminal=True)
     return animate('./imgs/maniac_bernard.png')
-    # return ghosts()
-    # return red_octorock()
-    return link()
-    return link_one()
-    return mm()
-    return mario_one()
 
 
 if __name__ == '__main__':
