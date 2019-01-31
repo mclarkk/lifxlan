@@ -1,7 +1,9 @@
 from collections import defaultdict
 from contextlib import suppress
 from multiprocessing import Process, Pipe
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, Iterable
+
+from lifxlan import Dir, Group, GridLight
 
 up, down, right, left = 0x41, 0x42, 0x43, 0x44
 enter = 0xa
@@ -12,6 +14,8 @@ one = 0x31
 two = 0x32
 semi = 0x3b
 ctrl_w = 0x17
+
+dir_map = {up << 8: Dir.up, down << 8: Dir.down, left << 8: Dir.left, right << 8: Dir.right}
 
 
 def _getch_ord() -> int:
@@ -110,3 +114,26 @@ def getch_test(separate_process=True):
             print('got', hex(c))
 
     exhaust(_getch_test())
+
+
+def get_next_light(group: Group, gl: GridLight,
+                   dirs: Iterable[Dir] = parse_keyboard_inputs(dir_map, separate_process=True)):
+    """get next light from grid light"""
+    for dir in dirs:
+        cur_gl = gl
+        found_light = False
+
+        # this while loop allows for non-contiguous groups of lights to be traversed
+        while not found_light:
+            next_gl = cur_gl.move(dir)
+            if next_gl == cur_gl:
+                break
+
+            if not group.get_device_by_name(next_gl.name):
+                cur_gl = next_gl
+                continue
+
+            found_light = True
+        else:
+            gl = next_gl
+            yield gl

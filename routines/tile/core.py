@@ -1,11 +1,12 @@
 from contextlib import suppress
 from functools import lru_cache
+from itertools import count
 from math import ceil
 from pprint import pprint
 from time import sleep
 from typing import Optional, Dict
 
-from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer
+from lifxlan import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer, Dir
 from routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
 
 __author__ = 'acushner'
@@ -26,8 +27,9 @@ def _cm_test(c: Color) -> ColorMatrix:
     return cm
 
 
-def id_tiles(tc: TileChain, rotate=False):
+def id_tiles(rotate=False):
     """set tiles to different colors in the corner to ID tile"""
+    tc = get_tile_chain()
     colors = 'MAGENTA', 'YELLOW', 'YALE_BLUE', 'GREEN', 'BROWN'
     for ti in tile_map.values():
         name = colors[ti.idx]
@@ -38,15 +40,14 @@ def id_tiles(tc: TileChain, rotate=False):
         tc.set_tile_colors(ti.idx, cm.flattened)
 
 
-# interactive
-
 _color_replacements: Dict[str, Dict[Color, Color]] = dict(
     crono={Color(hue=54612, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
     ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     ff4={Color(hue=32767, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
     mario_kart={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF},
     lttp={Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
-          Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF})
+          Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    maniac={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF})
 
 
 def _get_color_replacements(filename):
@@ -68,9 +69,35 @@ def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_
         sleep(sleep_secs)
 
 
+def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
+              size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None):
+    """move right"""
+    cm = ColorMatrix.from_filename(filename)
+    color_map = _get_color_replacements(filename)
+    if split:
+        cm = cm.split()[0]
+
+    mult = 1 if dir is Dir.right else -1
+
+    def _gen_offset():
+        its = count() if n_iterations is None else range(n_iterations)
+        for _ in its:
+            for _c_offset in range(cm.width - size.c):
+                yield mult * (cm.width - _c_offset - 1)
+
+    for c_offset in _gen_offset():
+        cm.replace(color_map)
+        cm.wrap = True
+        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal)
+        sleep(sleep_secs)
+
+
 @timer
-def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16), in_terminal=False, with_mini=True):
-    orig_cm = cm = cm.strip().get_range(RC(0, 0) + offset, size + offset)
+def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
+           *, in_terminal=False, with_mini=True, strip=True):
+    if strip:
+        cm = cm.strip()
+    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
     if in_terminal:
         print(cm.color_str)
         print(cm.describe)
@@ -88,7 +115,8 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16), in_terminal=False,
         idx_colors_map[t_info.idx] = cm.flattened
 
     if with_mini:
-        idx_colors_map[tile_map[RC(2, -1)].idx] = orig_cm.resize((8, 8)).flattened
+        ti = tile_map[RC(2, -1)]
+        idx_colors_map[ti.idx] = orig_cm.resize((8, 8)).rotate_from_origin(ti.origin).flattened
 
     tc = get_tile_chain()
     tc.set_tilechain_colors(idx_colors_map)
@@ -113,26 +141,38 @@ def _cmp_colors(idx_colors_map):
     print()
 
 
-# images
-# link.png
-# link_all.png
-# m_small.png
-# maniac_bernard.png
-# maniac_heads.png
-# mario.png
-# mm.png
-# mm_walk.png
-# punch_out_lm.png
-# punch_out_mike.png
-# zelda_blue_octorock.png
-# zelda_enemies.png
-# zelda_ghosts.png
-# zelda_red_octorock.png
+images = [
+    'crono.png',
+    'crono_magus.png',
+    'ff4_cecil.png',
+    'ff4_rydia.png',
+    'ff4_tellah.png',
+    'ff6_edgar.png',
+    'ff6_locke.png',
+    'ff6_locke_full.png',
+    'ff6_sabin.png',
+    'link.png',
+    'link_all.png',
+    'lttp_link.png',
+    'maniac_bernard.png',
+    'maniac_heads.png',
+    'mario.png',
+    'mario_kart_koopa.png',
+    'mm.png',
+    'mm_walk.png',
+    'm_small.png',
+    'punch_out_lm.png',
+    'punch_out_mike.png',
+    'zelda_blue_octorock.png',
+    'zelda_enemies.png',
+    'zelda_ghosts.png',
+    'zelda_red_octorock.png']
 
 
 def __main():
-    # return id_tiles(get_tile_chain(), rotate=True)
-    return animate('./imgs/lttp_link.png', in_terminal=True)
+    # return id_tiles(rotate=False)
+    return translate('./imgs/ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
+    return animate('./imgs/mm_walk.png', sleep_secs=4, in_terminal=False)
     return animate('./imgs/maniac_bernard.png')
 
 

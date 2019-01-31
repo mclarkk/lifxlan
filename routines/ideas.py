@@ -1,10 +1,13 @@
 # - piano keyboard controlled lights
+# - tile:
+#   - implement lunar lander?
+#   - use pyxel?
 # - graph stuff
 #   - do the wave in lights
 #   - rainbow shimmering across lights
 #   x make a light snake that moves around the house in order
-#       - control said light snake using keyboard arrows
-#       - snake game on tile!
+#       x control said light snake using keyboard arrows
+#       x snake game on tile!
 #   - light game with 2 players trying to sneak past one another
 # - use context vars to change overarching light settings
 # - morse code training app

@@ -13,8 +13,10 @@ import bitstring
 from .settings import unknown
 from .message import BROADCAST_MAC, Message, little_endian
 
-
 ##### DEVICE MESSAGES #####
+
+from struct import Struct, pack
+
 
 class GetService(Message):
     def __init__(self, target_addr, source_id, seq_num, payload: Optional[Dict] = None, ack_requested=False,
@@ -789,15 +791,7 @@ class SetTileState64(Message):
         super(SetTileState64, self).__init__(MSG_IDS[SetTileState64], target_addr, source_id, seq_num, ack_requested,
                                              response_requested)
 
-    def get_payload(self):
-        self.payload_fields.append(("Tile Index", self.tile_index))
-        self.payload_fields.append(("Length", self.length))
-        self.payload_fields.append(("Reserved", self.reserved))
-        self.payload_fields.append(("X", self.x))
-        self.payload_fields.append(("Y", self.y))
-        self.payload_fields.append(("Width", self.width))
-        self.payload_fields.append(("Duration", self.duration))
-        self.payload_fields.append(("Colors", self.colors))
+    def get_payload_orig(self):
         tile_index = little_endian(bitstring.pack("uint:8", self.tile_index))
         length = little_endian(bitstring.pack("uint:8", self.length))
         reserved = little_endian(bitstring.pack("uint:8", self.reserved))
@@ -809,6 +803,29 @@ class SetTileState64(Message):
         for color in self.colors:
             payload += b"".join(little_endian(bitstring.pack("16", field)) for field in color)
         return payload
+
+    def get_payload(self):
+        """about 3 orders of magnitude faster than the original"""
+        self.payload_fields.append(("Tile Index", self.tile_index))
+        self.payload_fields.append(("Length", self.length))
+        self.payload_fields.append(("Reserved", self.reserved))
+        self.payload_fields.append(("X", self.x))
+        self.payload_fields.append(("Y", self.y))
+        self.payload_fields.append(("Width", self.width))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Colors", self.colors))
+        s1 = Struct('<B')
+
+        res = []
+        res.append(s1.pack(self.tile_index))
+        res.append(s1.pack(self.length))
+        res.append(s1.pack(self.reserved))
+        res.append(s1.pack(self.x))
+        res.append(s1.pack(self.y))
+        res.append(s1.pack(self.width))
+        res.append(pack('<L', self.duration))
+        res.append(pack('<256H', *(v for c in self.colors for v in c)))
+        return b''.join(res)
 
 
 MSG_IDS = {GetService: 2,

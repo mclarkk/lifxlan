@@ -1,0 +1,251 @@
+import os
+import time
+from contextlib import suppress
+from itertools import cycle, chain
+from random import randint, choice
+from threading import Thread
+from typing import NamedTuple, Deque, Dict, Set, Callable
+
+from lifxlan import Color, deque, Dir, Colors
+from routines import parse_keyboard_inputs, dir_map, ColorTheme, colors_to_theme
+from routines.tile.core import set_cm, translate
+from routines.tile.tile_utils import RC, ColorMatrix, to_n_colors
+
+dir_rc_map: Dict[Dir, RC] = {Dir.right: RC(0, 1),
+                             Dir.left: RC(0, -1),
+                             Dir.up: RC(-1, 0),
+                             Dir.down: RC(1, 0)}
+
+
+class Cell(NamedTuple):
+    pos: RC
+    color: Color
+
+
+def _rand_point(shape: RC) -> RC:
+    return RC(randint(0, shape.r - 1), randint(0, shape.c - 1))
+
+
+def _colors(c: ColorTheme):
+    return cycle(colors_to_theme(c))
+
+
+class SnekDead(Exception):
+    """snek dead!"""
+
+
+class SnekSucceeds(Exception):
+    """snek win!"""
+
+
+class Snek:
+    def __init__(self, snek_color: Color, board_shape: RC, allow_wrap=True):
+        self.colors = _colors(snek_color)
+        self.board_shape = board_shape
+        self.allow_wrap = allow_wrap
+
+        self.sneque = self._init_sneque()
+
+    def _init_sneque(self) -> Deque[Cell]:
+        return deque([self._to_cell(_rand_point(self.board_shape))], maxlen=1)
+
+    def _to_cell(self, pos: RC) -> Cell:
+        return Cell(pos, next(self.colors))
+
+    @property
+    def positions(self) -> Set[RC]:
+        return {c.pos for c in self.sneque}
+
+    def grow(self, amount=1):
+        """increase snek size by `amount`"""
+        self.sneque = deque(self.sneque, maxlen=self.sneque.maxlen + amount)
+
+    def move(self, dir: Dir):
+        """move snek in `dir` direction"""
+        self.sneque.append(self._to_cell(self.next_pos(dir)))
+
+    def next_pos(self, dir: Dir):
+        """calc next_pos and validate it"""
+        return self._validate_pos(self.sneque[-1].pos + dir_rc_map[dir])
+
+    def _validate_pos(self, pos: RC) -> RC:
+        """check if snek ran into self or wall; return pos"""
+        if pos in self and not pos == self.sneque[0].pos:
+            raise SnekDead('snek ran into self :(')
+
+        if self.allow_wrap:
+            return pos % self.board_shape
+
+        if not RC(0, 0) <= pos <= self.board_shape:
+            raise SnekDead('snek ran off the board :(')
+
+        return pos
+
+    def __contains__(self, pos: RC):
+        return any(pos == c.pos for c in self.sneque)
+
+    def __iter__(self):
+        return iter(self.sneque)
+
+    def __len__(self):
+        return len(self.sneque)
+
+
+def nothing(*_, **__):
+    """do nothing"""
+
+
+class Callbacks(NamedTuple):
+    on_tick: Callable = nothing
+    on_death: Callable = nothing
+    on_success: Callable = nothing
+    on_intro: Callable = nothing
+    on_exit: Callable = nothing
+
+
+class SnekGame:
+    """play snek on your tile lights"""
+
+    def __init__(self, snek_color: Color = Colors.GREEN,
+                 background_color: ColorTheme = Colors.OFF,
+                 food_color: ColorTheme = Colors.YALE_BLUE,
+                 *,
+                 snek_growth_amount=2,
+                 shape=RC(16, 16),
+                 tick_rate_secs=2.0,
+                 callbacks: Callbacks = Callbacks()):
+        self.board = self._init_board(background_color, shape)
+        self._board_positions = set(RC(0, 0).to(shape))
+        self.snek = Snek(snek_color, shape)
+        self.food_colors = _colors(food_color)
+        self.tick_rate_secs = tick_rate_secs
+        self.callbacks = callbacks
+        self.snek_growth_amount = snek_growth_amount
+
+        self._set_food(init=True)
+        self._dir: Dir = None
+        self._prev_dir: Dir = None
+
+    @staticmethod
+    def _init_board(background_color, shape):
+        colors = to_n_colors(*colors_to_theme(background_color), n=shape.r * shape.c)
+        return ColorMatrix.from_colors(colors, shape)
+
+    def _set_food(self, init=False):
+        """
+        set new food location for snek to eat when necessary
+
+        will also check for win state
+        """
+        open_positions = self._board_positions - self.snek.positions
+        if not init:
+            open_positions -= {self.food.pos}
+        if not open_positions:
+            raise SnekSucceeds('YOU WIN!')
+        self.food = Cell(choice(list(open_positions)), next(self.food_colors))
+
+    @property
+    def cm(self) -> ColorMatrix:
+        cm = self.board.copy()
+        for pos, color in chain([self.food], self.snek):
+            cm[pos] = color
+        return cm
+
+    def run(self):
+        """main event loop"""
+        self._read_dir()
+        self.callbacks.on_intro(self)
+        try:
+            with suppress(KeyboardInterrupt):
+                while True:
+                    self._on_tick()
+                    self.callbacks.on_tick(self)
+                    time.sleep(self.tick_rate_secs)
+        except SnekDead:
+            self.callbacks.on_death(self)
+            raise
+        except SnekSucceeds:
+            self.callbacks.on_success(self)
+            raise
+        finally:
+            self.callbacks.on_exit(self)
+            os.system('reset')
+
+    @property
+    def score(self):
+        """how big is snek"""
+        return len(self.snek)
+
+    def _read_dir(self):
+        """store the most recently pushed dir here"""
+
+        def f():
+            for dir in parse_keyboard_inputs(dir_map, separate_process=True):
+                if not self._prev_dir or dir != -self._prev_dir:
+                    self._dir = dir
+
+        Thread(target=f, daemon=True).start()
+
+    def _on_tick(self):
+        """update board, snek, food, etc as needed"""
+        if self._dir is None:
+            return
+
+        self._prev_dir = self._dir
+        next_pos = self.snek.next_pos(self._dir)
+        if next_pos == self.food.pos:
+            self.snek.grow(self.snek_growth_amount)
+            self._set_food()
+
+        self.snek.move(self._dir)
+
+
+# ======================================================================================================================
+# callbacks
+# ======================================================================================================================
+
+def terminal_tick(game: SnekGame):
+    os.system('clear')
+    print(game.cm.color_str)
+    print(game.snek.sneque.maxlen)
+
+
+def lights_tick(game: SnekGame):
+    set_cm(game.cm, strip=False)
+
+
+def lights_intro(game: SnekGame):
+    return
+    translate('./imgs/snek.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=1)
+    time.sleep(.3)
+
+
+def on_death(game: SnekGame):
+    print('death')
+    print(f'score: {game.score}')
+
+
+def on_success(game: SnekGame):
+    print('WIN!')
+    print(f'score: {game.score}')
+
+
+def __main():
+    # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+    #              callbacks=Callbacks(terminal_tick, on_death, on_success),
+    #              background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
+    #              food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+    #              callbacks=Callbacks(lights_cb, on_death, on_success, lights_intro),
+    #              background_color=Colors.OFF, snek_color=Colors.GREEN)
+    g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+                 callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+                 snek_color=Colors.GREEN,
+                 # snek_color=Themes.july_4th,
+                 background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+                 food_color=Colors.YALE_BLUE)
+    g.run()
+
+
+if __name__ == '__main__':
+    __main()

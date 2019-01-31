@@ -5,38 +5,15 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from copy import copy
 from functools import partial
 from itertools import cycle
-from typing import Callable, Iterable
+from typing import Callable
 
-from lifxlan import Dir, GridLight, Group, Colors, grid, LifxLAN, init_log, exhaust
+from lifxlan import Colors, grid, LifxLAN, init_log, exhaust
 from routines import ColorTheme, init_grid, colors_to_theme, preserve_brightness
 from routines.keyboard_utils import *
 
 __author__ = 'acushner'
 
 log = init_log(__name__)
-dir_map = {up << 8: Dir.up, down << 8: Dir.down, left << 8: Dir.left, right << 8: Dir.right}
-
-
-def _get_next_light(group: Group, gl: GridLight,
-                    dirs: Iterable[Dir] = parse_keyboard_inputs(dir_map, separate_process=True)):
-    for dir in dirs:
-        cur_gl = gl
-        found_light = False
-
-        # this while loop allows for non-contiguous groups of lights to be traversed
-        while not found_light:
-            next_gl = cur_gl.move(dir)
-            if next_gl == cur_gl:
-                break
-
-            if not group.get_device_by_name(next_gl.name):
-                cur_gl = next_gl
-                continue
-
-            found_light = True
-        else:
-            gl = next_gl
-            yield gl
 
 
 def _delay(f: Callable, delay_secs: float):
@@ -77,7 +54,7 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
         valid_light_names = list(set(grid) & {l.label for l in group})
 
         grid_light = grid[random.choice(valid_light_names)]
-        lights = _get_next_light(group, grid_light)
+        lights = get_next_light(group, grid_light)
         try:
             while True:
                 p = threads[grid_light]
