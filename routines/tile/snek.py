@@ -8,7 +8,7 @@ from typing import NamedTuple, Deque, Dict, Set, Callable
 
 from lifxlan import Color, deque, Dir, Colors
 from routines import parse_keyboard_inputs, dir_map, ColorTheme, colors_to_theme
-from routines.tile.core import set_cm, translate
+from routines.tile.core import set_cm, translate, get_tile_chain
 from routines.tile.tile_utils import RC, ColorMatrix, to_n_colors
 
 dir_rc_map: Dict[Dir, RC] = {Dir.right: RC(0, 1),
@@ -215,12 +215,14 @@ def lights_tick(game: SnekGame):
 
 
 def lights_intro(game: SnekGame):
-    return
+    # return
     translate('./imgs/snek.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=1)
+
     time.sleep(.3)
 
 
 def on_death(game: SnekGame):
+    explode()
     print('death')
     print(f'score: {game.score}')
 
@@ -228,6 +230,47 @@ def on_death(game: SnekGame):
 def on_success(game: SnekGame):
     print('WIN!')
     print(f'score: {game.score}')
+
+
+def propogate(cm: ColorMatrix, base: Color, explosion: Color):
+    current = cm.find_all(explosion)
+    offsets = RC(-1, -1), RC(1, 1), RC(-1, 1), RC(1, -1)
+    for c_rc in current:
+        for o in offsets:
+            cm[c_rc + o] = explosion
+    for c_rc in current:
+        cm[c_rc] = base
+    return cm
+
+
+def explode(base_color: Color = Colors.STEELERS_RED,
+            explosion_color: Color = Colors.COLD_WHITE):
+    colors = to_n_colors(base_color.r_brightness(20000), n=256)
+    cm = ColorMatrix.from_colors(colors, RC(16, 16))
+    start, end = RC(7, 7), RC(9, 9)
+    cm[start] = cm[end] = explosion_color
+    # for rc in start.to(end):
+    #     cm[rc] = explosion_color
+
+    # expand
+    with suppress(IndexError):
+        for _ in range(10):
+            set_cm(cm, strip=False)
+            propogate(cm, base_color, explosion_color)
+            time.sleep(.1)
+
+    # fill white
+    for offset in range(8):
+        s, e = start - RC(offset, offset), end + RC(offset, offset)
+        for rc in s.to(e):
+            cm[rc] = explosion_color
+        set_cm(cm, strip=False)
+        time.sleep(.1)
+
+    # fade to black
+    colors = to_n_colors(Colors.OFF, n=256)
+    cm = ColorMatrix.from_colors(colors, RC(16, 16))
+    set_cm(cm, strip=False, duration_msec=3000)
 
 
 def __main():

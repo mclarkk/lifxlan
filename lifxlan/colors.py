@@ -1,6 +1,6 @@
 import colorsys
 import operator as op
-from functools import reduce
+from functools import reduce, wraps
 from typing import List, NamedTuple
 
 import sty
@@ -45,11 +45,36 @@ class RGBk(NamedTuple):
         return RGBk(add(self.r, other.r), add(self.g, other.g), add(self.b, other.b), (self.k + other.k) // 2)
 
 
+def _replace(func):
+    @wraps(func)
+    def wrapper(self, val):
+        return self._replace(**{func.__name__[2:]: val})
+
+    return wrapper
+
+
 class Color(NamedTuple):
     hue: int
     saturation: int
     brightness: int
     kelvin: int = DEFAULT_KELVIN
+
+    @_replace
+    def r_hue(self, val):
+        """replace hue"""
+        pass
+
+    @_replace
+    def r_saturation(self, val):
+        """replace saturation"""
+
+    @_replace
+    def r_brightness(self, val):
+        """replace brightness"""
+
+    @_replace
+    def r_kelvin(self, val):
+        """replace kelvin"""
 
     _mult = 2 ** 16
     _max_complements = 1024

@@ -3,7 +3,7 @@ from contextlib import suppress
 from functools import lru_cache
 from itertools import islice, cycle, groupby, product
 from types import SimpleNamespace
-from typing import List, NamedTuple, Tuple, Dict, Optional, Callable, Iterable
+from typing import List, NamedTuple, Tuple, Dict, Optional, Callable, Iterable, Set, Union
 
 from PIL import Image
 
@@ -260,6 +260,15 @@ class ColorMatrix(List[List[Color]]):
         for rc, c in self.by_coords:
             if c[s] in color_map:
                 self[rc] = next(color_map[c[s]])
+
+    def find_all(self, color: Union[Color, Set[Color]]):
+        s = slice(0, 3)
+        if isinstance(color, Color):
+            color = {color}
+
+        color = {c[s] for c in color}
+
+        return [rc for rc, c in self.by_coords if c[s] in color]
 
     def to_tiles(self, shape=default_shape, offset: RC = RC(0, 0), bg: Color = Color(0, 0, 0)) \
             -> Dict[RC, 'ColorMatrix']:

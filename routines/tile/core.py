@@ -94,7 +94,8 @@ def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
 
 @timer
 def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
-           *, in_terminal=False, with_mini=True, strip=True):
+           *, in_terminal=False, with_mini=True, strip=True,
+           duration_msec=0):
     if strip:
         cm = cm.strip()
     orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
@@ -119,8 +120,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
         idx_colors_map[ti.idx] = orig_cm.resize((8, 8)).rotate_from_origin(ti.origin).flattened
 
     tc = get_tile_chain()
-    tc.set_tilechain_colors(idx_colors_map)
-    # _cmp_colors(idx_colors_map)
+    tc.set_tilechain_colors(idx_colors_map, duration=duration_msec)
 
 
 def _cmp_colors(idx_colors_map):
@@ -171,6 +171,7 @@ images = [
 
 def __main():
     # return id_tiles(rotate=False)
+    return animate('./imgs/ff4_tellah.png', sleep_secs=1)
     return translate('./imgs/ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
     return animate('./imgs/mm_walk.png', sleep_secs=4, in_terminal=False)
     return animate('./imgs/maniac_bernard.png')
