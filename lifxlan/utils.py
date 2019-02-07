@@ -28,11 +28,11 @@ log = init_log(__name__)
 def timer(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        start_time = time.time()
+        start_time = time.perf_counter()
         try:
             return func(*args, **kwargs)
         finally:
-            log.info(f'func {func.__name__!r} took {time.time() - start_time} seconds')
+            log.info(f'func {func.__name__!r} took {time.perf_counter() - start_time} seconds')
 
     return wrapper
 

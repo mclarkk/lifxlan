@@ -4,17 +4,19 @@ from contextlib import suppress
 from itertools import cycle, chain
 from random import randint, choice
 from threading import Thread
-from typing import NamedTuple, Deque, Dict, Set, Callable
+from typing import NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable
 
 from lifxlan import Color, deque, Dir, Colors
 from routines import parse_keyboard_inputs, dir_map, ColorTheme, colors_to_theme
-from routines.tile.core import set_cm, translate, get_tile_chain
-from routines.tile.tile_utils import RC, ColorMatrix, to_n_colors
+from routines.tile.core import set_cm, translate
+from routines.tile.tile_utils import RC, ColorMatrix, to_n_colors, a_star
 
 dir_rc_map: Dict[Dir, RC] = {Dir.right: RC(0, 1),
                              Dir.left: RC(0, -1),
                              Dir.up: RC(-1, 0),
                              Dir.down: RC(1, 0)}
+
+rc_dir_map: Dict[RC, Dir] = {v: k for k, v in dir_rc_map.items()}
 
 
 class Cell(NamedTuple):
@@ -76,7 +78,7 @@ class Snek:
         if self.allow_wrap:
             return pos % self.board_shape
 
-        if not RC(0, 0) <= pos <= self.board_shape:
+        if not RC(0, 0) <= pos < self.board_shape:
             raise SnekDead('snek ran off the board :(')
 
         return pos
@@ -200,6 +202,32 @@ class SnekGame:
         self.snek.move(self._dir)
 
 
+class AutoSnekGame(SnekGame):
+    def _read_dir(self):
+        """disable reading of directions from keyboard"""
+
+    def _get_directions(self, prev_food_pos: Optional[RC]) -> Iterable[Dir]:
+        start = prev_food_pos or self.snek.sneque[-1].pos
+        goal = self.food.pos
+        impassable = self.snek.positions
+        if prev_food_pos:
+            impassable.add(prev_food_pos)
+        args = self.board, start, goal, impassable
+        positions = a_star(*args, allow_wrap=True)
+        return (rc_dir_map[p1 - p0] for p0, p1 in zip(positions, positions[1:]))
+
+    def _set_food(self, init=False):
+        prev_food_pos = None
+        if not init:
+            prev_food_pos = self.food.pos
+        super()._set_food(init)
+        self._dirs = iter(self._get_directions(prev_food_pos))
+
+    def _on_tick(self):
+        self._dir = next(self._dirs)
+        super()._on_tick()
+
+
 # ======================================================================================================================
 # callbacks
 # ======================================================================================================================
@@ -274,19 +302,19 @@ def explode(base_color: Color = Colors.STEELERS_RED,
 
 
 def __main():
-    # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-    #              callbacks=Callbacks(terminal_tick, on_death, on_success),
-    #              background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-    #              food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.01,
+                     callbacks=Callbacks(terminal_tick, on_death, on_success),
+                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
+                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
     # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
     #              callbacks=Callbacks(lights_cb, on_death, on_success, lights_intro),
     #              background_color=Colors.OFF, snek_color=Colors.GREEN)
-    g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                 callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
-                 snek_color=Colors.GREEN,
-                 # snek_color=Themes.july_4th,
-                 background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
-                 food_color=Colors.YALE_BLUE)
+    # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+    #              callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+    #              snek_color=Colors.GREEN,
+    #              # snek_color=Themes.july_4th,
+    #              background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+    #              food_color=Colors.YALE_BLUE)
     g.run()
 
 
