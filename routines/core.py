@@ -9,14 +9,13 @@ from lifxlan import LifxLAN, Group, Colors, Themes, Waveform, Color
 from routines import ColorTheme, colors_to_theme, preserve_brightness
 
 
-@preserve_brightness
 def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
             max_brightness_pct=60,
             colors: Optional[ColorTheme] = None,
             duration_mins: Optional[Union[int, float]] = 20):
     """whatever lights you pass in will breathe"""
     theme = colors_to_theme(colors)
-    half_period_ms = breath_time_secs * 1000.0
+    half_period_ms = int(breath_time_secs * 1000.0)
     sleep_time = breath_time_secs
     duration_secs = duration_mins * 60 or float('inf')
 
@@ -24,7 +23,7 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
     max_brightness = max_brightness_pct / 100.0 * 65535
 
     with lifx.reset_to_orig(half_period_ms):
-        lifx.set_brightness(max_brightness, duration=10000)
+        lifx.set_brightness(max_brightness, duration=2000)
         if theme:
             lifx.set_theme(theme)
         print("Breathing...")
@@ -64,15 +63,16 @@ def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_sec
 
 
 def rainbow(lifx: Group, colors: Optional[ColorTheme] = Themes.rainbow,
-            duration_secs=0.5, smooth=False):
+            duration_secs=0.5, smooth=False, num_repeats=1):
     """similar to blink_color"""
     theme = colors_to_theme(colors)
     transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = duration_secs < 1
     with lifx.reset_to_orig():
-        for color in theme:
-            lifx.set_color(color, transition_time_ms, rapid)
-            sleep(duration_secs)
+        for _ in range(num_repeats):
+            for color in theme:
+                lifx.set_color(color, transition_time_ms, rapid)
+                sleep(duration_secs)
 
 
 @preserve_brightness

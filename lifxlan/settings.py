@@ -1,8 +1,7 @@
 from enum import Enum
-from functools import partial, wraps
 
 unknown = 'UNKNOWN'
-TOTAL_NUM_LIGHTS = 21
+TOTAL_NUM_LIGHTS = 22
 DEFAULT_KELVIN = 3200
 
 

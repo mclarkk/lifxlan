@@ -36,10 +36,10 @@ def _init_keys(qwerty=False):
     res = {}
 
     # hue
-    keys = 'aoeuhtns' if dvorak else 'asdfjkl;'
-    for k, v in zip(keys, _equal_offset(4)):
+    keys = 'aoeu' if dvorak else 'asdf'
+    for k, v in zip(keys, _equal_offset(2)):
         res[ord(k)] = AttrOffset('hue', v)
-    for k, v in zip(keys.upper().replace(';', ':'), _equal_offset(4, 10)):
+    for k, v in zip(keys.upper().replace(';', ':'), _equal_offset(2, 10)):
         res[ord(k)] = AttrOffset('hue', v)
 
     # saturation

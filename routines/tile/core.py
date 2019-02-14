@@ -57,7 +57,8 @@ def _get_color_replacements(filename):
     return {}
 
 
-def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16)):
+def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16),
+            strip=True):
     """split color matrix and change images every `sleep_secs` seconds"""
     cm = ColorMatrix.from_filename(filename)
     color_map = _get_color_replacements(filename)
@@ -65,7 +66,7 @@ def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
         cm.replace(color_map)
-        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal)
+        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
         sleep(sleep_secs)
 
 
@@ -169,9 +170,18 @@ images = [
     'zelda_red_octorock.png']
 
 
+def for_talk():
+    return animate('./imgs/text.png', sleep_secs=.5, strip=False)
+    return id_tiles(rotate=False)
+    return animate('./imgs/m_small.png', sleep_secs=.75)
+    return animate('./imgs/ff4_tellah.png', sleep_secs=.75)
+
+
 def __main():
+    return for_talk()
     # return id_tiles(rotate=False)
-    return animate('./imgs/mm_walk.png', sleep_secs=1)
+    # return animate('./imgs/m_small.png', sleep_secs=.75)
+    return animate('./imgs/ff4_tellah.png', sleep_secs=.75)
     return translate('./imgs/ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
     return animate('./imgs/mm_walk.png', sleep_secs=4, in_terminal=False)
     return animate('./imgs/maniac_bernard.png')

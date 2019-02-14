@@ -219,11 +219,13 @@ def morse_code(conf: Config, dot, dash, delay_msec, phrase):
 
 @cli_main.command()
 @click.option('-t', '--duration-secs', default=.5, help='how many secs for each color to appear')
+@click.option('-r', '--num-repeats', default=4, help='how many times to cycle')
 @click.option('--smooth', is_flag=True, help='smooth transition between colors')
 @pass_conf
-def rainbow(conf: Config, duration_secs, smooth):
+def rainbow(conf: Config, duration_secs, smooth, num_repeats):
     """make lights cycle through rainbow color group"""
-    routines.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth)
+    routines.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth,
+                     num_repeats=num_repeats)
 
 
 @cli_main.command(help=routines.light_eq.__doc__, short_help="control lights with the computer keyboard")
@@ -233,10 +235,10 @@ def light_eq(conf: Config):
 
 
 @cli_main.command()
-@click.option('-s', '--breath-secs', default=8)
-@click.option('-m', '--duration-mins', default=20)
-@click.option('--min-brightness-pct', default=30)
-@click.option('--max-brightness-pct', default=60)
+@click.option('-s', '--breath-secs', default=8.0)
+@click.option('-m', '--duration-mins', default=20.0)
+@click.option('--min-brightness-pct', default=30.0)
+@click.option('--max-brightness-pct', default=60.0)
 @pass_conf
 def breathe(conf: Config, breath_secs, duration_mins, min_brightness_pct, max_brightness_pct):
     """make lights oscillate between darker and brighter """
@@ -263,9 +265,9 @@ def blink_power(conf: Config, blink_secs, how_long_secs):
 
 
 @cli_main.command()
-@click.option('-s', '--rotate-secs', default=60, help='how many seconds between each theme application')
-@click.option('-m', '--duration-mins', default=20, help='how many minutes the command will run')
-@click.option('-t', '--transition-secs', default=10, help='how many seconds to transition between themes')
+@click.option('-s', '--rotate-secs', default=60.0, help='how many seconds between each theme application')
+@click.option('-m', '--duration-mins', default=20.0, help='how many minutes the command will run')
+@click.option('-t', '--transition-secs', default=10.0, help='how many seconds to transition between themes')
 @pass_conf
 def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""

@@ -6,7 +6,7 @@ from random import randint, choice
 from threading import Thread
 from typing import NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable
 
-from lifxlan import Color, deque, Dir, Colors
+from lifxlan import Color, deque, Dir, Colors, Themes
 from routines import parse_keyboard_inputs, dir_map, ColorTheme, colors_to_theme
 from routines.tile.core import set_cm, translate
 from routines.tile.tile_utils import RC, ColorMatrix, to_n_colors, a_star
@@ -214,7 +214,10 @@ class AutoSnekGame(SnekGame):
             impassable.add(prev_food_pos)
         args = self.board, start, goal, impassable
         positions = a_star(*args, allow_wrap=True)
-        return (rc_dir_map[p1 - p0] for p0, p1 in zip(positions, positions[1:]))
+        try:
+            return (rc_dir_map[p1 - p0] for p0, p1 in zip(positions, positions[1:]))
+        except TypeError as e:
+            raise SnekDead('snek ran into dead end!') from e
 
     def _set_food(self, init=False):
         prev_food_pos = None
@@ -224,7 +227,10 @@ class AutoSnekGame(SnekGame):
         self._dirs = iter(self._get_directions(prev_food_pos))
 
     def _on_tick(self):
-        self._dir = next(self._dirs)
+        try:
+            self._dir = next(self._dirs)
+        except StopIteration as e:
+            raise SnekDead from e
         super()._on_tick()
 
 
@@ -255,12 +261,17 @@ def on_death(game: SnekGame):
     print(f'score: {game.score}')
 
 
+def terminal_on_death(game: SnekGame):
+    print('death')
+    print(f'score: {game.score}')
+
+
 def on_success(game: SnekGame):
     print('WIN!')
     print(f'score: {game.score}')
 
 
-def propogate(cm: ColorMatrix, base: Color, explosion: Color):
+def propagate(cm: ColorMatrix, base: Color, explosion: Color):
     current = cm.find_all(explosion)
     offsets = RC(-1, -1), RC(1, 1), RC(-1, 1), RC(1, -1)
     for c_rc in current:
@@ -272,7 +283,7 @@ def propogate(cm: ColorMatrix, base: Color, explosion: Color):
 
 
 def explode(base_color: Color = Colors.STEELERS_RED,
-            explosion_color: Color = Colors.COLD_WHITE):
+            explosion_color: Color = Colors.COLD_WHITE, in_terminal=False):
     colors = to_n_colors(base_color.r_brightness(20000), n=256)
     cm = ColorMatrix.from_colors(colors, RC(16, 16))
     start, end = RC(7, 7), RC(9, 9)
@@ -283,16 +294,19 @@ def explode(base_color: Color = Colors.STEELERS_RED,
     # expand
     with suppress(IndexError):
         for _ in range(10):
-            set_cm(cm, strip=False)
-            propogate(cm, base_color, explosion_color)
+            set_cm(cm, strip=False, in_terminal=in_terminal)
+            propagate(cm, base_color, explosion_color)
             time.sleep(.1)
+
+    if in_terminal:
+        return
 
     # fill white
     for offset in range(8):
         s, e = start - RC(offset, offset), end + RC(offset, offset)
         for rc in s.to(e):
             cm[rc] = explosion_color
-        set_cm(cm, strip=False)
+        set_cm(cm, strip=False, in_terminal=in_terminal)
         time.sleep(.1)
 
     # fade to black
@@ -301,9 +315,21 @@ def explode(base_color: Color = Colors.STEELERS_RED,
     set_cm(cm, strip=False, duration_msec=3000)
 
 
+def for_talk():
+    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+                     callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+                     snek_color=Colors.GREEN,
+                     # snek_color=Themes.rainbow,
+                     background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+                     food_color=Colors.YALE_BLUE)
+
+    g.run()
+
+
 def __main():
-    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.01,
-                     callbacks=Callbacks(terminal_tick, on_death, on_success),
+    # return for_talk()
+    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
                      background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
                      food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
     # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
