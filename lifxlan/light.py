@@ -63,6 +63,7 @@ class Light(Device):
 
     # color is [Hue, Saturation, Brightness, Kelvin]
     def set_waveform(self, is_transient, color, period, cycles, duty_cycle, waveform, rapid=False):
+        self._validate_color(color)
         if len(color) == 4:
             try:
                 if rapid:
@@ -74,6 +75,7 @@ class Light(Device):
 
     # color is [Hue, Saturation, Brightness, Kelvin], duration in ms
     def set_color(self, color, duration=0, rapid=False):
+        self._validate_color(color)
         if len(color) == 4:
             try:
                 if rapid:
@@ -97,6 +99,7 @@ class Light(Device):
     def set_hue(self, hue, duration=0, rapid=False):
         """ hue to set
             duration in ms"""
+        self._validate_hue(hue)
         color = self.get_color()
         color2 = (hue, color[1], color[2], color[3])
         try:
@@ -111,6 +114,7 @@ class Light(Device):
     def set_saturation(self, saturation, duration=0, rapid=False):
         """ saturation to set
             duration in ms"""
+        self._validate_saturation(saturation)
         color = self.get_color()
         color2 = (color[0], saturation, color[2], color[3])
         try:
@@ -125,6 +129,7 @@ class Light(Device):
     def set_brightness(self, brightness, duration=0, rapid=False):
         """ brightness to set
             duration in ms"""
+        self._validate_brightness(brightness)
         color = self.get_color()
         color2 = (color[0], color[1], brightness, color[3])
         try:
@@ -139,6 +144,7 @@ class Light(Device):
     def set_colortemp(self, kelvin, duration=0, rapid=False):
         """ kelvin: color temperature to set
             duration in ms"""
+        self._validate_kelvin(kelvin)
         color = self.get_color()
         color2 = (color[0], color[1], color[2], kelvin)
         try:
@@ -197,3 +203,41 @@ class Light(Device):
         s += indent + self.device_time_str(indent)
         s += indent + self.device_radio_str(indent)
         return s
+
+    ############################################################################
+    #                                                                          #
+    #                            Input Validation                              #
+    #                                                                          #
+    ############################################################################
+
+    @staticmethod
+    def _validate_value(name, value, vtype, vmax, vmin=0):
+        if type(value) is not vtype:
+            raise TypeError(
+                "{} is required to be type '{}', not type '{}'.".format(name, vtype.__name__, type(value).__name__))
+        if value > vmax:
+            raise InvalidParameterException("{} value must not exceed {} ({} given).".format(name, vmax, value))
+        if value < vmin:
+            raise InvalidParameterException("{} value must be greater than {} ({} given).".format(name, vmin, value))
+
+    def _validate_hue(self, hue):
+        self._validate_value("Hue", hue, int, 65535)
+
+    def _validate_saturation(self, saturation):
+        self._validate_value("Saturation", saturation, int, 65535)
+
+    def _validate_brightness(self, brightness):
+        self._validate_value("Brightness", brightness, int, 65535)
+
+    def _validate_kelvin(self, kelvin):
+        self._validate_value("Kelvin", kelvin, int, 9000, 2500)
+
+    def _validate_color(self, color):
+        hue, saturation, brightness, kelvin = color
+        try:
+            self._validate_hue(hue)
+            self._validate_saturation(saturation)
+            self._validate_brightness(brightness)
+            self._validate_kelvin(kelvin)
+        except Exception:
+            raise
