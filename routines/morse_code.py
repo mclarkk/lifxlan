@@ -35,7 +35,7 @@ class OnOff(Enum):
 class Morse(List[str]):
     @classmethod
     def from_str(cls, s: str) -> 'Morse':
-        res = cls(MORSE_CODE_DICT.get(c.upper(), ' ') for c in s)
+        res = cls(MORSE_CODE_DICT.get(c, ' ') for c in s.upper())
         res.orig = s
         return res
 
