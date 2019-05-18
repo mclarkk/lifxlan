@@ -34,7 +34,7 @@ def snek(autoplay, in_terminal):
 @click.option('-r', '--rotate', is_flag=True, default=False, help='rotate based on tile_map')
 def id_tiles(rotate):
     """help identify which tile is which"""
-    core.id_tiles(rotate)
+    core.id_tiles(rotate=rotate)
 
 
 if __name__ == '__main__':
