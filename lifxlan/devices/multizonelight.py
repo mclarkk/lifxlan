@@ -5,12 +5,12 @@ import os
 from itertools import count
 from typing import List, Tuple, Callable
 
-from .utils import init_log, exhaust
-from .grid import GridLight, Dir
-from .themes import Theme
-from .colors import Color, ColorPower, Colors
+from lifxlan.utils import init_log, exhaust
+from lifxlan.grid import GridLight, Dir
+from lifxlan.themes import Theme
+from lifxlan.colors import Color, ColorPower, Colors
 from .light import Light
-from .msgtypes import MultizoneGetColorZones, MultizoneSetColorZones, MultizoneStateMultizone, MultizoneStateZone
+from lifxlan.network.msgtypes import MultizoneGetColorZones, MultizoneSetColorZones, MultizoneStateMultizone, MultizoneStateZone
 
 log = init_log(__name__)
 rapid_default = True

@@ -5,7 +5,7 @@
 import binascii
 import struct
 
-from .message import HEADER_SIZE_BYTES, Message
+from .message import HEADER_SIZE_BYTES
 from .msgtypes import *
 
 

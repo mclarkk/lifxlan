@@ -2,9 +2,9 @@ import os
 from typing import Optional
 
 from .light import Light
-from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
+from lifxlan.network.msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, \
     SetUserPosition
-from .utils import exhaust, init_log, WaitPool
+from lifxlan.utils import exhaust, init_log, WaitPool
 
 log = init_log(__name__)
 

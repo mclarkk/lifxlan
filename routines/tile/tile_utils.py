@@ -379,6 +379,7 @@ def to_n_colors(*colors, n=64):
 
 
 class ANode(NamedTuple):
+    """represent a node in A* algo"""
     parent: Optional['ANode']
     pos: RC
     g: int = 0  # distance to start node

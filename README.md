@@ -85,7 +85,7 @@ they can be used by `Group`s to set lights to your favorite themes in a weighted
 
 they can also be added together, and you can add individual `Color` objects to themes as well
 
-## [command line](https://github.com/sweettuse/lifxlan3/blob/master/routines/cli.py)
+## [command line](https://github.com/sweettuse/lifxlan3/blob/master/routines/lights/cli.py)
 
 the `cli` uses [click](https://github.com/pallets/click) to provide easy access to the various routines that exist in this library.
 this will give you easy access to all the routines in [core.py][core]
@@ -132,15 +132,15 @@ this will give you a list of all your lights, all the auto groups of lights, and
 
 ## [routines](https://github.com/sweettuse/lifxlan3/tree/master/routines)
 routines are just higher level functions that let you interact with your lights in fun ways.
-there are some simple routines in [core.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/core.py),
+there are some simple routines in [core.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/lights/core.py),
 but i wanted to call out some other cool ones that are in separate files:
 
 - [morse-code][morse-code]:
 translates a word or phrase into into morse code and blinks it out on your lights
 - [light-eq][light-eq]:
 lets you use your keyboard to control hue, saturation, brightness and kelvin in real time, like an equalizer
-- [point-control](https://github.com/sweettuse/lifxlan3/blob/master/routines/point_control.py):
-after setting up your lights as a grid in `init_grid` in [grid_local.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/grid_local.py),
+- [point-control](https://github.com/sweettuse/lifxlan3/blob/master/routines/lights/point_control.py):
+after setting up your lights as a grid in `init_grid` in [grid_local.py](https://github.com/sweettuse/lifxlan3/blob/master/routines/lights/grid_local.py),
 you can move a color around a selected group using the direction arrows on your keyboard
 
 as mentioned above, these are all easily run from the `cli`
@@ -167,8 +167,8 @@ Happy hacking!
 
 
 [core]: https://github.com/sweettuse/lifxlan3/blob/master/routines/core.py
-[light-eq]: https://github.com/sweettuse/lifxlan3/blob/master/routines/light_eq.py
-[morse-code]: https://github.com/sweettuse/lifxlan3/blob/master/routines/morse_code.py
+[light-eq]: https://github.com/sweettuse/lifxlan3/blob/master/routines/light/light_eq.py
+[morse-code]: https://github.com/sweettuse/lifxlan3/blob/master/routines/light/morse_code.py
 [group]: https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/group.py#L70
 [colors]: https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/colors.py
 [themes]: https://github.com/sweettuse/lifxlan3/blob/master/lifxlan/themes.py

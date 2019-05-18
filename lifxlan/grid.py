@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict
 
-from .light import Light
+from .devices.light import Light
 
 __author__ = 'acushner'
 
