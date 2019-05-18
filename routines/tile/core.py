@@ -2,6 +2,7 @@ from contextlib import suppress
 from functools import lru_cache
 from itertools import count
 from math import ceil
+from pathlib import Path
 from pprint import pprint
 from time import sleep
 from typing import Optional, Dict
@@ -142,32 +143,12 @@ def _cmp_colors(idx_colors_map):
     print()
 
 
-images = [
-    'crono.png',
-    'crono_magus.png',
-    'ff4_cecil.png',
-    'ff4_rydia.png',
-    'ff4_tellah.png',
-    'ff6_edgar.png',
-    'ff6_locke.png',
-    'ff6_locke_full.png',
-    'ff6_sabin.png',
-    'link.png',
-    'link_all.png',
-    'lttp_link.png',
-    'maniac_bernard.png',
-    'maniac_heads.png',
-    'mario.png',
-    'mario_kart_koopa.png',
-    'mm.png',
-    'mm_walk.png',
-    'm_small.png',
-    'punch_out_lm.png',
-    'punch_out_mike.png',
-    'zelda_blue_octorock.png',
-    'zelda_enemies.png',
-    'zelda_ghosts.png',
-    'zelda_red_octorock.png']
+def _init_images():
+    p = Path(__file__).parent / 'imgs'
+    return sorted(f.name for f in p.iterdir())
+
+
+images = _init_images()
 
 
 def for_talk():

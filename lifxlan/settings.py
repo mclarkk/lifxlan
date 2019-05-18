@@ -1,6 +1,6 @@
 from enum import Enum
 
-unknown = 'UNKNOWN'
+UNKNOWN = 'UNKNOWN'
 TOTAL_NUM_LIGHTS = 22
 DEFAULT_KELVIN = 3200
 

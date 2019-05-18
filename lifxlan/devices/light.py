@@ -7,12 +7,12 @@ from copy import copy
 from typing import Callable, Tuple
 
 from lifxlan.base_api import LightAPI
-from .colors import ColorPower, Color, Colors
+from lifxlan.colors import ColorPower, Color, Colors
 from .device import Device
-from .msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
+from lifxlan.network.msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
     LightState, LightStateInfrared
-from .settings import unknown, Waveform, global_settings
-from .utils import WaitPool, init_log
+from lifxlan.settings import UNKNOWN, Waveform, global_settings
+from lifxlan.utils import WaitPool, init_log
 
 log = init_log(__name__)
 
@@ -140,11 +140,11 @@ class Light(Device, LightAPI):
 
     @property
     def min_kelvin(self):
-        return self.product_features.get('min_kelvin', unknown)
+        return self.product_features.get('min_kelvin', UNKNOWN)
 
     @property
     def max_kelvin(self):
-        return self.product_features.get('max_kelvin', unknown)
+        return self.product_features.get('max_kelvin', UNKNOWN)
 
     @contextmanager
     def reset_to_orig(self, duration=3000):

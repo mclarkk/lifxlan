@@ -20,14 +20,14 @@ from socket import timeout
 from time import sleep, time
 from typing import NamedTuple, Optional, Dict
 
-from .message import BROADCAST_MAC
-from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
-    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
-    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+from lifxlan.network.message import BROADCAST_MAC
+from lifxlan.network.msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower,\
+    GetVersion, GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware,\
+    StateInfo, StateLabel, StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .products import features_map, product_map, light_products
-from .settings import unknown, PowerSettings
-from .unpack import unpack_lifx_message
-from .utils import timer, exhaust, init_socket, WaitPool, init_log
+from lifxlan.settings import UNKNOWN, PowerSettings
+from lifxlan.network.unpack import unpack_lifx_message
+from lifxlan.utils import timer, exhaust, init_socket, WaitPool, init_log
 
 DEFAULT_TIMEOUT = .8  # second
 DEFAULT_ATTEMPTS = 4
@@ -75,9 +75,9 @@ class FirmwareInfo(NamedTuple):
 
 
 class ProductInfo(NamedTuple):
-    vendor: str = unknown
-    product: str = unknown
-    version: str = unknown
+    vendor: str = UNKNOWN
+    product: str = UNKNOWN
+    version: str = UNKNOWN
 
 
 class SupportsDesc:
@@ -240,7 +240,7 @@ class Device(object):
         self.wifi_firmware_info = FirmwareInfo(build, version)
 
     def _refresh_version_info(self, *, only_if_needed=False):
-        if not only_if_needed or (self.product is None or unknown in self.product_info):
+        if not only_if_needed or (self.product is None or UNKNOWN in self.product_info):
             r = self.req_with_resp(GetVersion, StateVersion)
             self.product_info = ProductInfo(r.vendor, r.product, r.version)
 

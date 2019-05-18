@@ -326,19 +326,35 @@ def for_talk():
     g.run()
 
 
-def autoplay():
-    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+def autoplay(in_terminal=False):
+    if in_terminal:
+        g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+                         callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+                         background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
+                         food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    else:
+        g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+                         callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+                         snek_color=Colors.GREEN,
+                         # snek_color=Themes.july_4th,
+                         background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+                         food_color=Colors.YALE_BLUE)
     g.run()
 
 
-def play():
-    g = SnekGame(shape=RC(16, 16), tick_rate_secs=.2,
-                 callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                 background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                 food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+def play(in_terminal=False):
+    if in_terminal:
+        g = SnekGame(shape=RC(16, 16), tick_rate_secs=.2,
+                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
+                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    else:
+        g = SnekGame(shape=RC(16, 16), tick_rate_secs=.2,
+                     callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+                     snek_color=Colors.GREEN,
+                     # snek_color=Themes.july_4th,
+                     background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+                     food_color=Colors.YALE_BLUE)
     g.run()
 
 

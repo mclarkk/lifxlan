@@ -10,7 +10,7 @@ from typing import Optional, Dict
 
 import bitstring
 
-from .settings import unknown
+from lifxlan.settings import UNKNOWN
 from .message import BROADCAST_MAC, Message, little_endian
 
 ##### DEVICE MESSAGES #####
@@ -876,7 +876,7 @@ MSG_IDS = {GetService: 2,
            StateTileState64: 711,
            SetTileState64: 715}
 
-SERVICE_IDS = defaultdict((lambda: unknown),
+SERVICE_IDS = defaultdict((lambda: UNKNOWN),
                           {1: "UDP",
                            2: "reserved",
                            3: "reserved",

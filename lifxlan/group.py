@@ -6,14 +6,14 @@ from typing import List, Union, Dict, Optional, Iterable, Any
 
 from lifxlan.base_api import LightAPI
 from .colors import ColorPower, Color
-from .device import Device
-from .light import Light
-from .msgtypes import GetService, StateService
-from .multizonelight import MultizoneLight
-from .network import broadcast_with_resp
+from .devices.device import Device
+from .devices.light import Light
+from lifxlan.network.msgtypes import GetService, StateService
+from lifxlan.devices.multizonelight import MultizoneLight
+from lifxlan.network.network import broadcast_with_resp
 from .settings import Waveform, TOTAL_NUM_LIGHTS
 from .themes import Theme
-from .tilechain import TileChain
+from .devices.tilechain import TileChain
 from .utils import WaitPool, exhaust, timer, init_log
 
 rapid_default = True

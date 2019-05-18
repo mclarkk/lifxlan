@@ -1,12 +1,12 @@
 # from .lifxlan import LifxLAN
 from .group import Group, LifxLAN
-from .message import *
-from .msgtypes import *
-from .unpack import unpack_lifx_message
-from .device import *
-from .light import *
-from .multizonelight import *
-from .tilechain import TileChain, Tile
+from .network.message import *
+from .network.msgtypes import *
+from .network.unpack import unpack_lifx_message
+from .devices.device import *
+from .devices.light import *
+from .devices.multizonelight import *
+from .devices.tilechain import *
 from .utils import *
 from .themes import Theme, Themes
 from .colors import Color, Colors, RGBk
