@@ -27,8 +27,8 @@ def _cm_test(c: Color) -> ColorMatrix:
     return cm
 
 
-def id_tiles(rotate=False):
-    """set tiles to different colors in the corner to ID tile"""
+def id_tiles(*, rotate=False):
+    """set tiles to different colors in the corner to ID tile and help determine orientation"""
     tc = get_tile_chain()
     colors = 'MAGENTA', 'YELLOW', 'YALE_BLUE', 'GREEN', 'BROWN'
     for ti in tile_map.values():
