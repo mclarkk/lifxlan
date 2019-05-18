@@ -6,7 +6,7 @@ from .network.unpack import unpack_lifx_message
 from .devices.device import *
 from .devices.light import *
 from .devices.multizonelight import *
-from .devices.tilechain import *
+from .devices.tilechain import TileChain, Tile
 from .utils import *
 from .themes import Theme, Themes
 from .colors import Color, Colors, RGBk
