@@ -34,12 +34,14 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    def get_devices(self):
-        self.discover_devices()
+    def get_devices(self, refresh=False):
+        if self.devices == None or refresh == True:
+            self.discover_devices()
         return self.devices
 
-    def get_lights(self):
-        self.discover_devices()
+    def get_lights(self, refresh=False):
+        if self.lights == None or refresh == True:
+            self.discover_devices()
         return self.lights
 
     # more of an internal helper function
@@ -103,9 +105,8 @@ class LifxLAN:
         for d in all_devices:
             if d.get_label() == name:
                 device = d
-        if device == None:               # didn't find it?
-            self.discover_devices()      # update list in case it is out of date
-            all_devices = self.get_devices()
+        if device == None:                        # didn't find it?
+            all_devices = self.get_devices(True)  # update list in case it is out of date
             for d in all_devices:            # and try again
                 if d.get_label() == name:
                     device = d
@@ -118,9 +119,8 @@ class LifxLAN:
         for d in all_devices:
             if d.get_label() in names:
                 devices.append(d)
-        if len(devices) != len(names):  # didn't find everything?
-            self.discover_devices()     # update list in case it is out of date
-            all_devices = self.get_devices()
+        if len(devices) != len(names):            # didn't find everything?
+            all_devices = self.get_devices(True)  # update list in case it is out of date
             for d in all_devices:       # and try again
                 if d.get_label() in names:
                     devices.append(d)
@@ -147,7 +147,7 @@ class LifxLAN:
         responses = self.broadcast_with_resp(LightGetPower, LightStatePower)
         power_states = {}
         if self.lights == None:
-            self.lights = self.get_lights()
+            self.lights = self.get_lights(True)
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
@@ -175,7 +175,7 @@ class LifxLAN:
         responses = self.broadcast_with_resp(LightGet, LightState)
         colors = {}
         if self.lights == None:
-            self.lights = self.get_lights()
+            self.lights = self.get_lights(True)
         for light in self.lights:
             for response in responses:
                 if light.mac_addr == response.target_addr:
