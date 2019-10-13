@@ -58,8 +58,8 @@ LifxLAN objects have the following methods:
 # group is a string label for a group, such as "Living Room"
 # location is the string label for a location, such as "My Home"
 
-get_lights()                                                                                 # returns list of Light objects
-get_color_lights()                                                                           # returns list of Light objects that support color functionality
+get_lights([perform_discovery])                                                              # returns list of Light objects
+get_color_lights([perform_discovery])                                                        # returns list of Light objects that support color functionality
 get_infrared_lights()                                                                        # returns list of Light objects that support infrared functionality
 get_multizone_lights()                                                                       # returns list of MultiZoneLight objects that support multizone functionality
 get_tilechain_lights()                                                                       # returns a list of TileChain objects that support chain functionality
@@ -131,7 +131,7 @@ supports_infrared()                 # returns True if product features include i
 You can get Light objects automatically though LAN-based discovery (takes a few seconds), or by creating Light objects using a known MAC address and IP address:
 
 ```
-lights = lan.get_lights()                              # Option 1: Discovery
+lights = lan.discover_devices()                        # Option 1: Discovery
 light = Light("12:34:56:78:9a:bc", "192.168.1.42")     # Option 2: Direct
 ```
 

@@ -34,12 +34,18 @@ class LifxLAN:
     #                                                                          #
     ############################################################################
 
-    def get_devices(self):
-        self.discover_devices()
+    # if you override perform_discovery please ensure you run discover_devices at least once
+    # additionally please ensure you run discovery_lights regularily in the event lights change ip address or new lights become available
+    def get_devices(self, perform_discovery=True):
+        if perform_discovery:
+            self.discover_devices()
         return self.devices
 
-    def get_lights(self):
-        self.discover_devices()
+    # if you override perform_discovery please ensure you run discover_devices at least once
+    # additionally please ensure you run discovery_lights regularily in the event lights change ip address or new lights become available
+    def get_lights(self, perform_discovery=True):
+        if perform_discovery:
+            self.discover_devices()
         return self.lights
 
     # more of an internal helper function
