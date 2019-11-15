@@ -22,8 +22,11 @@ def animate(sleep_secs, in_terminal):
 @cli_main.command()
 @click.option('-a', '--autoplay', is_flag=True, default=False, help='have snek autoplay')
 @click.option('-t', '--in-terminal', is_flag=True, default=False, help='run in terminal')
-def snek(autoplay, in_terminal):
+@click.option('-b', '--as-ambiance', is_flag=True, default=False, help='run repeatedly as background')
+def snek(autoplay, in_terminal, as_ambiance):
     """play the game of snek on tile lights or in terminal"""
+    if as_ambiance:
+        snek_module.run_as_ambiance()
     if autoplay:
         snek_module.autoplay(in_terminal)
     else:

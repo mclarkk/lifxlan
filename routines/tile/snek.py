@@ -1,8 +1,10 @@
+import logging
 import os
 import time
 from contextlib import suppress
+from enum import Enum
 from itertools import cycle, chain
-from random import randint, choice
+from random import randint, choice, sample
 from threading import Thread
 from typing import NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable
 
@@ -326,6 +328,21 @@ def for_talk():
     g.run()
 
 
+def run_as_ambiance():
+    background = Colors.SNES_DARK_GREY._replace(brightness=6554)
+    color_options = list(Colors) + list(Themes)
+
+    while True:
+        food_c, snek_c = (o[1] for o in sample(color_options, 2))
+        with suppress(SnekDead):
+            g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=1,
+                             callbacks=Callbacks(lights_tick, on_death, on_success),
+                             food_color=food_c,
+                             snek_color=snek_c,
+                             background_color=background)
+            g.run()
+
+
 def autoplay(in_terminal=False):
     if in_terminal:
         g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
@@ -359,12 +376,13 @@ def play(in_terminal=False):
 
 
 def __main():
+    return run_as_ambiance()
     # return for_talk()
-    return play()
-    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    # return play()
+    # g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
+    #                  callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+    #                  background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
+    #                  food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
     # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
     #              callbacks=Callbacks(lights_cb, on_death, on_success, lights_intro),
     #              background_color=Colors.OFF, snek_color=Colors.GREEN)
