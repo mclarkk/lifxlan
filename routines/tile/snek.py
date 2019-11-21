@@ -4,7 +4,7 @@ import time
 from contextlib import suppress
 from enum import Enum
 from itertools import cycle, chain
-from random import randint, choice, sample
+from random import randint, choice, sample, randrange
 from threading import Thread
 from typing import NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable
 
@@ -333,13 +333,15 @@ def run_as_ambiance():
     color_options = list(Colors) + list(Themes)
 
     while True:
+        tick_rate_secs = randrange(60) / 100.0 + .7
         food_c, snek_c = (o[1] for o in sample(color_options, 2))
         with suppress(SnekDead):
-            g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=1,
+            g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=tick_rate_secs,
                              callbacks=Callbacks(lights_tick, on_death, on_success),
                              food_color=food_c,
                              snek_color=snek_c,
-                             background_color=background)
+                             background_color=background,
+                             snek_growth_amount=randrange(1, 7))
             g.run()
 
 
