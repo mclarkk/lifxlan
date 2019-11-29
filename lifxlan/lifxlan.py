@@ -97,33 +97,35 @@ class LifxLAN:
                 chain_lights.append(l)
         return chain_lights
 
-    def get_device_by_name(self, name):
+    def get_device_by_name(self, name, fail_refresh=True):
         device = None
         all_devices = self.get_devices()
         for d in all_devices:
             if d.get_label() == name:
                 device = d
-        if device == None:               # didn't find it?
-            self.discover_devices()      # update list in case it is out of date
-            all_devices = self.get_devices()
-            for d in all_devices:            # and try again
-                if d.get_label() == name:
-                    device = d
+        if device is None:             # didn't find it?
+            if fail_refresh is True:    # should we rediscover devices?
+                self.discover_devices()  # update list in case it is out of date
+                all_devices = self.get_devices()
+                for d in all_devices:            # and try again
+                    if d.get_label() == name:
+                        device = d
         return device
 
     # takes in list of strings, returns Group of devices
-    def get_devices_by_name(self, names):
+    def get_devices_by_name(self, names, fail_refresh=True):
         devices = []
         all_devices = self.get_devices()
         for d in all_devices:
             if d.get_label() in names:
                 devices.append(d)
         if len(devices) != len(names):  # didn't find everything?
-            self.discover_devices()     # update list in case it is out of date
-            all_devices = self.get_devices()
-            for d in all_devices:       # and try again
-                if d.get_label() in names:
-                    devices.append(d)
+            if fail_refresh is True:      # should we rediscover devices?
+                self.discover_devices()     # update list in case it is out of date
+                all_devices = self.get_devices()
+                for d in all_devices:       # and try again
+                    if d.get_label() in names:
+                        devices.append(d)
         return Group(devices)
 
     def get_devices_by_group(self, group):
