@@ -24,16 +24,18 @@ product_map = {1: "Original 1000",
                51: "LIFX Mini White",
                52: "LIFX GU10",
                55: "LIFX Tile",
+               57: "LIFX Candle",
                59: "LIFX Mini Color",
                60: "LIFX Mini Day and Dusk",
-               61: "LIFX Mini White"
+               61: "LIFX Mini White",
+               68: "LIFX Candle"
                }
 
 # Identifies which products are lights.
 # Currently all LIFX products that speak the LAN protocol are lights.
 # However, the protocol was written to allow addition of other kinds
 # of devices, so it's important to be able to differentiate.
-light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52, 55, 59, 60, 61]
+light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52, 55, 57, 59, 60, 61, 68]
 
 features_map = {1: {"color": True,
                     "temperature": True,
@@ -210,6 +212,13 @@ features_map = {1: {"color": True,
                      "chain": True,
                      "min_kelvin": 2500,
                      "max_kelvin": 9000},
+                57: {"color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "min_kelvin": 2500,
+                     "max_kelvin": 9000},
                 59: {"color": True,
                      "temperature": True,
                      "infrared": False,
@@ -230,5 +239,12 @@ features_map = {1: {"color": True,
                      "multizone": False,
                      "chain": False,
                      "min_kelvin": 2700,
-                     "max_kelvin": 2700}
+                     "max_kelvin": 2700},
+                68: {"color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "min_kelvin": 2500,
+                     "max_kelvin": 9000}
                 }
