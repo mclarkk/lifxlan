@@ -702,6 +702,94 @@ class SetTileState64(Message):
             payload += b"".join(little_endian(bitstring.pack("16", field)) for field in color)
         return payload
 
+class GetTileEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        super(GetTileEffect, self).__init__(MSG_IDS[GetTileEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class SetTileEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        self.reserved1 = payload["reserved1"]
+        self.reserved2 = payload["reserved2"]
+        self.instanceid = payload["instanceid"]
+        self.effect_type = payload["type"]
+        self.speed = payload["speed"]
+        self.duration = payload["duration"]
+        self.reserved3 = payload["reserved3"]
+        self.reserved4 = payload["reserved4"]
+        self.parameters = payload["parameters"]
+        self.palette_count = payload["palette_count"]
+        self.palette = payload["palette"]
+        super(SetTileEffect, self).__init__(MSG_IDS[SetTileEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Reserved", self.reserved1))
+        self.payload_fields.append(("Reserved", self.reserved2))
+        self.payload_fields.append(("InstanceId", self.instanceid))
+        self.payload_fields.append(("Type", self.effect_type))
+        self.payload_fields.append(("Speed", self.speed))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Reserved", self.reserved3))
+        self.payload_fields.append(("Reserved", self.reserved4))
+        self.payload_fields.append(("Parameters", self.parameters))
+        self.payload_fields.append(("Palette Count", self.palette_count))
+        self.payload_fields.append(("Palette", self.palette))
+        reserved1 = little_endian(bitstring.pack("uint:8", self.reserved1))
+        reserved2 = little_endian(bitstring.pack("uint:8", self.reserved2))
+        instanceid = little_endian(bitstring.pack("32", self.instanceid))
+        effect_type = little_endian(bitstring.pack("uint:8", self.effect_type))
+        speed = little_endian(bitstring.pack("32", self.speed))
+        duration = little_endian(bitstring.pack("64", self.duration))
+        reserved3 = little_endian(bitstring.pack("32", self.reserved3))
+        reserved4 = little_endian(bitstring.pack("32", self.reserved4))
+        payload = reserved1 + reserved2 + instanceid + effect_type + speed + duration + reserved3 + reserved4
+        for parameter in self.parameters:
+            payload += little_endian(bitstring.pack("32", parameter))
+        palette_count = little_endian(bitstring.pack("uint:8", self.palette_count))
+        payload += palette_count
+        for color in self.palette:
+            payload += b"".join(little_endian(bitstring.pack("16", field)) for field in color)
+        return payload
+
+class StateTileEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
+        self.reserved1 = payload["reserved1"]
+        self.instanceid = payload["instanceid"]
+        self.effect_type = payload["type"]
+        self.speed = payload["speed"]
+        self.duration = payload["duration"]
+        self.reserved2 = payload["reserved2"]
+        self.reserved3 = payload["reserved3"]
+        self.parameters = payload["parameters"]
+        self.palette_count = payload["palette_count"]
+        self.palette = payload["palette"]
+        super(StateTileEffect, self).__init__(MSG_IDS[StateTileEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Reserved", self.reserved1))
+        self.payload_fields.append(("InstanceId", self.instanceid))
+        self.payload_fields.append(("Type", self.effect_type))
+        self.payload_fields.append(("Speed", self.speed))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Reserved", self.reserved2))
+        self.payload_fields.append(("Reserved", self.reserved3))
+        self.payload_fields.append(("Parameters", self.parameters))
+        self.payload_fields.append(("Palette Count", self.palette_count))
+        self.payload_fields.append(("Palette", self.palette))
+        reserved1 = little_endian(bitstring.pack("uint:8", self.reserved1))
+        instanceid = little_endian(bitstring.pack("32", self.instanceid))
+        effect_type = little_endian(bitstring.pack("uint:8", self.effect_type))
+        speed = little_endian(bitstring.pack("32", self.speed))
+        duration = little_endian(bitstring.pack("64", self.duration))
+        reserved2 = little_endian(bitstring.pack("32", self.reserved2))
+        reserved3 = little_endian(bitstring.pack("32", self.reserved3))
+        payload = reserved1 + instanceid + effect_type + speed + duration + reserved2 + reserved3
+        for parameter in self.parameters:
+            payload += little_endian(bitstring.pack("32", parameter))
+        palette_count = little_endian(bitstring.pack("uint:8", self.palette_count))
+        payload += palette_count
+        for color in self.palette:
+            payload += b"".join(little_endian(bitstring.pack("16", field)) for field in color)
+        return payload
 
 MSG_IDS = {     GetService: 2,
                 StateService: 3,
@@ -749,7 +837,10 @@ MSG_IDS = {     GetService: 2,
                 SetUserPosition: 703,
                 GetTileState64: 707,
                 StateTileState64: 711,
-                SetTileState64: 715}
+                SetTileState64: 715,
+                GetTileEffect: 718,
+                SetTileEffect: 719,
+                StateTileEffect: 720}
 
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
@@ -763,6 +854,11 @@ STR_MAP = { 65535: "On",
 ZONE_MAP = {0: "NO_APPLY",
             1:"APPLY",
             2:"APPLY_ONLY"}
+
+TILE_EFFECT = {0: "OFF",
+               1: "RESERVED",
+               2: "MORPH",
+               3: "FLAME"}
 
 def str_map(key):
     string_representation = "Unknown"

@@ -2,7 +2,7 @@ import os
 
 from .errors import WorkflowException, InvalidParameterException
 from .light import Light
-from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, SetUserPosition
+from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDeviceChain, StateDeviceChain, SetUserPosition, SetTileEffect, GetTileEffect, StateTileEffect
 from threading import Thread
 
 class TileChain(Light):
@@ -209,6 +209,40 @@ class TileChain(Light):
             #    print(row)
             self.tile_map = tile_map
         return self.tile_map
+
+    def get_tile_effect(self):
+        response = self.req_with_resp(GetTileEffect, StateTileEffect)
+        effect = {"instanceid": response.instanceid,
+                  "type": response.effect_type,
+                  "speed": response.speed,
+                  "duration": response.duration,
+                  "palette": response.palette}
+        return effect
+
+    def set_tile_effect(self, palette=[], instanceid=0, effect_type=0, speed=0, duration=0, rapid=False):
+        if len(palette)>16:
+            raise InvalidParameterException("Maximum palette size is 16, {} given.".format(len(palette)))
+
+        # parameters is not currently used by any effect, so just zero these out for now
+        parameters = []
+        for i in range(8):
+            parameters.append(0)
+
+        payload = {"reserved1": 0,
+                   "reserved2": 0,
+                   "instanceid": instanceid,
+                   "type": effect_type,
+                   "speed": speed,
+                   "duration": duration,
+                   "reserved3": 0,
+                   "reserved4": 0,
+                   "parameters": parameters,
+                   "palette_count": len(palette),
+                   "palette": palette}
+        if not rapid:
+            self.req_with_ack(SetTileEffect, payload)
+        else:
+            self.fire_and_forget(SetTileEffect, payload, num_repeats=1)
 
 
 class Tile(object):
