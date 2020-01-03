@@ -6,7 +6,7 @@ import os
 
 from .device import WorkflowException
 from .light import Light
-from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone
+from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone, GetMultiZoneEffect, SetMultiZoneEffect, StateMultiZoneEffect
 
 
 class MultiZoneLight(Light):
@@ -71,3 +71,33 @@ class MultiZoneLight(Light):
             if i == len(colors)-1:
                 apply = 1
             self.set_zone_color(i, i+1, color, duration, rapid, apply)
+
+    def get_multizone_effect(self):
+        response = self.req_with_resp(GetMultiZoneEffect, StateMultiZoneEffect)
+        effect = {"instanceid": response.instanceid,
+                  "type": response.effect_type,
+                  "speed": response.speed,
+                  "duration": response.duration,
+                  "parameters": response.parameters}
+        return effect
+
+    def set_multizone_effect(self, instanceid=0, effect_type=0, speed=0, duration=0, parameters=[], rapid=False):
+        if len(parameters)>8:
+            raise InvalidParameterException("Maximum parameters size is 8, {} given.".format(len(parameters)))
+
+        if len(parameters) < 8:
+            for i in range(len(parameters), 8):
+                parameters.append(0)
+
+        payload = {"instanceid": instanceid,
+                   "type": effect_type,
+                   "reserved1": 0,
+                   "speed": speed,
+                   "duration": duration,
+                   "reserved2": 0,
+                   "reserved3": 0,
+                   "parameters": parameters}
+        if not rapid:
+            self.req_with_ack(SetMultiZoneEffect, payload)
+        else:
+            self.fire_and_forget(SetMultiZoneEffect, payload, num_repeats=1)

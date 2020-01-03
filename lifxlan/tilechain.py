@@ -216,17 +216,20 @@ class TileChain(Light):
                   "type": response.effect_type,
                   "speed": response.speed,
                   "duration": response.duration,
+                  "parameters": response.parameters,
                   "palette": response.palette}
         return effect
 
-    def set_tile_effect(self, palette=[], instanceid=0, effect_type=0, speed=0, duration=0, rapid=False):
+    def set_tile_effect(self, palette=[], instanceid=0, effect_type=0, speed=0, duration=0, parameters=[], rapid=False):
         if len(palette)>16:
             raise InvalidParameterException("Maximum palette size is 16, {} given.".format(len(palette)))
+        if len(parameters)>8:
+            raise InvalidParameterException("Maximum parameters size is 8, {} given.".format(len(parameters)))
 
         # parameters is not currently used by any effect, so just zero these out for now
-        parameters = []
-        for i in range(8):
-            parameters.append(0)
+        if len(parameters) < 8:
+            for i in range(len(parameters), 8):
+                parameters.append(0)
 
         payload = {"reserved1": 0,
                    "reserved2": 0,

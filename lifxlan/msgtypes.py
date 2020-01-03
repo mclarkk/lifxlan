@@ -549,6 +549,76 @@ class MultiZoneGetColorZones(Message):
         payload = start_index + end_index
         return payload
 
+class GetMultiZoneEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        super(GetMultiZoneEffect, self).__init__(MSG_IDS[GetMultiZoneEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class SetMultiZoneEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.instanceid = payload["instanceid"]
+        self.effect_type = payload["type"]
+        self.reserved1 = payload["reserved1"]
+        self.speed = payload["speed"]
+        self.duration = payload["duration"]
+        self.reserved2 = payload["reserved2"]
+        self.reserved3 = payload["reserved3"]
+        self.parameters = payload["parameters"]
+        super(SetMultiZoneEffect, self).__init__(MSG_IDS[SetMultiZoneEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("InstanceId", self.instanceid))
+        self.payload_fields.append(("Type", self.effect_type))
+        self.payload_fields.append(("Reserved", self.reserved1))
+        self.payload_fields.append(("Speed", self.speed))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Reserved", self.reserved2))
+        self.payload_fields.append(("Reserved", self.reserved3))
+        self.payload_fields.append(("Parameters", self.parameters))
+        instanceid = little_endian(bitstring.pack("32", self.instanceid))
+        effect_type = little_endian(bitstring.pack("uint:8", self.effect_type))
+        reserved1 = little_endian(bitstring.pack("16", self.reserved1))
+        speed = little_endian(bitstring.pack("32", self.speed))
+        duration = little_endian(bitstring.pack("64", self.duration))
+        reserved2 = little_endian(bitstring.pack("32", self.reserved2))
+        reserved3 = little_endian(bitstring.pack("32", self.reserved3))
+        payload = instanceid + effect_type + reserved1 + speed + duration + reserved2 + reserved3
+        for parameter in self.parameters:
+            payload += little_endian(bitstring.pack("32", parameter))
+        return payload
+
+class StateMultiZoneEffect(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.instanceid = payload["instanceid"]
+        self.effect_type = payload["type"]
+        self.reserved1 = payload["reserved1"]
+        self.speed = payload["speed"]
+        self.duration = payload["duration"]
+        self.reserved2 = payload["reserved2"]
+        self.reserved3 = payload["reserved3"]
+        self.parameters = payload["parameters"]
+        super(StateMultiZoneEffect, self).__init__(MSG_IDS[StateMultiZoneEffect], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("InstanceId", self.instanceid))
+        self.payload_fields.append(("Type", self.effect_type))
+        self.payload_fields.append(("Reserved", self.reserved1))
+        self.payload_fields.append(("Speed", self.speed))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Reserved", self.reserved2))
+        self.payload_fields.append(("Reserved", self.reserved3))
+        self.payload_fields.append(("Parameters", self.parameters))
+        instanceid = little_endian(bitstring.pack("32", self.instanceid))
+        effect_type = little_endian(bitstring.pack("uint:8", self.effect_type))
+        reserved1 = little_endian(bitstring.pack("16", self.reserved1))
+        speed = little_endian(bitstring.pack("32", self.speed))
+        duration = little_endian(bitstring.pack("64", self.duration))
+        reserved2 = little_endian(bitstring.pack("32", self.reserved2))
+        reserved3 = little_endian(bitstring.pack("32", self.reserved3))
+        payload = instanceid + effect_type + reserved1 + speed + duration + reserved2 + reserved3
+        for parameter in self.parameters:
+            payload += little_endian(bitstring.pack("32", parameter))
+        return payload
+
 ##### TILE MESSAGES #####
 
 class GetDeviceChain(Message):
@@ -832,6 +902,9 @@ MSG_IDS = {     GetService: 2,
                 MultiZoneGetColorZones: 502,
                 MultiZoneStateZone: 503,
                 MultiZoneStateMultiZone: 506,
+                GetMultiZoneEffect: 507,
+                SetMultiZoneEffect: 508,
+                StateMultiZoneEffect: 509,
                 GetDeviceChain: 701,
                 StateDeviceChain: 702,
                 SetUserPosition: 703,

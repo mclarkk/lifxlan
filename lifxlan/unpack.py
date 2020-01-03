@@ -255,6 +255,41 @@ def unpack_lifx_message(packed_message):
         payload = {"count": count, "index": index, "color": colors}
         message = MultiZoneStateMultiZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
+    elif message_type == MSG_IDS[GetMultiZoneEffect]: #507
+        message = GetMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[SetMultiZoneEffect]: #508
+        instanceid = struct.unpack("<I", payload_str[0:4])[0]
+        effect_type = struct.unpack("<B", payload_str[4:5])[0]
+        reserved1 = struct.unpack("<H", payload_str[5:7])[0]
+        speed = struct.unpack("<I", payload_str[7:11])[0]
+        duration = struct.unpack("<Q", payload_str[11:19])[0]
+        reserved2 = struct.unpack("<I", payload_str[19:23])[0]
+        reserved3 = struct.unpack("<I", payload_str[23:27])[0]
+        parameters = []
+        for i in range(8):
+            parameter = struct.unpack("<I", payload_str[27+(i*4):31+(i*4)])[0]
+            parameters.append(parameter)
+        payload = {"instanceid": instanceid, "type": effect_type, "reserved1": reserved1, "speed": speed,
+                   "duration": duration, "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters}
+        message = SetMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[StateMultiZoneEffect]: #509
+        instanceid = struct.unpack("<I", payload_str[0:4])[0]
+        effect_type = struct.unpack("<B", payload_str[4:5])[0]
+        reserved1 = struct.unpack("<H", payload_str[5:7])[0]
+        speed = struct.unpack("<I", payload_str[7:11])[0]
+        duration = struct.unpack("<Q", payload_str[11:19])[0]
+        reserved2 = struct.unpack("<I", payload_str[19:23])[0]
+        reserved3 = struct.unpack("<I", payload_str[23:27])[0]
+        parameters = []
+        for i in range(8):
+            parameter = struct.unpack("<I", payload_str[27+(i*4):31+(i*4)])[0]
+            parameters.append(parameter)
+        payload = {"instanceid": instanceid, "type": effect_type, "reserved1": reserved1, "speed": speed,
+                   "duration": duration, "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters}
+        message = StateMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
     elif message_type == MSG_IDS[GetDeviceChain]: #701
         message = GetDeviceChain(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
 
