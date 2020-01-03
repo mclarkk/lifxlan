@@ -212,6 +212,8 @@ get_tilechain_colors()                                          # returns tilech
 set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
 project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
 get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
+get_tile_effect()                                               # returns current firmware effect status
+set_tile_effect([palette], [instanceid], [effect_type], [speed], [duration], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 Here are some other available methods that you are much less likely to use:
