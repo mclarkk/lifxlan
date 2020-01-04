@@ -203,6 +203,7 @@ TileChain lights, such as the LIFX Tile, have all the same methods as the Light 
 # colors is a list of 64 HSVK tuples.
 # tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
 # hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
+# effect_type is 0 for None, 2 for Morph and 3 for Flame. 1 is Reserved.
 
 get_tile_info([refresh_cache])                                  # returns a list of Tile objects
 get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
@@ -213,7 +214,7 @@ set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the c
 project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
 get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
 get_tile_effect()                                               # returns current firmware effect status
-set_tile_effect([palette], [instanceid], [effect_type], [speed], [duration], [parameters], [rapid]) # starts the firmware effect sequence
+set_tile_effect([effect_type], [speed], [duration], [palette], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 Here are some other available methods that you are much less likely to use:

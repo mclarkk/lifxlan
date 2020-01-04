@@ -81,7 +81,7 @@ class MultiZoneLight(Light):
                   "parameters": response.parameters}
         return effect
 
-    def set_multizone_effect(self, instanceid=0, effect_type=0, speed=0, duration=0, parameters=[], rapid=False):
+    def set_multizone_effect(self, effect_type=0, speed=0, duration=0, instanceid=0, parameters=[], rapid=False):
         if len(parameters)>8:
             raise InvalidParameterException("Maximum parameters size is 8, {} given.".format(len(parameters)))
 
