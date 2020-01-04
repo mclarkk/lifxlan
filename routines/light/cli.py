@@ -7,6 +7,7 @@ import click
 from click import echo
 
 import routines
+from routines.light import core
 from lifxlan import LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower
 from routines.keyboard_utils import getch_test as _getch_test
 from routines import ColorTheme
@@ -224,7 +225,7 @@ def morse_code(conf: Config, dot, dash, delay_msec, phrase):
 @pass_conf
 def rainbow(conf: Config, duration_secs, smooth, num_repeats):
     """make lights cycle through rainbow color group"""
-    routines.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth,
+    core.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth,
                      num_repeats=num_repeats)
 
 
@@ -242,7 +243,7 @@ def light_eq(conf: Config):
 @pass_conf
 def breathe(conf: Config, breath_secs, duration_mins, min_brightness_pct, max_brightness_pct):
     """make lights oscillate between darker and brighter """
-    routines.breathe(conf.group, breath_secs, min_brightness_pct, max_brightness_pct, conf.color_theme,
+    core.breathe(conf.group, breath_secs, min_brightness_pct, max_brightness_pct, conf.color_theme,
                      duration_mins)
 
 
@@ -252,7 +253,7 @@ def breathe(conf: Config, breath_secs, duration_mins, min_brightness_pct, max_br
 @pass_conf
 def blink_color(conf: Config, blink_secs, how_long_secs):
     """blink lights' colors"""
-    routines.blink_color(conf.group, conf.color_theme, blink_secs, how_long_secs)
+    core.blink_color(conf.group, conf.color_theme, blink_secs, how_long_secs)
 
 
 @cli_main.command()
@@ -261,7 +262,7 @@ def blink_color(conf: Config, blink_secs, how_long_secs):
 @pass_conf
 def blink_power(conf: Config, blink_secs, how_long_secs):
     """blink lights' power"""
-    routines.blink_power(conf.group, blink_secs, how_long_secs)
+    core.blink_power(conf.group, blink_secs, how_long_secs)
 
 
 @cli_main.command()
@@ -271,7 +272,7 @@ def blink_power(conf: Config, blink_secs, how_long_secs):
 @pass_conf
 def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""
-    routines.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
+    core.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
                           transition_secs=transition_secs)
 
 
