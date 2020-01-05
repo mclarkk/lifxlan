@@ -184,10 +184,13 @@ Lights with MultiZone capability, such as the LIFX Z, have all the same methods 
 # duration is the transition time in milliseconds
 # rapid is True/False. True means there is no guarantee that the bulb will receive your message.
 # apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+# effect_type is 0 for None, 1 for Move
 
 get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
 set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+get_multizone_effect()                                             # returns current firmware effect status
+set_multizone_effect([effect_type], [speed], [duration], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all MultiZone lights using `lights = lan.get_multizone_lights()`, where lan is a LifxLAN object.
