@@ -2,7 +2,7 @@ import random
 from itertools import groupby
 from typing import Iterable
 
-from lifxlan import Color, exhaust, LifxLAN, Colors, Themes, Theme
+from lifxlan3 import Color, exhaust, LifxLAN, Colors, Themes, Theme
 import time
 
 
@@ -32,7 +32,7 @@ def __main():
     # print(help(routines.core))
     # print(help(routines.morse_code))
     # print(help(routines.light_eq))
-    from lifxlan.settings import global_settings
+    from lifxlan3.settings import global_settings
     print(global_settings.items())
     global_settings.preserve_brightness = False
     print(global_settings.items())

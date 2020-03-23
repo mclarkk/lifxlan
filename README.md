@@ -33,7 +33,7 @@ a good place to get a feel for how this works is to check out [routines/core.py]
 
 ```python
 """set lights to a theme for 8 seconds"""
-from lifxlan import LifxLAN, Themes, Colors
+from lifxlan3 import LifxLAN, Themes, Colors
 from time import sleep
 
 # will query LAN for all available devices in __init__ and get all extant lights' settings in parallel

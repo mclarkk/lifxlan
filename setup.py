@@ -2,17 +2,18 @@ from distutils.core import setup
 # from setuptools import setup
 import re
 
-with open("lifxlan/__init__.py") as meta_file:
+with open("lifxlan3/__init__.py") as meta_file:
     metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", meta_file.read()))
-
-setup(name='lifxlan',
+packages = 'lifxlan3 lifxlan3.devices lifxlan3.network lifxlan3.routines lifxlan3.routines.light lifxlan3.routines.tile'.split()
+setup(name='lifxlan3',
       version=metadata['version'],
       description=metadata['description'],
       url=metadata['url'],
       author=metadata['author'],
       author_email=metadata['authoremail'],
       license=metadata['license'],
-      packages=['lifxlan'],
+      packages=packages,
+      package_dir={p: p.replace('.', '/') for p in packages},
       install_requires=[
           'bitstring',
           'netifaces',
