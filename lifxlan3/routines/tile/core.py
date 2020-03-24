@@ -96,16 +96,17 @@ def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
 
 @timer
 def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
-           *, in_terminal=False, with_mini=True, strip=True,
+           *, in_terminal=False, with_mini=True, strip=True, verbose=True,
            duration_msec=0):
     if strip:
         cm = cm.strip()
     orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
     if in_terminal:
         print(cm.color_str)
-        print(cm.describe)
-        print(cm.resize().color_str)
-        print(cm.resize((4, 4)).color_str)
+        if verbose:
+            print(cm.describe)
+            print(cm.resize().color_str)
+            print(cm.resize((4, 4)).color_str)
         return
 
     cm.set_max_brightness_pct(60)

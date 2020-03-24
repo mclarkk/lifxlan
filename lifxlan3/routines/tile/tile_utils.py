@@ -23,11 +23,11 @@ class RC(NamedTuple):
     r: int
     c: int
 
-    def to(self, other):
+    def to(self, other, row_inc=1, col_inc=1):
         """range from self to other"""
         yield from (RC(r, c)
-                    for r in range(self.r, other.r)
-                    for c in range(self.c, other.c))
+                    for r in range(self.r, other.r, row_inc)
+                    for c in range(self.c, other.c, col_inc))
 
     def in_bounds(self, rc_ul, rc_lr) -> bool:
         """return True if self inside the bounds of [upper_left, lower_right)"""
