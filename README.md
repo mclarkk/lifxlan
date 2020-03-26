@@ -27,7 +27,7 @@ one of the best ways to get around the code is just import objects and run `help
 
 ## quickstart
 
-this isn't really meant to be installed as a package, so it's probably best just to download and add to your `PYTHONPATH`.
+to install, simply do `pip3 install git+https://github.com/sweettuse/lifxlan3.git`
 
 a good place to get a feel for how this works is to check out [routines/core.py][core], but here's a quick example. (you should set `TOTAL_NUM_LIGHTS` in your `lifxlan/settings.py` ahead of time, but it's not necessary)
 
