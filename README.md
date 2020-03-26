@@ -29,7 +29,8 @@ one of the best ways to get around the code is just import objects and run `help
 
 to install, simply do `pip3 install git+https://github.com/sweettuse/lifxlan3.git`
 
-a good place to get a feel for how this works is to check out [routines/core.py][core], but here's a quick example. (you should set `TOTAL_NUM_LIGHTS` in your `lifxlan/settings.py` ahead of time, but it's not necessary)
+a good place to get a feel for how this works is to check out [routines/core.py][core], but here's a quick example.
+(you can export `LIFX_NUM_LIGHTS` in your env to speed up light discovery, but it's not necessary)
 
 ```python
 """set lights to a theme for 8 seconds"""
