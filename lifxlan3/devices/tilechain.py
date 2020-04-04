@@ -68,9 +68,8 @@ class TileChain(Light):
 
     def set_tilechain_colors(self, idx_colors_map, duration=0, rapid=True):
         """set colors for num_tiles starting from start_tile_idx"""
-        with self._wait_pool as wp:
-            exhaust(wp.submit(self.set_tile_colors, i, c, duration, 1, 0, 0, 8, rapid)
-                    for i, c in idx_colors_map.items())
+        exhaust(self._wait_pool.dispatch(self.set_tile_colors, i, c, duration, 1, 0, 0, 8, rapid)
+                for i, c in idx_colors_map.items())
 
     # ==================================================================================================================
     # HELPER FUNCTIONS

@@ -2,7 +2,7 @@ import os
 from enum import Enum
 
 UNKNOWN = 'UNKNOWN'
-TOTAL_NUM_LIGHTS = os.environ.get('LIFX_NUM_LIGHTS', 22)
+TOTAL_NUM_LIGHTS = int(os.environ.get('LIFX_NUM_LIGHTS', 22))
 DEFAULT_KELVIN = 3200
 
 
