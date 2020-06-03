@@ -28,6 +28,7 @@ product_map = {1: "Original 1000",
                59: "LIFX Mini Color",
                60: "LIFX Mini Day and Dusk",
                61: "LIFX Mini White",
+               62: "LIFX A19",
                68: "LIFX Candle"
                }
 
@@ -35,7 +36,7 @@ product_map = {1: "Original 1000",
 # Currently all LIFX products that speak the LAN protocol are lights.
 # However, the protocol was written to allow addition of other kinds
 # of devices, so it's important to be able to differentiate.
-light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52, 55, 57, 59, 60, 61, 68]
+light_products = [1, 3, 10, 11, 18, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 43, 44, 45, 46, 49, 50, 51, 52, 55, 57, 59, 60, 61, 62, 68]
 
 features_map = {1: {"color": True,
                     "temperature": True,
@@ -240,6 +241,13 @@ features_map = {1: {"color": True,
                      "chain": False,
                      "min_kelvin": 2700,
                      "max_kelvin": 2700},
+                62: {"color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "min_kelvin": 2500,
+                     "max_kelvin": 9000},
                 68: {"color": True,
                      "temperature": True,
                      "infrared": False,
