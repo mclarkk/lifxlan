@@ -250,7 +250,7 @@ def lights_tick(game: SnekGame):
 
 def lights_intro(game: SnekGame):
     # return
-    translate('./imgs/snek.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=1)
+    translate('snek.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=1, in_terminal=True)
 
     time.sleep(.3)
 

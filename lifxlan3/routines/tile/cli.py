@@ -21,12 +21,12 @@ def animate(sleep_secs, in_terminal, as_ambiance, duration_secs):
 
 def run_animate(sleep_secs, in_terminal, as_ambiance, duration_secs):
     if as_ambiance:
-        im_path = core.random_image()
+        im_fname = core.random_image()
     else:
         im_str = '\n'.join(f'{i:3d}: {n}' for i, n in enumerate(core.images))
         fn_idx = int(input(f'which image:\n{im_str}\n? '))
-        im_path = core.images[fn_idx]
-    core.animate(f'./imgs/{im_path}', sleep_secs=sleep_secs, in_terminal=in_terminal, how_long_secs=duration_secs)
+        im_fname = core.images[fn_idx]
+    core.animate(im_fname, sleep_secs=sleep_secs, in_terminal=in_terminal, how_long_secs=duration_secs)
 
 
 @cli_main.command()

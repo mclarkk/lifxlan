@@ -21,6 +21,7 @@ setup(name='lifxlan3',
           'arrow', 'click', 'sty', 'Pillow'
       ],
       zip_safe=False,
+      include_package_data=True,
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
           # Pick your license as you wish (should match "license" above)

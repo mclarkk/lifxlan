@@ -1,6 +1,7 @@
 from collections import defaultdict, Counter
 from contextlib import suppress
 from functools import lru_cache
+from io import BytesIO
 from itertools import islice, cycle, groupby, product
 from types import SimpleNamespace
 from typing import List, NamedTuple, Tuple, Dict, Optional, Callable, Iterable, Set, Union, Any
@@ -136,8 +137,15 @@ class ColorMatrix(List[List[Color]]):
     @classmethod
     def from_filename(cls, fn) -> 'ColorMatrix':
         """read a png in using pillow and convert to ColorMatrix"""
-        im = Image.open(fn).convert('RGB')
-        px = im.load()
+        return cls._from_image(Image.open(fn))
+
+    @classmethod
+    def from_bytes(cls, b: bytes):
+        return cls._from_image(Image.open(BytesIO(b)))
+
+    @classmethod
+    def _from_image(cls, im: Image):
+        px = im.convert('RGB').load()
         return ColorMatrix([RGBk(*px[c, r]).color
                             for c in range(im.width)]
                            for r in range(im.height))
@@ -146,7 +154,7 @@ class ColorMatrix(List[List[Color]]):
     def from_shape(cls, shape: Shape = default_shape, default: Color = default_color) -> 'ColorMatrix':
         """create a ColorMatrix with shape `shape` and colors set to `default`"""
         num_rows, num_cols = shape
-        return cls([default for _ in range(num_cols)] for _ in range(num_rows))
+        return cls([default] * num_cols for _ in range(num_rows))
 
     @classmethod
     def from_colors(cls, colors: List[Color], shape: Shape = (8, 8)):

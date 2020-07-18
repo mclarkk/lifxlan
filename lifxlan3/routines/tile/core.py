@@ -1,3 +1,4 @@
+import pkgutil
 import time
 from contextlib import suppress
 from functools import lru_cache
@@ -64,7 +65,7 @@ def animate(filename: str,
             *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16), strip=True,
             how_long_secs=30):
     """split color matrix and change images every `sleep_secs` seconds"""
-    cm = ColorMatrix.from_filename(filename)
+    cm = ColorMatrix.from_bytes(pkgutil.get_data('lifxlan3', f'assets/{filename}'))
     color_map = _get_color_replacements(filename)
     end_time = time.time() + how_long_secs
     for cm in cycle(cm.split()):
@@ -80,7 +81,7 @@ def animate(filename: str,
 def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
               size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None):
     """move right"""
-    cm = ColorMatrix.from_filename(filename)
+    cm = ColorMatrix.from_bytes(pkgutil.get_data('lifxlan3', f'assets/{filename}'))
     color_map = _get_color_replacements(filename)
     if split:
         cm = cm.split()[0]
@@ -152,7 +153,7 @@ def _cmp_colors(idx_colors_map):
 
 
 def _init_images():
-    p = Path(__file__).parent / 'imgs'
+    p = Path(__file__).parent.parent.parent / 'assets'
     return sorted(f.name for f in p.iterdir())
 
 
@@ -168,20 +169,20 @@ def random_image():
 
 
 def for_talk():
-    return animate('./imgs/text.png', sleep_secs=.5, strip=False)
+    return animate('text.png', sleep_secs=.5, strip=False)
     return id_tiles(rotate=False)
-    return animate('imgs/m_small.png', sleep_secs=.75)
-    return animate('imgs/ff4_tellah.png', sleep_secs=.75)
+    return animate('m_small.png', sleep_secs=.75)
+    return animate('ff4_tellah.png', sleep_secs=.75)
 
 
 def __main():
     return for_talk()
     # return id_tiles(rotate=False)
     # return animate('./imgs/m_small.png', sleep_secs=.75)
-    return animate('imgs/ff4_tellah.png', sleep_secs=.75)
-    return translate('imgs/ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
-    return animate('imgs/mm_walk.png', sleep_secs=4, in_terminal=False)
-    return animate('imgs/maniac_bernard.png')
+    return animate('ff4_tellah.png', sleep_secs=.75)
+    return translate('ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
+    return animate('mm_walk.png', sleep_secs=4, in_terminal=False)
+    return animate('maniac_bernard.png')
 
 
 if __name__ == '__main__':
