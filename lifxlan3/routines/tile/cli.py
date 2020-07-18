@@ -16,6 +16,10 @@ def cli_main():
 @click.option('-b', '--as-ambiance', is_flag=True, default=False, help='run as ambiance')
 def animate(sleep_secs, in_terminal, as_ambiance, duration_secs):
     """animate an image on tile lights or in terminal"""
+    run_animate(sleep_secs, in_terminal, as_ambiance, duration_secs)
+
+
+def run_animate(sleep_secs, in_terminal, as_ambiance, duration_secs):
     if as_ambiance:
         im_path = core.random_image()
     else:
