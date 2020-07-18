@@ -73,7 +73,7 @@ def animate(filename: str,
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
         cm.replace(color_map)
         set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
-        sleep(min(sleep_secs, end_time - time.time()))
+        sleep(max(0, min(sleep_secs, end_time - time.time())))
         if time.time() >= end_time:
             break
 
