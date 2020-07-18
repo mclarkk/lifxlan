@@ -140,8 +140,10 @@ class ColorMatrix(List[List[Color]]):
         return cls._from_image(Image.open(fn))
 
     @classmethod
-    def from_bytes(cls, b: bytes):
-        return cls._from_image(Image.open(BytesIO(b)))
+    def from_bytes(cls, b: Union[bytes, BytesIO]):
+        if isinstance(b, bytes):
+            b = BytesIO(b)
+        return cls._from_image(Image.open(b))
 
     @classmethod
     def _from_image(cls, im: Image):
@@ -237,21 +239,22 @@ class ColorMatrix(List[List[Color]]):
         split image into boxes based on rows/columns of empty colors
 
          _________________
-        | a | b | ccccccc |
+        | a | b | cccccc  |
         |-----------------|
-        | d | e | fffffff |
+        | d | eeeee | fff |
         |-----------------|
-        | g | h | iiiiiii |
-        |___|___|_________|
+        | g | h | iii | j |
+        |___|___|_____|___|
 
-        would end up with 9 images: a, b, ccccccc, d, e, fffffff, g, h, and iiiiiii 6 images
+        would end up with 10 images: a, b, cccccc, d, eeeee, fff, g, h, iii, and j
 
         """
         row_info = self.duplicates(split_color)
-        col_info = self.T.duplicates(split_color)
-        return [self.get_range(RC(r_start, c_start), RC(r_end + 1, c_end + 1), default_color)
-                for r_start, r_end in row_info.by_group
-                for c_start, c_end in col_info.by_group]
+        row_wise = (self.get_range(RC(r_start, 0), RC(r_end + 1, self.width + 1), default_color)
+                    for r_start, r_end in row_info.by_group)
+        return [r.get_range(RC(0, c_start), RC(r.height + 1, c_end + 1), default_color)
+                for r in row_wise
+                for c_start, c_end in r.T.duplicates(split_color).by_group]
 
     def get_range(self, rc0, rc1, default: Color = default_color) -> 'ColorMatrix':
         """create new ColorMatrix from existing existing CM from the box bounded by rc0, rc1"""

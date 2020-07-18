@@ -2,13 +2,14 @@ import pkgutil
 import time
 from contextlib import suppress
 from functools import lru_cache
+from io import BytesIO
 from itertools import count
 from math import ceil
 from pathlib import Path
 from pprint import pprint
-from random import choice
+from random import choice, shuffle
 from time import sleep
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 
 from lifxlan3 import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer, Dir
 from lifxlan3.routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
@@ -48,9 +49,14 @@ _color_replacements: Dict[str, Dict[Color, Color]] = dict(
     crono={Color(hue=54612, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
     ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     ff4={Color(hue=32767, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
-    mario_kart={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF},
+    smk={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF,
+         Color(hue=21845, saturation=52428, brightness=65535, kelvin=3200): Colors.OFF,
+         Color(hue=21845, saturation=53115, brightness=63736, kelvin=3200): Colors.OFF,
+         Color(hue=21250, saturation=51914, brightness=65535, kelvin=3200): Colors.OFF,
+         Color(hue=21845, saturation=48427, brightness=63993, kelvin=3200): Colors.OFF},
     lttp={Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
           Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    zelda={Color(hue=35924, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     maniac={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF})
 
 
@@ -65,10 +71,12 @@ def animate(filename: str,
             *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16), strip=True,
             how_long_secs=30):
     """split color matrix and change images every `sleep_secs` seconds"""
-    cm = ColorMatrix.from_bytes(pkgutil.get_data('lifxlan3', f'assets/{filename}'))
+    cm = ColorMatrix.from_bytes(Images.get_image(filename))
     color_map = _get_color_replacements(filename)
     end_time = time.time() + how_long_secs
-    for cm in cycle(cm.split()):
+    splits = cm.split()
+    shuffle(splits)
+    for cm in cycle(splits):
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
         cm.replace(color_map)
@@ -80,8 +88,8 @@ def animate(filename: str,
 
 def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
               size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None):
-    """move right"""
-    cm = ColorMatrix.from_bytes(pkgutil.get_data('lifxlan3', f'assets/{filename}'))
+    """move window over image"""
+    cm = ColorMatrix.from_bytes(Images.get_image(filename))
     color_map = _get_color_replacements(filename)
     if split:
         cm = cm.split()[0]
@@ -152,21 +160,35 @@ def _cmp_colors(idx_colors_map):
     print()
 
 
-def _init_images():
-    p = Path(__file__).parent.parent.parent / 'assets'
-    return sorted(f.name for f in p.iterdir())
+# ======================================================================================================================
+# IMAGES
+def get_assets_dir(cur_py_file, folder='assets'):
+    """pass in `__file__` to find path to images"""
 
 
-try:
-    images = _init_images()
-except FileNotFoundError:
+class Images:
     images = None
 
+    @classmethod
+    def _init_images(cls):
+        with suppress(FileNotFoundError):
+            p = Path(__file__).parent.parent.parent / 'assets'
+            cls.images = sorted(f.name for f in p.iterdir())
 
-def random_image():
-    if images:
-        return choice(images)
+    @classmethod
+    def get_random_image_name(cls, excluded=frozenset()):
+        if cls.images:
+            return choice(list(set(cls.images) - excluded))
 
+    @staticmethod
+    def get_image(name) -> BytesIO:
+        return BytesIO(pkgutil.get_data('lifxlan3', f'assets/{name}'))
+
+
+Images._init_images()
+
+
+# ======================================================================================================================
 
 def for_talk():
     return animate('text.png', sleep_secs=.5, strip=False)
