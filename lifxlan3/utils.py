@@ -151,5 +151,3 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
     for v, r in zip(array, cycle(res)):
         r.append(v)
     return res
-
-

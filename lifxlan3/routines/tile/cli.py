@@ -12,11 +12,17 @@ def cli_main():
 @cli_main.command()
 @click.option('-s', '--sleep-secs', default=2.0, help='how many seconds between different images')
 @click.option('-t', '--in-terminal', is_flag=True, default=False, help='run in terminal')
-def animate(sleep_secs, in_terminal):
+@click.option('-d', '--duration_secs', default=30., help='how long to run')
+@click.option('-b', '--as-ambiance', is_flag=True, default=False, help='run as ambiance')
+def animate(sleep_secs, in_terminal, as_ambiance, duration_secs):
     """animate an image on tile lights or in terminal"""
-    im_str = '\n'.join(f'{i:3d}: {n}' for i, n in enumerate(core.images))
-    fn_idx = int(input(f'which image:\n{im_str}\n? '))
-    core.animate(f'./imgs/{core.images[fn_idx]}', sleep_secs=sleep_secs, in_terminal=in_terminal)
+    if as_ambiance:
+        im_path = core.random_image()
+    else:
+        im_str = '\n'.join(f'{i:3d}: {n}' for i, n in enumerate(core.images))
+        fn_idx = int(input(f'which image:\n{im_str}\n? '))
+        im_path = core.images[fn_idx]
+    core.animate(f'./imgs/{im_path}', sleep_secs=sleep_secs, in_terminal=in_terminal, how_long_secs=duration_secs)
 
 
 @cli_main.command()

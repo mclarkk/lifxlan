@@ -1,9 +1,11 @@
+import time
 from contextlib import suppress
 from functools import lru_cache
 from itertools import count
 from math import ceil
 from pathlib import Path
 from pprint import pprint
+from random import choice
 from time import sleep
 from typing import Optional, Dict
 
@@ -58,17 +60,21 @@ def _get_color_replacements(filename):
     return {}
 
 
-def animate(filename: str, *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16),
-            strip=True):
+def animate(filename: str,
+            *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16), strip=True,
+            how_long_secs=30):
     """split color matrix and change images every `sleep_secs` seconds"""
     cm = ColorMatrix.from_filename(filename)
     color_map = _get_color_replacements(filename)
-    for i, cm in enumerate(cycle(cm.split())):
+    end_time = time.time() + how_long_secs
+    for cm in cycle(cm.split()):
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
         cm.replace(color_map)
         set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
-        sleep(sleep_secs)
+        sleep(min(sleep_secs, end_time - time.time()))
+        if time.time() >= end_time:
+            break
 
 
 def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
@@ -98,9 +104,9 @@ def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
 def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
            *, in_terminal=False, with_mini=True, strip=True, verbose=True,
            duration_msec=0):
+    """set color matrix either in terminal or on lights"""
     if strip:
         cm = cm.strip()
-    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
     if in_terminal:
         print(cm.color_str)
         if verbose:
@@ -109,6 +115,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
             print(cm.resize((4, 4)).color_str)
         return
 
+    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
     cm.set_max_brightness_pct(60)
     tiles = cm.to_tiles()
 
@@ -153,6 +160,11 @@ try:
     images = _init_images()
 except FileNotFoundError:
     images = None
+
+
+def random_image():
+    if images:
+        return choice(images)
 
 
 def for_talk():
