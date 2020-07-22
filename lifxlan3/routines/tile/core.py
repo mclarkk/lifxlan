@@ -47,8 +47,9 @@ def id_tiles(*, rotate=False):
 
 _color_replacements: Dict[str, Dict[Color, Color]] = dict(
     crono={Color(hue=54612, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
-    ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     ff4={Color(hue=32767, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
+    ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    smb2_items={Color(hue=21845, saturation=65535, brightness=65535, kelvin=3200): Color.from_hex(0x3ec7fb)},
     smk={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF,
          Color(hue=21845, saturation=52428, brightness=65535, kelvin=3200): Colors.OFF,
          Color(hue=21845, saturation=53115, brightness=63736, kelvin=3200): Colors.OFF,
@@ -56,8 +57,9 @@ _color_replacements: Dict[str, Dict[Color, Color]] = dict(
          Color(hue=21845, saturation=48427, brightness=63993, kelvin=3200): Colors.OFF},
     lttp={Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
           Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    maniac={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     zelda={Color(hue=35924, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
-    maniac={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF})
+)
 
 
 def _get_color_replacements(filename):
@@ -80,7 +82,10 @@ def animate(filename: str,
         log.info('.')
         c_offset = 0 if not center else max(0, ceil(cm.width / 2 - 8))
         cm.replace(color_map)
-        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
+        try:
+            set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
+        except ValueError:
+            continue
         sleep(max(0, min(sleep_secs, end_time - time.time())))
         if time.time() >= end_time:
             break
