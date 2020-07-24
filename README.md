@@ -157,7 +157,7 @@ The Light API provides everything in the Device API, as well as:
 
 set_power(power, [duration], [rapid])   
 set_color(color, [duration], [rapid])                                   
-set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     # currently experimental, undocumented in official protocol
+set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     
 get_power()                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
 get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
