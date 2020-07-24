@@ -24,9 +24,18 @@ def main():
     devices = lifx.get_lights()
 
     print("Found {} lights:".format(len(devices)))
-
     for d in devices:
-        print("{} ({}) HSBK: {}".format(d.get_label(), d.mac_addr, d.get_color()))
+        name = "No response"
+        color = "No response"
+        try:
+            name = d.get_label()
+        except:
+            pass
+        try:
+            color = d.get_color()
+        except:
+            pass
+        print("{} ({}) HSBK: {}".format(name, d.mac_addr, color))
 
 if __name__=="__main__":
     main()
