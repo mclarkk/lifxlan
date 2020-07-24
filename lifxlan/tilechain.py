@@ -1,4 +1,4 @@
-import os
+import random
 
 from .errors import WorkflowException, InvalidParameterException
 from .light import Light
@@ -6,7 +6,7 @@ from .msgtypes import GetTileState64, StateTileState64, SetTileState64, GetDevic
 from threading import Thread
 
 class TileChain(Light):
-    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
+    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=random.randrange(2, 1 << 32), verbose=False):
         super(TileChain, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.tile_info = None
         self.tile_count = None

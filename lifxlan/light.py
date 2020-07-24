@@ -2,7 +2,7 @@
 # light.py
 # Author: Meghan Clark
 
-import os
+import random
 from .device import Device
 from .errors import InvalidParameterException, WorkflowException
 from .msgtypes import LightGet, LightGetInfrared, LightGetPower,\
@@ -23,7 +23,7 @@ WARM_WHITE = [58275, 0, 65535, 3200]
 GOLD = [58275, 0, 65535, 2500]
 
 class Light(Device):
-    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
+    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=random.randrange(2, 1 << 32), verbose=False):
         mac_addr = mac_addr.lower()
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None

@@ -5,7 +5,7 @@
 from random import randint
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
-import os
+import random
 
 from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
 from .errors import InvalidParameterException, WorkflowException
@@ -21,7 +21,7 @@ from .group import Group
 
 class LifxLAN:
     def __init__(self, num_lights=None, verbose=False):
-        self.source_id = os.getpid()
+        self.source_id = random.randrange(2, 1 << 32)
         self.num_devices = num_lights
         self.num_lights = num_lights
         self.devices = None
