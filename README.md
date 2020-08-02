@@ -1,5 +1,3 @@
-# This is samclane's dev fork of lifxlan
-
 # lifxlan
 
 **lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
