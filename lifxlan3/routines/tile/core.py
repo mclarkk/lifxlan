@@ -9,7 +9,9 @@ from pathlib import Path
 from pprint import pprint
 from random import choice, shuffle
 from time import sleep
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Tuple
+
+from PIL import Image
 
 from lifxlan3 import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer, Dir
 from lifxlan3.routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
@@ -63,18 +65,41 @@ _color_replacements: Dict[str, Dict[Color, Color]] = dict(
 
 
 def _get_color_replacements(filename):
+    if isinstance(filename, BytesIO):
+        return {}
+
     for k, v in _color_replacements.items():
         if k in filename:
             return v
     return {}
 
 
-def animate(filename: str,
+CFBI = Union[ColorMatrix, str, BytesIO, Image.Image]
+
+
+def _init_cm(cm_or_fn_or_bytes_or_image: CFBI) -> Tuple[ColorMatrix, Dict[Color, Color]]:
+    color_map = {}
+    if isinstance(cm_or_fn_or_bytes_or_image, str):
+        color_map = _get_color_replacements(cm_or_fn_or_bytes_or_image)
+        cm_or_fn_or_bytes_or_image = Images.get_image(cm_or_fn_or_bytes_or_image)
+
+    if isinstance(cm_or_fn_or_bytes_or_image, BytesIO):
+        im = ColorMatrix.from_bytes(cm_or_fn_or_bytes_or_image)
+    elif isinstance(cm_or_fn_or_bytes_or_image, Image.Image):
+        im = ColorMatrix.from_image(cm_or_fn_or_bytes_or_image)
+    elif isinstance(cm_or_fn_or_bytes_or_image, ColorMatrix):
+        im = cm_or_fn_or_bytes_or_image
+    else:
+        raise TypeError(f'got {type(cm_or_fn_or_bytes_or_image)}, must be of type {CFBI}')
+
+    return im, color_map
+
+
+def animate(filename: CFBI,
             *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16), strip=True,
             how_long_secs=30):
     """split color matrix and change images every `sleep_secs` seconds"""
-    cm = ColorMatrix.from_bytes(Images.get_image(filename))
-    color_map = _get_color_replacements(filename)
+    cm, color_map = _init_cm(filename)
     end_time = time.time() + how_long_secs
     splits = cm.split()
     shuffle(splits)
@@ -91,11 +116,13 @@ def animate(filename: str,
             break
 
 
-def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
-              size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None):
-    """move window over image"""
-    cm = ColorMatrix.from_bytes(Images.get_image(filename))
-    color_map = _get_color_replacements(filename)
+def translate(filename: CFBI, *, sleep_secs: float = .5, in_terminal=False,
+              size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None,
+              pixels_per_step=1):
+    """move window over image
+
+    `n_iterations` represents how many full iterations of the message itself"""
+    cm, color_map = _init_cm(filename)
     if split:
         cm = cm.split()[0]
 
@@ -104,7 +131,7 @@ def translate(filename: str, *, sleep_secs: float = .5, in_terminal=False,
     def _gen_offset():
         its = count() if n_iterations is None else range(n_iterations)
         for _ in its:
-            for _c_offset in range(cm.width - size.c):
+            for _c_offset in range(0, cm.width - size.c, pixels_per_step):
                 yield mult * (cm.width - _c_offset - 1)
 
     for c_offset in _gen_offset():
@@ -121,6 +148,9 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
     """set color matrix either in terminal or on lights"""
     if strip:
         cm = cm.strip()
+
+    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
+
     if in_terminal:
         print(cm.color_str)
         if verbose:
@@ -129,7 +159,6 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
             print(cm.resize((4, 4)).color_str)
         return
 
-    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
     cm.set_max_brightness_pct(60)
     tiles = cm.to_tiles()
 
@@ -167,9 +196,6 @@ def _cmp_colors(idx_colors_map):
 
 # ======================================================================================================================
 # IMAGES
-def get_assets_dir(cur_py_file, folder='assets'):
-    """pass in `__file__` to find path to images"""
-
 
 class Images:
     images = None
@@ -186,8 +212,10 @@ class Images:
             return choice(list(set(cls.images) - excluded))
 
     @staticmethod
-    def get_image(name) -> BytesIO:
-        return BytesIO(pkgutil.get_data('lifxlan3', f'assets/{name}'))
+    def get_image(name_or_bytes: Union[str, BytesIO]) -> BytesIO:
+        if isinstance(name_or_bytes, BytesIO):
+            return name_or_bytes
+        return BytesIO(pkgutil.get_data('lifxlan3', f'assets/{name_or_bytes}'))
 
 
 Images._init_images()

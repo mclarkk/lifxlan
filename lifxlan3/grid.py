@@ -9,7 +9,10 @@ grid: Dict[str, 'GridLight'] = {}
 
 
 def enlighten_grid(group):
-    """set lifxlan.Light objects on each GridLight based on `group`"""
+    """ set lifxlan.Light objects on each GridLight based on `group`
+
+    call from your grid_local.py file to set up how your home grid looks
+    """
     from .group import Group
     group: Group
     for light in group:
@@ -26,16 +29,18 @@ class Dir(Enum):
     left = 'left'
 
     def __neg__(self):
-        dirs = list(Dir)
-        return dirs[(dirs.index(self) + 2) % len(dirs)]
+        return dirs[(dirs[self] + 2) % len(dirs)]
 
     def __next__(self):
-        dirs = list(Dir)
-        return dirs[(dirs.index(self) + 1) % len(dirs)]
+        return dirs[(dirs[self] + 1) % len(dirs)]
+
+
+dirs = {d: idx for idx, d in enumerate(Dir)}
 
 
 class GridLight:
     """represent a light in a grid including its neighbors"""
+
     def __init__(self, name):
         self.name = name
         self.neighbors: Dict[Dir, GridLight] = {}

@@ -137,16 +137,16 @@ class ColorMatrix(List[List[Color]]):
     @classmethod
     def from_filename(cls, fn) -> 'ColorMatrix':
         """read a png in using pillow and convert to ColorMatrix"""
-        return cls._from_image(Image.open(fn))
+        return cls.from_image(Image.open(fn))
 
     @classmethod
     def from_bytes(cls, b: Union[bytes, BytesIO]):
         if isinstance(b, bytes):
             b = BytesIO(b)
-        return cls._from_image(Image.open(b))
+        return cls.from_image(Image.open(b))
 
     @classmethod
-    def _from_image(cls, im: Image):
+    def from_image(cls, im: Image):
         px = im.convert('RGB').load()
         return ColorMatrix([RGBk(*px[c, r]).color
                             for c in range(im.width)]
@@ -363,13 +363,11 @@ class ColorMatrix(List[List[Color]]):
         if self.shape == shape:
             return self.copy()
 
-        cm = self.cast(lambda color: color.rgb[:3])
-
-        im = Image.new('RGB', cm.shape, 'black')
+        im = Image.new('RGB', self.shape, 'black')
         pixels = im.load()
         for c, r in product(range(im.width), range(im.height)):
             with suppress(IndexError):
-                pixels[c, r] = cm[r][c]
+                pixels[c, r] = self[r][c][:3]
 
         y, x = shape
         im = im.resize((x, y), Image.ANTIALIAS)

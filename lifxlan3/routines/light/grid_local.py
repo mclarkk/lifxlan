@@ -30,6 +30,8 @@ def init_grid(group: Group):
 
     m1 = GridLight('master 1')
     m2 = GridLight('master 2')
+    m_strip = GridLight('master strip')
+    m_floor = GridLight('master floor')
 
     _diagram = \
         """
@@ -85,6 +87,9 @@ def init_grid(group: Group):
 
     # UPSTAIRS ASSOCIATIONS
     m1[Dir.right] = m2
+    m2[Dir.right] = m_strip
+    m_strip[Dir.right] = m_floor
+    m_floor[Dir.right] = m1
     if group:
         enlighten_grid(group)
 
