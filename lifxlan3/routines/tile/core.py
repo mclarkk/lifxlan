@@ -118,7 +118,7 @@ def animate(filename: CFBI,
 
 def translate(filename: CFBI, *, sleep_secs: float = .5, in_terminal=False,
               size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None,
-              pixels_per_step=1):
+              strip=False, pixels_per_step=1):
     """move window over image
 
     `n_iterations` represents how many full iterations of the message itself"""
@@ -137,7 +137,7 @@ def translate(filename: CFBI, *, sleep_secs: float = .5, in_terminal=False,
     for c_offset in _gen_offset():
         cm.replace(color_map)
         cm.wrap = True
-        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal)
+        set_cm(cm, offset=RC(0, c_offset), size=size, in_terminal=in_terminal, strip=strip)
         sleep(sleep_secs)
 
 
@@ -149,7 +149,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
     if strip:
         cm = cm.strip()
 
-    orig_cm = cm = cm.get_range(RC(0, 0) + offset, size + offset)
+    cm = cm.get_range(RC(0, 0) + offset, size + offset)
 
     if in_terminal:
         print(cm.color_str)
@@ -170,7 +170,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
 
     if with_mini:
         ti = tile_map[RC(2, -1)]
-        idx_colors_map[ti.idx] = orig_cm.resize((8, 8)).rotate_from_origin(ti.origin).flattened
+        idx_colors_map[ti.idx] = cm.resize((8, 8)).rotate_from_origin(ti.origin).flattened
 
     tc = get_tile_chain()
     tc.set_tilechain_colors(idx_colors_map, duration=duration_msec)
