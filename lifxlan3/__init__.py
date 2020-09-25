@@ -11,7 +11,7 @@ from .themes import Theme, Themes
 from .colors import Color, Colors, RGBk
 from .grid import grid, GridLight, Dir, enlighten_grid
 
-__version__     = '2.1.10'
+__version__     = '2.1.11'
 __description__ = 'API for local communication with LIFX devices over a LAN.'
 __url__         = 'http://github.com/sweettuse/lifxlan'
 __author__      = 'Meghan Clark, adam cushner'
