@@ -1,0 +1,94 @@
+2019-01-02	Version 0.10.8
+
+	* Fixed a bug that in certain circumstances could lead to an infinite
+	loop in netifaces.gateways() (thanks asomers).
+	* Fixed a memory management bug in an error path (thanks NicoPy).
+
+2018-05-08	Version 0.10.7
+
+	* Added LICENSE file
+	* Automated Windows builds via AppVeyor.
+
+2017-06-01	Version 0.10.6
+
+	* Fixed netmask determination on Windows.
+	* All addresses are now unicode strings on all platforms,
+	regardless of Python version.
+
+2016-08-23	Version 0.10.5
+
+	* Fixed setup.py in case there's no print (thanks Stavros).
+	* Fixed a potential one-byte stack overwrite (thanks Doug Horn).
+	* Fixed possible null pointer deference (thanks bastiak).
+	* Added support for IPv6 address flags on BSD/Mac OS X (thanks
+	stefann).
+	* Respect interface priorities when determining default gateway
+	(on Windows and Linux).
+	* Use CIDR notation for IPv6 netmasks.
+	* Ignore broadcast addresses in the 169.254.0.0/16 range (it
+	appears Cygwin's getaddrinfo() may erroneously generate these).
+	* Stop using deprecated WSAAddressToStringA() API on Windows
+	in favour of using WSAAddressToStringW() where available.  Falls
+	back to the older API if required.
+
+2014-05-19	Version 0.10.4
+
+	* Fixed a problem with multi-part Netlink messages on Linux.
+
+2014-05-06	Version 0.10.3
+
+	* When using Netlink (i.e. Linux), check for the constant
+	NLM_F_DUMP_INTR, since it only appeared in kernel version 3.1
+
+2014-05-03	Version 0.10.2
+
+	* Added a workaround for broken netlink headers on certain Linux
+	distributions (the problem being that the netlink headers fail to
+	include <bits/sockaddr.h>, which causes a build failure).
+
+2014-05-02	Version 0.10.1
+
+	* Fixed a problem with the gateways() function that caused it a
+	crash on PyPy.
+	* The CI system is now set up to build for PyPy as well, so
+	problems will be found sooner.
+
+2014-05-01	Version 0.10.0
+
+	* Python 3 compatibility.
+	* Improved Windows source code compatibility.
+	* Added gateway detection via gateways() function.
+	* New version number format (skipped 0.9.0 due to its use by
+	the netifaces-merged fork).
+
+2012-01-31 	Version 0.8
+
+	All changes in this version relate to the ioctl( ) code path,
+	which is not used on Windows or on any modern UNIX or UNIX-like
+	system that implements getaddrinfo().
+
+	* Fixed bit-rot in the ioctl() code path.
+	* Fixed a problem with setup.py that might manifest itself if the
+	config.cache file was manually edited.
+	* Fixed the ioctl() code path to cope with systems that have
+	sa_len and return longer than normal struct ifreq requests from
+	SIOCG[L]IFCONF (for instance, Mac OS X).
+
+2012-01-30	Version 0.7
+
+	* Dropped support for Win2K and earlier
+	* Added support for addresses other than IPv4 on Windows
+	* Removed empty 'addr' entries for interfaces that don't provide
+	any addresses.
+	* Fixed problems with setup script that prevented it running on
+	Windows, and improved the chances of it working with
+	cross-compilers somewhat.
+	* Added a verion property to the module that you can test at
+	runtime.
+
+2011-11-04	Version 0.6
+
+	* Added a workaround for a FreeBSD kernel bug (kern/152036).
+	* Added address_families dictionary to allow code to look up the
+	symbolic name corresponding to a given numberic address family
+	code.

@@ -1,0 +1,27 @@
+Release Instructions
+====================
+
+First, update the CHANGELOG as well as README.rst and setup.py.
+
+Next, commit any changes for the release, then tag the release with
+
+  git tag release_a_b_c
+
+where the version number is a.b.c.  Make sure you push with the --tags
+option to get the tag back onto Github.
+
+Now wait for Travis and Appveyor to complete their builds; Appveyor in
+particular builds the Windows wheels, so you can't complete a release
+until it has finished.
+
+Finally, when the release is complete, run
+
+  ./build-manylinux1
+  ./build-osx
+  ./fetch-win32-wheels a.b.c release_a_b_c
+  python setup.py sdist
+
+and then upload using
+
+  twine upload dist/netifaces-a.b.c.tar.gz wheelhouse/netifaces-a.b.c-*.whl
+

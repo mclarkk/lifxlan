@@ -3,7 +3,7 @@ from distutils.core import setup
 import re
 
 with open("lifxlan/__init__.py") as meta_file:
-    metadata = dict(re.findall("__([a-z]+)__\s*=\s*'([^']+)'", meta_file.read()))
+    metadata = dict(re.findall(r"__([a-z]+)__\s*=\s*'([^']+)'", meta_file.read()))
 
 setup(name='lifxlan',
       version=metadata['version'],
@@ -15,11 +15,11 @@ setup(name='lifxlan',
       packages=['lifxlan'],
       install_requires=[
         "bitstring",
-        "netifaces"
-        ],
+        "ifaddr"
+      ],
       zip_safe=False,
           # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
+      classifiers=[
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
 
@@ -33,4 +33,4 @@ setup(name='lifxlan',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
-    ])
+      ])

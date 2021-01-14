@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ `uname` != "Darwin" ]; then
+  echo "You must run this on macOS"
+  exit
+fi
+
+eval "$(pyenv init -)"
+
+VERSIONS="2.7.10 3.6.2 3.7.1"
+
+for version in $VERSIONS; do
+  pyenv install -s "$version"
+  pyenv shell "$version"
+  pip install wheel
+  pip wheel . -w wheelhouse/
+done

@@ -1,7 +1,3 @@
-# coding=utf-8
-# lifxlan.py
-# Author: Meghan Clark
-
 from random import randint
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
 from time import sleep, time
@@ -155,7 +151,6 @@ class LifxLAN:
         return power_states
 
     def set_power_all_lights(self, power_level, duration=0, rapid=False):
-        print("El foco se actualizó correctamente")
         on = [True, 1, "on", 65535]
         off = [False, 0, "off"]
         try:

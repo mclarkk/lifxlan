@@ -1,0 +1,44 @@
+language: python
+
+install:
+  - |
+    if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+      # On OS X, we use the "generic" language and manually install Python so
+      # that we can specify the versions to test
+      curl -L raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash
+      export PATH=~/.pyenv/bin:$PATH
+      eval "$(pyenv init -)"
+      pyenv install --skip-existing $PYTHON_VERSION
+      pyenv global $PYTHON_VERSION
+      pyenv shell $PYTHON_VERSION
+      pip install -U pip setuptools wheel py
+    fi
+    pip install .
+
+script:
+  - python test.py
+
+matrix:
+  include:
+    - os: linux
+      python: pypy
+    - os: linux
+      python: pypy3
+    - os: linux
+      python: 2.7
+    - os: linux
+      python: 3.4
+    - os: linux
+      python: 3.5
+    - os: linux
+      python: 3.6
+    - os: linux
+      python: 3.7
+    - os: linux
+      python: 3.8
+    - os: osx
+      language: generic
+      env: PYTHON_VERSION=3.6.2
+    - os: osx
+      language: generic
+      env: PYTHON_VERSION=2.7.10
