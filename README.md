@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
+**lifxlan** is a Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
 
 ## How to Install
 
@@ -14,7 +14,7 @@ However, to be guaranteed to get the most recent features and fixes you can inst
 
 ## Run
 
-See the `examples` folder for example scripts that use **lifxlan**.  
+See the `examples` folder for example scripts that use **lifxlan**.
 
 To be as generic as possible, the examples use automatic device discovery to find individual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
 
@@ -22,18 +22,18 @@ To be as generic as possible, the examples use automatic device discovery to fin
 
 You can do several things with this library:
 
-* Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
-* Build your own high-level API on top of the low-level networking messages.
-* Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
+- Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
+- Build your own high-level API on top of the low-level networking messages.
+- Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
 
 #### High-Level API:
 
-* **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
-* **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
-* **light.py** - Provides the Light API. Subclass of Device.
-* **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
-* **tilechain.py** - Provides the TileChain API. Subclass of Light.
-* **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
+- **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
+- **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
+- **light.py** - Provides the Light API. Subclass of Device.
+- **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
+- **tilechain.py** - Provides the TileChain API. Subclass of Light.
+- **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
 
 ##### LifxLAN API
 
@@ -85,13 +85,13 @@ In keeping with the LIFX protocol, all lights are devices, and so support the fo
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
 
-set_label(label)            
-set_power(power, [rapid])            
+set_label(label)
+set_power(power, [rapid])
 get_mac_addr()
 get_ip_addr()
 get_service()                       # returns int, 1 = UDP
-get_port()                          
-get_label()         
+get_port()
+get_label()
 get_power()                         # returns 0 for off, 65535 for on
 get_host_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
 get_host_firmware_build_timestamp()
@@ -99,7 +99,7 @@ get_host_firmware_version()
 get_wifi_info_tuple()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
 get_wifi_signal_mw()
 get_wifi_tx_bytes()
-get_wifi_rx_bytes()         
+get_wifi_rx_bytes()
 get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
 get_wifi_firmware_build_timestamp()
 get_wifi_firmware_version()
@@ -155,9 +155,9 @@ The Light API provides everything in the Device API, as well as:
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 
-set_power(power, [duration], [rapid])   
-set_color(color, [duration], [rapid])                                   
-set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     
+set_power(power, [duration], [rapid])
+set_color(color, [duration], [rapid])
+set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)
 get_power()                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
 get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
@@ -242,7 +242,9 @@ right = Light("12:34:56:78:9a:bc", "192.168.0.2")
 left = Light("cb:a9:87:65:43:21", "192.168.0.3")
 g = Group([right, left])
 ```
+
 Almost all of the Group API methods are commands. Commands will only be sent to the devices in the group that support that capability. If you want to get state information from the devices, you will need to access the list of devices and call their get methods directly.
+
 ```
 # device_object is a Device or any of its subclasses like Light and MultiZoneLight.
 # device_name is a string name of a device, like "Right Lamp"
@@ -275,8 +277,8 @@ The LIFX LAN protocol specification is officially documented [here](https://lan.
 
 The files that deal with LIFX packet construction and representation are:
 
-* **message.py** -  Defines the message fields and the basic packet structure.
-* **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
-* **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
+- **message.py** - Defines the message fields and the basic packet structure.
+- **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
+- **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
 Happy hacking!
