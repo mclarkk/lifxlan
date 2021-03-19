@@ -184,10 +184,13 @@ Lights with MultiZone capability, such as the LIFX Z, have all the same methods 
 # duration is the transition time in milliseconds
 # rapid is True/False. True means there is no guarantee that the bulb will receive your message.
 # apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+# effect_type is 0 for None, 1 for Move
 
 get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
 set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+get_multizone_effect()                                             # returns current firmware effect status
+set_multizone_effect([effect_type], [speed], [duration], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all MultiZone lights using `lights = lan.get_multizone_lights()`, where lan is a LifxLAN object.
@@ -203,6 +206,7 @@ TileChain lights, such as the LIFX Tile, have all the same methods as the Light 
 # colors is a list of 64 HSVK tuples.
 # tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
 # hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
+# effect_type is 0 for None, 2 for Morph and 3 for Flame. 1 is Reserved.
 
 get_tile_info([refresh_cache])                                  # returns a list of Tile objects
 get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
@@ -212,6 +216,8 @@ get_tilechain_colors()                                          # returns tilech
 set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
 project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
 get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
+get_tile_effect()                                               # returns current firmware effect status
+set_tile_effect([effect_type], [speed], [duration], [palette], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 Here are some other available methods that you are much less likely to use:
