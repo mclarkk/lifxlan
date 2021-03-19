@@ -58,7 +58,8 @@ product_map = {1: "LIFX Original 1000",
                101: "LIFX Filament Amber",
                109: "LIFX A19 Night Vision",
                110: "LIFX BR30 Night Vision",
-               111: "LIFX A19 Night Vision"
+               111: "LIFX A19 Night Vision",
+               None: "Unknown product"
                }
 
 # Identifies which products are lights.
@@ -779,6 +780,18 @@ features_map = {1: {                    # LIFX Original 1000
                     "color": True,
                     "temperature": True,
                     "infrared": True,
+                    "multizone": False,
+                    "chain": False,
+                    "matrix": False,
+                    "min_kelvin": 2500,
+                    "max_kelvin": 9000,
+                    "hev": False,
+                    "relays": False,
+                    "buttons": False},
+                None: {                    # Default answer for unknown product
+                    "color": False,
+                    "temperature": False,
+                    "infrared": False,
                     "multizone": False,
                     "chain": False,
                     "matrix": False,

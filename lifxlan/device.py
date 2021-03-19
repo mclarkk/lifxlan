@@ -270,6 +270,8 @@ class Device(object):
             self.vendor, self.product, self.version = self.get_version_tuple()
         if self.product in product_map:
             product_name = product_map[self.product]
+        else:
+            product_name = product_map[None]
         return product_name
 
     def get_product_features(self):
@@ -278,6 +280,8 @@ class Device(object):
             self.vendor, self.product, self.version = self.get_version_tuple()
         if self.product in product_map:
             product_features = features_map[self.product]
+        else:
+            product_features = features_map[None]
         return product_features
 
     def get_vendor(self):
