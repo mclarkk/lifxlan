@@ -28,7 +28,7 @@ import struct
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
-    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map, StateRPower, SetRPower, GetRPower
+    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map, GetRPower
 from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products, switch_products
 from .unpack import unpack_lifx_message
