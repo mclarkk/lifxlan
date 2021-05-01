@@ -18,21 +18,21 @@ product_map = {
                36: "LIFX Downlight",
                37: "LIFX Downlight",
                38: "LIFX Beam",
-               39: "LIFX Downlight White To Warm",
+               39: "LIFX Downlight White to Warm",
                40: "LIFX Downlight",
                43: "LIFX A19",
                44: "LIFX BR30",
                45: "LIFX A19 Night Vision",
                46: "LIFX BR30 Night Vision",
                49: "LIFX Mini Color",
-               50: "LIFX Mini White To Warm",
+               50: "LIFX Mini White to Warm",
                51: "LIFX Mini White",
                52: "LIFX GU10",
                53: "LIFX GU10",
                55: "LIFX Tile",
                57: "LIFX Candle",
                59: "LIFX Mini Color",
-               60: "LIFX Mini White To Warm",
+               60: "LIFX Mini White to Warm",
                61: "LIFX Mini White",
                62: "LIFX A19",
                63: "LIFX BR30",
@@ -42,7 +42,7 @@ product_map = {
                68: "LIFX Candle",
                70: "LIFX Switch",
                71: "LIFX Switch",
-               81: "LIFX Candle White To Warm",
+               81: "LIFX Candle White to Warm",
                82: "LIFX Filament Clear",
                85: "LIFX Filament Amber",
                87: "LIFX Mini White",
@@ -51,8 +51,9 @@ product_map = {
                90: "LIFX Clean",
                91: "LIFX Color",
                92: "LIFX Color",
+               93: "LIFX A19 US",
                94: "LIFX BR30",
-               96: "LIFX Candle White To Warm",
+               96: "LIFX Candle White to Warm",
                97: "LIFX A19",
                98: "LIFX BR30",
                99: "LIFX Clean",
@@ -61,11 +62,14 @@ product_map = {
                109: "LIFX A19 Night Vision",
                110: "LIFX BR30 Night Vision",
                111: "LIFX A19 Night Vision",
+               112: "LIFX BR30 Night Vision Intl",
+               113: "LIFX Mini WW US",
+               114: "LIFX Mini WW Intl",
                None: "Unknown product"
               }
 
 # Identifies which products are lights.
-light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111]
+light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 93, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111, 112, 113, 114]
 
 # Identifies which products are switches.
 switch_products = [70, 71, 89]
@@ -287,14 +291,14 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                39: {						# LIFX Downlight White To Warm
+                39: {						# LIFX Downlight White to Warm
                      "color": False,
                      "temperature": True,
                      "infrared": False,
                      "multizone": False,
                      "chain": False,
                      "matrix": False,
-                     "min_kelvin": 1500,
+                     "min_kelvin": 2500,
                      "max_kelvin": 9000,
                      "hev": False,
                      "relays": False,
@@ -371,7 +375,7 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                50: {						# LIFX Mini White To Warm
+                50: {						# LIFX Mini White to Warm
                      "color": False,
                      "temperature": True,
                      "infrared": False,
@@ -455,7 +459,7 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                60: {						# LIFX Mini White To Warm
+                60: {						# LIFX Mini White to Warm
                      "color": False,
                      "temperature": True,
                      "infrared": False,
@@ -571,7 +575,7 @@ features_map = {
                      "hev": False,
                      "relays": True,
                      "buttons": True},
-                81: {						# LIFX Candle White To Warm
+                81: {						# LIFX Candle White to Warm
                      "color": False,
                      "temperature": True,
                      "infrared": False,
@@ -677,6 +681,18 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
+                93: {						# LIFX A19 US
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
                 94: {						# LIFX BR30
                      "color": True,
                      "temperature": True,
@@ -689,7 +705,7 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                96: {						# LIFX Candle White To Warm
+                96: {						# LIFX Candle White to Warm
                      "color": False,
                      "temperature": True,
                      "infrared": False,
@@ -789,6 +805,42 @@ features_map = {
                      "color": True,
                      "temperature": True,
                      "infrared": True,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                112: {						# LIFX BR30 Night Vision Intl
+                     "color": True,
+                     "temperature": True,
+                     "infrared": True,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                113: {						# LIFX Mini WW US
+                     "color": False,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                114: {						# LIFX Mini WW Intl
+                     "color": False,
+                     "temperature": True,
+                     "infrared": False,
                      "multizone": False,
                      "chain": False,
                      "matrix": False,
