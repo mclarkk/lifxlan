@@ -861,6 +861,21 @@ class StateTileEffect(Message):
             payload += b"".join(little_endian(bitstring.pack("16", field)) for field in color)
         return payload
 
+##### Switch Messages #####
+class StateRPower(Message):
+    def __init__(self, relay_index, level):
+        self.relay_index = payload["relay_index"]
+        self.level = payload["level"]
+        super(StateRPower, self).__init__(MSG_IDS[StateRPower], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Relay Index", self.relay_index))
+        self.payload_fields.append(("Level", self.level))
+        relay_index = little_endian(bitstring.pack("uint:8", self.relay_index))
+        level = little_endian(bitstring.pack("uint:16", self.level))
+        return payload
+
+
 MSG_IDS = {     GetService: 2,
                 StateService: 3,
                 GetHostInfo: 12,
@@ -913,7 +928,10 @@ MSG_IDS = {     GetService: 2,
                 SetTileState64: 715,
                 GetTileEffect: 718,
                 SetTileEffect: 719,
-                StateTileEffect: 720}
+                StateTileEffect: 720,
+                GetRPower: 816,
+                SetRPower: 817,
+                StateRPower: 818}
 
 SERVICE_IDS = { 1: "UDP",
                 2: "reserved",
