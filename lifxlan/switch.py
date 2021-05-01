@@ -32,9 +32,9 @@ class Switch(Device):
         off = [False, 0, "off"]
         try:
             if power in on:
-                self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 65535})
+                self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 65535})
             elif power in off:
-                self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 0})
+                self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 0})
             else:
                 raise
         except WorkflowException as e:
