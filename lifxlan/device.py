@@ -28,7 +28,7 @@ import struct
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
-    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map, StateRPower, SetRPower, GetRPower
 from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products, switch_products
 from .unpack import unpack_lifx_message
@@ -207,6 +207,25 @@ class Device(object):
             success = self.fire_and_forget(SetPower, {"power_level": 65535})
         elif power in off and rapid:
             success = self.fire_and_forget(SetPower, {"power_level": 0})
+
+    def get_relay_power(self, relay_index):
+        if self.is_switch(): 
+            try:
+                response = self.req_with_resp(GetRPower, StateRPower)
+                self.power_level = response.power_level
+            except:
+                raise
+            return self.power_level
+
+    def set_relay_power(self, relay_index, power):
+        if self.is_switch():
+            on = [True, 1, "on"]
+            off = [False, 0, "off"]
+            if power in on:
+                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 65535})
+            elif power in off:
+                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 0})
+                    
 
     def get_host_firmware_tuple(self):
         build = None
