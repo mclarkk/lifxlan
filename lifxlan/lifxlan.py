@@ -10,6 +10,7 @@ import random
 from .device import DEFAULT_ATTEMPTS, DEFAULT_TIMEOUT, Device, UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT
 from .errors import InvalidParameterException, WorkflowException
 from .light import Light
+from .switch import Switch
 from .message import BROADCAST_MAC
 from .msgtypes import Acknowledgement, GetService, LightGet, LightGetPower, LightSetColor, LightSetPower, \
     LightSetWaveform, LightState, LightStatePower, StateService
@@ -63,6 +64,8 @@ class LifxLAN:
                 # cheating -- it just so happens that all LIFX devices are lights right now
                 device = Light(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
                 self.lights.append(device)
+            if device.is_switch(): # alas, it is possible to have a non-light item
+                device = Switch(r.target_addr, r.ip_addr, r.service, r.port, self.source_id, self.verbose)
             self.devices.append(device)
 
     def get_multizone_lights(self):

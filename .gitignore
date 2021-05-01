@@ -1,1 +1,4 @@
 __pycache__/
+build/
+dist/
+lifxlan.egg-info/

@@ -21,19 +21,19 @@ class Switch(Device):
     # GetRPower - power level
     def get_relay_power(self, relay_index):
         try:
-            response = self.req_with_resp(GetRPower, StateRPower)
-            self.level = response.level
+           response = self.req_with_resp(GetRPower, StateRPower, {"relay_index": relay_index})           
+           self.level = response.level
         except WorkflowException as e:
             raise
         return self.level
 
-    def set_relay_power(self, relay_index, power):
+    def set_relay_power(self, relay_index, level):
         on = [True, 1, "on", 65535]
         off = [False, 0, "off"]
         try:
-            if power in on:
+            if level in on:
                 self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 65535})
-            elif power in off:
+            elif level in off:
                 self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 0})
             else:
                 raise

@@ -92,6 +92,7 @@ class Device(object):
         self.location = None
         self.group = None
         self.power_level = None
+        self.level = None # for relay
         self.host_firmware_build_timestamp = None
         self.host_firmware_version = None
         self.wifi_firmware_build_timestamp = None
@@ -211,20 +212,20 @@ class Device(object):
     def get_relay_power(self, relay_index):
         if self.is_switch(): 
             try:
-                response = self.req_with_resp(GetRPower, StateRPower)
-                self.power_level = response.power_level
+                response = self.req_with_resp(GetRPower, StateRPower, {"relay_index": relay_index})
+                self.level = response.level
             except:
                 raise
-            return self.power_level
+            return self.level
 
     def set_relay_power(self, relay_index, power):
         if self.is_switch():
             on = [True, 1, "on"]
             off = [False, 0, "off"]
             if power in on:
-                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 65535})
+                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 65535})
             elif power in off:
-                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "power_level": 0})
+                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 0})
                     
 
     def get_host_firmware_tuple(self):
@@ -528,6 +529,7 @@ class Device(object):
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
     def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
         # Need to put error checking here for aguments
+        
         if type(response_type) != type([]):
             response_type = [response_type]
         success = False
@@ -558,6 +560,7 @@ class Device(object):
                     data, (ip_addr, port) = sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
+                        print (type(response))
                         print("RECV: " + str(response))
                     if type(response) in response_type:
                         if response.source_id == self.source_id and (response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):

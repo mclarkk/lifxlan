@@ -863,7 +863,7 @@ class StateTileEffect(Message):
 
 ##### Switch Messages #####
 class StateRPower(Message):
-    def __init__(self, relay_index, level):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.relay_index = payload["relay_index"]
         self.level = payload["level"]
         super(StateRPower, self).__init__(MSG_IDS[StateRPower], target_addr, source_id, seq_num, ack_requested, response_requested)
@@ -873,12 +873,19 @@ class StateRPower(Message):
         self.payload_fields.append(("Level", self.level))
         relay_index = little_endian(bitstring.pack("uint:8", self.relay_index))
         level = little_endian(bitstring.pack("16", self.level))
+        payload = relay_index + level
         return payload
 
 class GetRPower(Message):
-    def __init__(self, target_addr, source_id, seq_num, payload={}, ack_requested=False, response_requested=False):
-        target_addr = BROADCAST_MAC
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.relay_index = payload["relay_index"]
         super(GetRPower, self).__init__(MSG_IDS[GetRPower], target_addr, source_id, seq_num, ack_requested, response_requested)
+    
+    def get_payload(self):
+        self.payload_fields.append(("relay_index", self.relay_index))
+        relay_index = little_endian(bitstring.pack("uint:8", self.relay_index))
+        payload = relay_index
+        return payload
 
 class SetRPower(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
@@ -887,10 +894,11 @@ class SetRPower(Message):
         super(SetRPower, self).__init__(MSG_IDS[SetRPower], target_addr, source_id, seq_num, ack_requested, response_requested)
 
     def get_payload(self):
-        self.payload_fields.append(("Relay Index", self.relay_index))
-        self.payload_fields.append(("Level", self.level))
+        self.payload_fields.append(("relay_index", self.relay_index))
+        self.payload_fields.append(("level", self.level))
         relay_index = little_endian(bitstring.pack("uint:8", self.relay_index))
-        level = little_endian(bitstring.pack("16", self.level))
+        level = little_endian(bitstring.pack("uint:16", self.level))
+        payload = relay_index + level
         return payload
         
 
