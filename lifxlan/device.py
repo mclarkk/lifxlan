@@ -209,25 +209,6 @@ class Device(object):
         elif power in off and rapid:
             success = self.fire_and_forget(SetPower, {"power_level": 0})
 
-    def get_relay_power(self, relay_index):
-        if self.is_switch(): 
-            try:
-                response = self.req_with_resp(GetRPower, StateRPower, {"relay_index": relay_index})
-                self.level = response.level
-            except:
-                raise
-            return self.level
-
-    def set_relay_power(self, relay_index, power):
-        if self.is_switch():
-            on = [True, 1, "on"]
-            off = [False, 0, "off"]
-            if power in on:
-                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 65535})
-            elif power in off:
-                success = self.req_with_ack(SetRPower, {"relay_index": relay_index, "level": 0})
-                    
-
     def get_host_firmware_tuple(self):
         build = None
         version = None
