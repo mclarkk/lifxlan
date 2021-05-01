@@ -30,7 +30,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .message import BROADCAST_MAC
-from .products import features_map, product_map, light_products
+from .products import features_map, product_map, light_products, switch_products
 from .unpack import unpack_lifx_message
 
 DEFAULT_TIMEOUT = 1 #second
@@ -378,6 +378,12 @@ class Device(object):
     def get_downtime(self):
         time, uptime, downtime = self.get_info_tuple()
         return downtime
+
+    # Support for Lifx Product ID 70, 71 and 89
+    def is_switch(self):
+        if self.product == None:
+            self.vendor, self.product, self.version = self.get_version_tuple()
+        return self.product in switch_products
 
     def is_light(self):
         if self.product == None:
