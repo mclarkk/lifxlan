@@ -129,6 +129,21 @@ class LifxLAN:
                     devices.append(d)
         return Group(devices)
 
+    def get_devices_by_product(self, names):
+        devices = []
+        all_devices = self.get_devices()
+        for d in all_devices:
+            if d.get_label() in names:
+                devices.append(d)
+        if len(devices) != len(names):  # didn't find everything?
+            self.discover_devices()     # update list in case it is out of date
+            all_devices = self.get_devices()
+            for d in all_devices:       # and try again
+                if d.get_product_name() in names:
+                    devices.append(d)
+        return Group(devices)
+
+
     def get_devices_by_group(self, group):
         devices = []
         all_devices = self.get_devices()
