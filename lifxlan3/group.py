@@ -339,20 +339,6 @@ class MultizoneLightGroup(Group):
         super().__init__(lights, allow_dupes=True)
 
 
-def _populate(func):
-    """used to ensure that `populate_devices` occurs after LifxLAN.__init__"""
-
-    @wraps(func)
-    def wrapper(self: 'LifxLAN', *args, **kwargs):
-        res = func(self, *args, **kwargs)
-        try:
-            self.populate_devices()
-        finally:
-            return res
-
-    return wrapper
-
-
 class LifxLAN(Group):
     """
     represent all the lights on the lan
@@ -361,8 +347,6 @@ class LifxLAN(Group):
     use this as the interface into all your lights, then use `Group's` api to play
     around with the lights as groups
     """
-
-    @_populate
     def __init__(self, name: Optional[str] = None, verbose=False):
         super().__init__([], name)
         self.source_id = os.getpid()
@@ -370,6 +354,7 @@ class LifxLAN(Group):
         self._verbose = verbose
         self._wait_pool = WaitPool(60)
         self._wait_pool.dispatch(self._check_for_new_lights)
+        self.populate_devices()
 
     ############################################################################
     #                                                                          #
@@ -411,13 +396,15 @@ class LifxLAN(Group):
         """
         try:
             num_resps = len(broadcast_with_resp(GetService, StateService, self.source_id, total_num_lights=10000))
-            if num_resps != TOTAL_NUM_LIGHTS:
+            if not num_resps:
+                log.warn('no new lights found')
+            elif num_resps != TOTAL_NUM_LIGHTS:
                 import warnings
                 msg = f'WARNING: found {num_resps} devices, but TOTAL_NUM_LIGHTS is set to {TOTAL_NUM_LIGHTS}'
                 warnings.warn(ResourceWarning(msg))
                 log.warn(msg)
             else:
-                log.info('no new lights found')
+                log.info(f'found {num_resps} lights')
         except Exception as e:
             log.error(f'error in _check_for_new_lights: {e!r}')
             raise e

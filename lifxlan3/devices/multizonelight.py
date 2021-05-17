@@ -39,7 +39,7 @@ class MultizoneLight(Light):
 
     @zones.setter
     def zones(self, vals: List['Zone']):
-        from .group import Group
+        from lifxlan3 import Group
         self._zones = Group(vals, allow_dupes=True)
         self._init_grid()
 

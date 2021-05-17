@@ -367,7 +367,7 @@ class ColorMatrix(List[List[Color]]):
         pixels = im.load()
         for c, r in product(range(im.width), range(im.height)):
             with suppress(IndexError):
-                pixels[c, r] = self[r][c][:3]
+                pixels[c, r] = self[r][c].rgb[:3]
 
         y, x = shape
         im = im.resize((x, y), Image.ANTIALIAS)

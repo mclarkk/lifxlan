@@ -1,1 +1,2 @@
 include lifxlan3/assets/*
+include lifxlan3/product_data/products.json

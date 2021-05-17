@@ -241,12 +241,13 @@ class AutoSnekGame(SnekGame):
 
 def terminal_tick(game: SnekGame):
     os.system('clear')
-    print(game.cm.color_str)
+    # print(game.cm.color_str)
+    set_cm(game.cm, in_terminal=True, strip=False)
     print(game.snek.sneque.maxlen)
 
 
 def lights_tick(game: SnekGame):
-    set_cm(game.cm, strip=False)
+    set_cm(game.cm, strip=False, with_mini=True)
 
 
 def lights_intro(game: SnekGame):
