@@ -29,13 +29,14 @@ class Dir(Enum):
     left = 'left'
 
     def __neg__(self):
-        return dirs[(dirs[self] + 2) % len(dirs)]
+        return dirs[(dirs[self] + 2) % len(Dir)]
 
     def __next__(self):
-        return dirs[(dirs[self] + 1) % len(dirs)]
+        return dirs[(dirs[self] + 1) % len(Dir)]
 
 
 dirs = {d: idx for idx, d in enumerate(Dir)}
+dirs.update({v: k for k, v in dirs.items()})
 
 
 class GridLight:

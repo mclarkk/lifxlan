@@ -125,3 +125,4 @@ class Themes(metaclass=ThemesMeta):
                                LifxColors.Daylight)
     xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
     xmas_lighter = xmas + {Colors.DEFAULT: 3}
+    st_paddys = Theme.from_colors(Colors.MARIO_GREEN, Colors.WARM_WHITE)

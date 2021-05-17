@@ -41,6 +41,7 @@ class SnekSucceeds(Exception):
 
 
 class Snek:
+    """classic game of Snake on your LIFX tile lights"""
     def __init__(self, snek_color: Color, board_shape: RC, allow_wrap=True):
         self.colors = _colors(snek_color)
         self.board_shape = board_shape

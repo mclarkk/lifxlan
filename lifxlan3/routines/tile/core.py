@@ -160,12 +160,12 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
         return
 
     cm.set_max_brightness_pct(60)
+    cm.replace({default_color: Color(1, 1, 100, 9000)})
     tiles = cm.to_tiles()
 
     idx_colors_map = {}
     for t_idx, t_cm in tiles.items():
         t_info = tile_map[t_idx]
-        t_cm.replace({default_color: Color(1, 1, 100, 9000)})
         idx_colors_map[t_info.idx] = t_cm.flattened
 
     if with_mini:

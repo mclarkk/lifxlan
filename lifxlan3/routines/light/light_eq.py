@@ -79,8 +79,8 @@ def light_eq(lifx: Group, color_theme: Optional[ColorTheme] = None):
     a light equalizer to play with HSBk
 
     \b
-    - homerow controls hue
-    - shift-homerow controls hue even more!
+    - homerow (aoeu/asdf) controls hue
+    - shift-homerow controls hue even more
 
     \b
     - left/right controls saturation
@@ -94,7 +94,7 @@ def light_eq(lifx: Group, color_theme: Optional[ColorTheme] = None):
 
     - ctrl-r resets
 
-    - ctrl-w prints info to screen
+    - ctrl-w prints light info to screen
     """
 
     def _init_lights():
