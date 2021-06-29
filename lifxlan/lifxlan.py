@@ -243,7 +243,15 @@ class LifxLAN:
             while (self.num_devices == None or num_devices_seen < self.num_devices) and not timedout:
                 if not sent:
                     for ip_addr in UDP_BROADCAST_IP_ADDRS:
-                        self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
+                        try:
+                            self.sock.sendto(msg.packed_message, (ip_addr, UDP_BROADCAST_PORT))
+                        except OSError as e:
+                            # sendto will fail for interfaces that do not support multicast or are not up.
+                            # An example of the first case is a wireguard vpn interface.
+                            # In either case just log as debug and ignore the error.
+                            if self.verbose:
+                                print("OSError: Interface for %s does not support multicast or is not UP. ip_addr: ",
+                                      ip_addr)
                     sent = True
                     if self.verbose:
                         print("SEND: " + str(msg))
