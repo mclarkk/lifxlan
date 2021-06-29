@@ -1,6 +1,6 @@
 # lifxlan
 
-**lifxlan** is a Python 2 and Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
+**lifxlan** is a Python 3 module for locally controlling LIFX devices (such as lightbulbs) over a LAN. It implements the [LIFX LAN Protocol](https://lan.developer.lifx.com/) specification. Supports white, color, multizone (LIFX Z, LIFX Beam), infrared (LIFX+), and chain (LIFX Tile) capabilities. Also supports group-based control of arbitrary sets of lights. Supports Unicode characters in names, groups, and locations.
 
 ## How to Install
 
@@ -14,7 +14,7 @@ However, to be guaranteed to get the most recent features and fixes you can inst
 
 ## Run
 
-See the `examples` folder for example scripts that use **lifxlan**.  
+See the `examples` folder for example scripts that use **lifxlan**.
 
 To be as generic as possible, the examples use automatic device discovery to find individual bulbs, which causes a short but noticeable delay. To avoid device discovery, you can either instantiate Light objects directly using their MAC address and IP address (which you can learn by running `examples/hello_world.py`), or you can use the broadcast methods provided in the LifxLAN API. In the examples folder, `broadcast_on.py`, `broadcast_off.py`, and `broadcast_color.py` will allow you to send commands to all lights quickly from the command line without doing device discovery.
 
@@ -22,18 +22,18 @@ To be as generic as possible, the examples use automatic device discovery to fin
 
 You can do several things with this library:
 
-* Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
-* Build your own high-level API on top of the low-level networking messages.
-* Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
+- Control LIFX devices using the package's high-level API (see the `examples` folder and the following API sections).
+- Build your own high-level API on top of the low-level networking messages.
+- Build virtual LIFX devices in software (think adapters for Philips Hue bulbs, etc).
 
 #### High-Level API:
 
-* **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
-* **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
-* **light.py** - Provides the Light API. Subclass of Device.
-* **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
-* **tilechain.py** - Provides the TileChain API. Subclass of Light.
-* **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
+- **lifxlan.py** - Provides the LifxLAN API, and low-level API for sending broadcast LIFX packets to the LAN.
+- **device.py** - Provides the Device API, and low-level API for sending unicast LIFX packets to a Device.
+- **light.py** - Provides the Light API. Subclass of Device.
+- **multizonelight.py** - Provides the MultiZoneLight API. Subclass of Light.
+- **tilechain.py** - Provides the TileChain API. Subclass of Light.
+- **group.py** - Provides the Group API. Allows you to perform synchronized actions on groups of devices.
 
 ##### LifxLAN API
 
@@ -85,13 +85,13 @@ In keeping with the LIFX protocol, all lights are devices, and so support the fo
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 # arguments in [square brackets] are optional
 
-set_label(label)            
-set_power(power, [rapid])            
+set_label(label)
+set_power(power, [rapid])
 get_mac_addr()
 get_ip_addr()
 get_service()                       # returns int, 1 = UDP
-get_port()                          
-get_label()         
+get_port()
+get_label()
 get_power()                         # returns 0 for off, 65535 for on
 get_host_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
 get_host_firmware_build_timestamp()
@@ -99,7 +99,7 @@ get_host_firmware_version()
 get_wifi_info_tuple()               # returns (wifi_signal_mw, wifi_tx_bytes, wifi_rx_bytes)
 get_wifi_signal_mw()
 get_wifi_tx_bytes()
-get_wifi_rx_bytes()         
+get_wifi_rx_bytes()
 get_wifi_firmware_tuple()           # returns (build_timestamp (in nanoseconds), version)
 get_wifi_firmware_build_timestamp()
 get_wifi_firmware_version()
@@ -155,9 +155,9 @@ The Light API provides everything in the Device API, as well as:
 
 # NOTE: rapid is meant for super-fast light shows with lots of changes. You should't need it for normal use.
 
-set_power(power, [duration], [rapid])   
-set_color(color, [duration], [rapid])                                   
-set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)     
+set_power(power, [duration], [rapid])
+set_color(color, [duration], [rapid])
+set_waveform(is_transient, color, period, cycles, duty_cycle, waveform)
 get_power()                                                                 # returns 0 or 65535
 get_color()                                                                 # returns color (HSBK list)
 get_infrared()                                                              # returns infrared brightness (0 to 65535), or None if infrared is not supported
@@ -184,10 +184,13 @@ Lights with MultiZone capability, such as the LIFX Z, have all the same methods 
 # duration is the transition time in milliseconds
 # rapid is True/False. True means there is no guarantee that the bulb will receive your message.
 # apply is 1/0. If 0, queue up the change until a packet with apply=1 comes by, then apply all queued changes.
+# effect_type is 0 for None, 1 for Move
 
 get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
 set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+get_multizone_effect()                                             # returns current firmware effect status
+set_multizone_effect([effect_type], [speed], [duration], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 The LIFX Z can be instantiated as either a Light or MultiZoneLight object, but to use the MultiZone API you'll need to instantiate it as a MultiZoneLight. Just like with more generic Light objects, you can instantiate a MultiZoneLight directly with `light = MultiZoneLight("12:34:56:78:9a:bc", "192.168.1.23")`. You can also get a list of all MultiZone lights using `lights = lan.get_multizone_lights()`, where lan is a LifxLAN object.
@@ -203,6 +206,7 @@ TileChain lights, such as the LIFX Tile, have all the same methods as the Light 
 # colors is a list of 64 HSVK tuples.
 # tilechain_colors is a list of tile_count x 64 HSVK tuples, used for getting and setting the entire TileChain's colors at once.
 # hsvk_matrix is a 2D list of HSVK color tuples with canvas_dimensions rows and cols. The canvas_dimensions will depend on the configuration of the tiles. The canvas can be thought of as the rectangular bounding box around the entire TileChain, where each pixel is an LED.
+# effect_type is 0 for None, 2 for Morph and 3 for Flame. 1 is Reserved.
 
 get_tile_info([refresh_cache])                                  # returns a list of Tile objects
 get_tile_count([refresh_cache])                                 # returns the number of Tiles in the TileChain light
@@ -212,6 +216,8 @@ get_tilechain_colors()                                          # returns tilech
 set_tilechain_colors(tilechain_colors, [duration], [rapid])     # sets all the colors on the whole TileChain
 project_matrix(hsvk_matrix, [duration], [rapid])                # projects the given matrix of colors onto the TileChain.
 get_canvas_dimensions([refresh_cache])                          # returns (x, y), representing the rows and columns of the bounding box around the entire TileChain, where each element is an individual LED position.
+get_tile_effect()                                               # returns current firmware effect status
+set_tile_effect([effect_type], [speed], [duration], [palette], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```
 
 Here are some other available methods that you are much less likely to use:
@@ -242,7 +248,9 @@ right = Light("12:34:56:78:9a:bc", "192.168.0.2")
 left = Light("cb:a9:87:65:43:21", "192.168.0.3")
 g = Group([right, left])
 ```
+
 Almost all of the Group API methods are commands. Commands will only be sent to the devices in the group that support that capability. If you want to get state information from the devices, you will need to access the list of devices and call their get methods directly.
+
 ```
 # device_object is a Device or any of its subclasses like Light and MultiZoneLight.
 # device_name is a string name of a device, like "Right Lamp"
@@ -275,8 +283,8 @@ The LIFX LAN protocol specification is officially documented [here](https://lan.
 
 The files that deal with LIFX packet construction and representation are:
 
-* **message.py** -  Defines the message fields and the basic packet structure.
-* **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
-* **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
+- **message.py** - Defines the message fields and the basic packet structure.
+- **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
+- **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
 Happy hacking!

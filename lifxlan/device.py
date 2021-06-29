@@ -21,8 +21,9 @@
 from datetime import datetime
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, gethostname
 from time import sleep, time
+import ifaddr
 import platform
-import netifaces as ni
+import struct
 
 from .errors import WorkflowException
 from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
@@ -39,13 +40,32 @@ VERBOSE = False
 
 def get_broadcast_addrs():
     broadcast_addrs = []
-    for iface in ni.interfaces():
-        try:
-            ifaddr = ni.ifaddresses(iface)[ni.AF_INET][0]
-            if ifaddr['addr'] != '127.0.0.1':
-                broadcast_addrs.append(ifaddr['broadcast'])
-        except: # for interfaces that don't support ni.AF_INET
-            pass
+    for iface in ifaddr.get_adapters():
+        for addr in iface.ips:
+            if not addr.is_IPv4:
+                continue
+
+            ip = addr.ip
+            prefix = addr.network_prefix
+
+            if ip == '127.0.0.1':
+                continue
+
+            numeric = struct.unpack(
+                '>I',
+                struct.pack('BBBB', *[int(x, 10) for x in ip.split('.')])
+            )[0]
+            mask = ~int('1' * prefix + '0' * (32 - prefix), 2) & 0xffffffff
+
+            broadcast = '.'.join(
+                str(x) for x in struct.unpack(
+                    'BBBB',
+                    struct.pack('>I', numeric | mask)
+                )
+            )
+
+            broadcast_addrs.append(broadcast)
+
     return broadcast_addrs
 
 UDP_BROADCAST_IP_ADDRS = get_broadcast_addrs()
@@ -270,6 +290,8 @@ class Device(object):
             self.vendor, self.product, self.version = self.get_version_tuple()
         if self.product in product_map:
             product_name = product_map[self.product]
+        else:
+            product_name = product_map[None]
         return product_name
 
     def get_product_features(self):
@@ -278,6 +300,8 @@ class Device(object):
             self.vendor, self.product, self.version = self.get_version_tuple()
         if self.product in product_map:
             product_features = features_map[self.product]
+        else:
+            product_features = features_map[None]
         return product_features
 
     def get_vendor(self):
