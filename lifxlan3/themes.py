@@ -33,21 +33,11 @@ class Theme:
         return sum(self._color_weights.values())
 
     def get_colors(self, num_lights=1) -> List[Color]:
-        """
-        get colors for `num_lights` lights
-
-        allows an easy way for a `Group` to figure out which colors to apply to its lights
-        """
-        splits = even_split(range(num_lights), self.sum_weights)
-        random.shuffle(splits)
-        splits_iter = iter(splits)
-
-        res = []
-        for c, weight in self._color_weights.items():
-            for _, split in zip(range(weight), splits_iter):
-                res.extend([c] * len(split))
-        random.shuffle(res)
-        return res
+        colors = [c for c, w in self._color_weights.items()
+                  for _ in range(w)]
+        mult, rem = divmod(num_lights, len(colors))
+        mult += bool(rem)
+        return random.sample(colors * mult, num_lights)
 
     def __iter__(self):
         return iter(self._color_weights)

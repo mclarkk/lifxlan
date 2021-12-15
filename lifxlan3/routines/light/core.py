@@ -135,6 +135,9 @@ def waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Co
 
 def __main():
     lifx = LifxLAN()
+    group = lifx['guest'] + lifx['guest_floor']
+    cycle_themes(group, Themes.xmas, rotate_secs=3, duration_mins=1, transition_secs=1)
+    return
     # lifx = lifx['living_room'] + lifx['kitchen']
     # lifx.set_color(Colors.DEFAULT)
     # blink_color(lifx, blink_time_secs=3)
@@ -151,12 +154,13 @@ def __main():
     #     breathe(lifx, colors=Colors.YALE_BLUE, min_brightness_pct=20, max_brightness_pct=70)
     # fireworks(lifx)
     # waveforms(lifx, Waveform.pulse, Colors.SNES_DARK_PURPLE, Colors.PYTHON_LIGHT_BLUE, skew_ratio=.3)
-    lifx = lifx['living_room'] + lifx['kitchen'] + lifx['dining_room']
-    fireworks(lifx)
+    # lifx = lifx['living_room'] + lifx['kitchen'] + lifx['dining_room']
+    group = lifx['guest'] + lifx['guest_floor']
+    fireworks(group)
     # lifx.turn_on()
     # sleep(3)
     # lifx.turn_off()
-    print(lifx.off_lights)
+    print(group.off_lights)
 
 
 if __name__ == '__main__':

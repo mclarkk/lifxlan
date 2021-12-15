@@ -69,13 +69,13 @@ class Config:
 
     def adjust_color(self, c: Color) -> Optional[Color]:
         if not c:
-            return None
+            return
         return c._replace(brightness=int(c.brightness * (self.brightness_pct / 100)))
 
     def adjust_theme(self, t: Theme):
         """adjust theme for brightness_pct"""
         if not t:
-            return None
+            return
         return Theme({self.adjust_color(c): w for c, w in t.items()})
 
     @property
@@ -83,7 +83,7 @@ class Config:
         try:
             self.validate_colors()
         except ValueError:
-            return None
+            return
 
         color_theme = Theme.from_colors(*self.colors)
         themes = self.themes or []
