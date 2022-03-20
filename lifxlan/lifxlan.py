@@ -181,6 +181,34 @@ class LifxLAN:
                 if light.mac_addr == response.target_addr:
                     colors[light] = response.color
         return colors
+    
+    def RGB_cycle(self,speed=15000,cycles=1, end=True):
+    '''
+    This addition isn't canon, but as I wanted to have RGB cycling lights without having Razer running all the time,
+    I figured this would be a good addition to add. set_waveform doesn't work as you'd expect, resulting in odd cycling
+    regardless of the wave used.
+
+    Using three hues allows for the set_color to cycle to the next one smoothly, without 
+    firing off too many messages at once.
+
+    Using Rapid can cause lights to miss messages, but sooner or later they all catch up.
+
+    Added an ending, so that users don't end on with a strong blue as their last color. If they don't set end to false,
+    the lights will automatically turn a warm white at the end.
+    '''
+    hues=[0, 21845, 43690]
+    #convert how long they want each cycle to last, to the actual length needed.
+    cycle_speed=speed/len(hues)
+    sleep_speed=cycle_speed/1000
+    try:
+        for i in range(cycles):
+            for hue in hues:
+                self.set_color_all_lights(color=[hue,65535,65535,3500], duration=cycle_speed, rapid=True)
+                sleep(sleep_speed)
+        if end:
+            self.set_color_all_lights(color=[58275, 0, 65535, 3200], duration=cycle_speed)
+    except:
+        raise
 
     def set_color_all_lights(self, color, duration=0, rapid=False):
         if len(color) == 4:
