@@ -10,6 +10,7 @@ from lifxlan3.routines.light import core
 from lifxlan3 import LifxLAN, Group, Colors, Color, Themes, Theme, ColorPower, routines
 from lifxlan3.routines.keyboard_utils import getch_test as _getch_test
 from lifxlan3.routines import ColorTheme
+from lifxlan3.settings import Waveform
 
 __author__ = 'acushner'
 
@@ -49,7 +50,7 @@ class Config:
 
     @brightness_pct.setter
     def brightness_pct(self, val):
-        self._brightness_pct = min(100., max(0., val))
+        self._brightness_pct = min(100.0, max(0.0, val))
 
     @property
     def colors(self):
@@ -110,6 +111,7 @@ pass_conf = click.make_pass_decorator(Config, ensure=True)
 # callbacks
 # ======================================================================================================================
 
+
 def _parse_groups(ctx, param, name_or_names) -> Group:
     if name_or_names == DEFAULT_GROUP:
         return lifx
@@ -147,14 +149,36 @@ def _parse_color_themes(ctx, param, color_themes) -> Optional[Theme]:
 
 
 @click.group()
-@click.option('-G', '--groups', 'group', callback=_parse_groups, default=DEFAULT_GROUP,
-              help='csv of group or light name[s]')
-@click.option('-C', '--colors', 'colors', callback=_parse_colors, default=None,
-              help='csv of color[s] to apply')
-@click.option('-T', '--themes', 'themes', callback=_parse_themes, default=None,
-              help='csv of theme[s] to apply')
-@click.option('-B', '--brightness-pct', default=100.,
-              help='how bright, from 0.0-100.0, you want the lights to be')
+@click.option(
+    '-G',
+    '--groups',
+    'group',
+    callback=_parse_groups,
+    default=DEFAULT_GROUP,
+    help='csv of group or light name[s]',
+)
+@click.option(
+    '-C',
+    '--colors',
+    'colors',
+    callback=_parse_colors,
+    default=None,
+    help='csv of color[s] to apply',
+)
+@click.option(
+    '-T',
+    '--themes',
+    'themes',
+    callback=_parse_themes,
+    default=None,
+    help='csv of theme[s] to apply',
+)
+@click.option(
+    '-B',
+    '--brightness-pct',
+    default=100.0,
+    help='how bright, from 0.0-100.0, you want the lights to be',
+)
 @pass_conf
 def cli_main(conf: Config, group, colors, themes, brightness_pct):
     conf.group = group
@@ -192,12 +216,18 @@ def info(light, color, debug):
 
 
 @cli_main.command()
-@click.option('--dot', callback=_parse_colors, default=None,
-              help='set color for dot')
-@click.option('--dash', callback=_parse_colors, default=None,
-              help='set color for dash (will default to dot if not provided')
-@click.option('--delay-msec', default=routines.TIME_QUANTUM_MS,
-              help='how much delay in msec between dots and dashes')
+@click.option('--dot', callback=_parse_colors, default=None, help='set color for dot')
+@click.option(
+    '--dash',
+    callback=_parse_colors,
+    default=None,
+    help='set color for dash (will default to dot if not provided',
+)
+@click.option(
+    '--delay-msec',
+    default=routines.TIME_QUANTUM_MS,
+    help='how much delay in msec between dots and dashes',
+)
 @click.argument('phrase', nargs=-1, required=True)
 @pass_conf
 def morse_code(conf: Config, dot, dash, delay_msec, phrase):
@@ -218,17 +248,37 @@ def morse_code(conf: Config, dot, dash, delay_msec, phrase):
 
 
 @cli_main.command()
-@click.option('-t', '--duration-secs', default=.5, help='how many secs for each color to appear')
+@click.option('-t', '--duration-secs', default=0.5, help='how many secs for each color to appear')
 @click.option('-r', '--num-repeats', default=4, help='how many times to cycle')
 @click.option('--smooth', is_flag=True, help='smooth transition between colors')
 @pass_conf
 def rainbow(conf: Config, duration_secs, smooth, num_repeats):
     """make lights cycle through rainbow color group"""
-    core.rainbow(conf.group, conf.color_theme or Themes.rainbow, duration_secs=duration_secs, smooth=smooth,
-                 num_repeats=num_repeats)
+    core.rainbow(
+        conf.group,
+        conf.color_theme or Themes.rainbow,
+        duration_secs=duration_secs,
+        smooth=smooth,
+        num_repeats=num_repeats,
+    )
 
 
-@cli_main.command(help=routines.light_eq.__doc__, short_help="control lights with the computer keyboard")
+@cli_main.command()
+@pass_conf
+def fireworks(conf: Config):
+    """(experimental) make lights look like fireworks?"""
+    core.fireworks(conf.group)
+
+
+@cli_main.command()
+@pass_conf
+def waveforms(conf: Config):
+    core.waveforms(conf.group, Waveform.sine, Colors.COPILOT_DARK_BLUE, Colors.MARIO_RED)
+
+
+@cli_main.command(
+    help=routines.light_eq.__doc__, short_help='control lights with the computer keyboard'
+)
 @pass_conf
 def light_eq(conf: Config):
     routines.light_eq(conf.group, conf.color_theme)
@@ -241,13 +291,19 @@ def light_eq(conf: Config):
 @click.option('--max-brightness-pct', default=60.0)
 @pass_conf
 def breathe(conf: Config, breath_secs, duration_mins, min_brightness_pct, max_brightness_pct):
-    """make lights oscillate between darker and brighter """
-    core.breathe(conf.group, breath_secs, min_brightness_pct, max_brightness_pct, conf.color_theme,
-                 duration_mins)
+    """make lights oscillate between darker and brighter"""
+    core.breathe(
+        conf.group,
+        breath_secs,
+        min_brightness_pct,
+        max_brightness_pct,
+        conf.color_theme,
+        duration_mins,
+    )
 
 
 @cli_main.command()
-@click.option('-s', '--blink-secs', default=.5)
+@click.option('-s', '--blink-secs', default=0.5)
 @click.option('--how-long-secs', default=8)
 @pass_conf
 def blink_color(conf: Config, blink_secs, how_long_secs):
@@ -256,7 +312,7 @@ def blink_color(conf: Config, blink_secs, how_long_secs):
 
 
 @cli_main.command()
-@click.option('-s', '--blink-secs', default=.5)
+@click.option('-s', '--blink-secs', default=0.5)
 @click.option('--how-long-secs', default=8)
 @pass_conf
 def blink_power(conf: Config, blink_secs, how_long_secs):
@@ -265,32 +321,64 @@ def blink_power(conf: Config, blink_secs, how_long_secs):
 
 
 @cli_main.command()
-@click.option('-s', '--rotate-secs', default=60.0, help='how many seconds between each theme application')
+@click.option(
+    '-s', '--rotate-secs', default=60.0, help='how many seconds between each theme application'
+)
 @click.option('-m', '--duration-mins', default=20.0, help='how many minutes the command will run')
-@click.option('-t', '--transition-secs', default=10.0, help='how many seconds to transition between themes')
+@click.option(
+    '-t', '--transition-secs', default=10.0, help='how many seconds to transition between themes'
+)
 @pass_conf
 def cycle_themes(conf: Config, rotate_secs, duration_mins, transition_secs):
     """cycle through themes/colors passed in"""
-    core.cycle_themes(conf.group, *conf.themes, *conf.colors, rotate_secs=rotate_secs, duration_mins=duration_mins,
-                      transition_secs=transition_secs)
+    core.cycle_themes(
+        conf.group,
+        *conf.themes,
+        *conf.colors,
+        rotate_secs=rotate_secs,
+        duration_mins=duration_mins,
+        transition_secs=transition_secs,
+    )
 
 
 @cli_main.command(help=routines.point_control.__doc__)
-@click.option('-p', '--point-color-theme', default='YALE_BLUE',
-              help='colors or theme of point to move around the lights',
-              callback=_parse_color_themes)
-@click.option('-b', '--base-color-theme', default=None,
-              help='colors or theme for the background lights',
-              callback=_parse_color_themes)
-@click.option('-t', '--tail-secs', default=0.0,
-              help='number of seconds for trailing lights to transition back to original color')
-@click.option('-h', '--head-secs', default=0.0,
-              help='number of seconds for next light to transition to new color')
+@click.option(
+    '-p',
+    '--point-color-theme',
+    default='YALE_BLUE',
+    help='colors or theme of point to move around the lights',
+    callback=_parse_color_themes,
+)
+@click.option(
+    '-b',
+    '--base-color-theme',
+    default=None,
+    help='colors or theme for the background lights',
+    callback=_parse_color_themes,
+)
+@click.option(
+    '-t',
+    '--tail-secs',
+    default=0.0,
+    help='number of seconds for trailing lights to transition back to original color',
+)
+@click.option(
+    '-h',
+    '--head-secs',
+    default=0.0,
+    help='number of seconds for next light to transition to new color',
+)
 @pass_conf
-def point_control(conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs, head_secs):
-    routines.point_control(conf.group,
-                           conf.adjust_theme(point_color_theme), conf.adjust_theme(base_color_theme),
-                           tail_delay_secs=tail_secs, head_delay_secs=head_secs)
+def point_control(
+    conf: Config, point_color_theme: ColorTheme, base_color_theme: ColorTheme, tail_secs, head_secs
+):
+    routines.point_control(
+        conf.group,
+        conf.adjust_theme(point_color_theme),
+        conf.adjust_theme(base_color_theme),
+        tail_delay_secs=tail_secs,
+        head_delay_secs=head_secs,
+    )
 
 
 @cli_main.command(help='run test on getch - press keys and see bytes')
@@ -303,8 +391,10 @@ def getch_test(separate_process):
 @pass_conf
 def reset(conf: Config):
     """reset light colors to either DEFAULT or the first color you pass in"""
-    (conf.group or lifx).set_theme(conf.color_theme or Theme.from_colors(conf.adjust_color(Colors.DEFAULT)),
-                                   preserve_brightness=True)
+    (conf.group or lifx).set_theme(
+        conf.color_theme or Theme.from_colors(conf.adjust_color(Colors.DEFAULT)),
+        preserve_brightness=True,
+    )
 
 
 @cli_main.command()
@@ -329,15 +419,22 @@ def set_color_theme(conf: Config):
 
 
 @cli_main.command()
-@click.option('-k', '--kelvin-range', nargs=2, default=(2500, 4000), help='range of kelvin to select from [2500, 9000]')
+@click.option(
+    '-k',
+    '--kelvin-range',
+    nargs=2,
+    default=(2500, 4000),
+    help='range of kelvin to select from [2500, 9000]',
+)
 @pass_conf
 def set_whites(conf: Config, kelvin_range: Tuple[int, int]):
     """set lights to white in range of kelvin passed in"""
     g = conf.validate_group()
     l, h = (max(2500, min(v, 9000)) for v in kelvin_range)
     c = conf.adjust_color(Colors.DEFAULT)
-    t = Theme.from_colors(*(c._replace(kelvin=k)
-                            for k in random.choices(range(l, h + 1), k=len(g))))
+    t = Theme.from_colors(
+        *(c._replace(kelvin=k) for k in random.choices(range(l, h + 1), k=len(g)))
+    )
     g.set_theme(t, power_on=None)
 
 

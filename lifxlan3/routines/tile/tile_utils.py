@@ -3,8 +3,19 @@ from contextlib import suppress
 from functools import lru_cache
 from io import BytesIO
 from itertools import islice, cycle, groupby, product
+import time
 from types import SimpleNamespace
-from typing import List, NamedTuple, Tuple, Dict, Optional, Callable, Iterable, Set, Union, Any
+from typing import (
+    List,
+    NamedTuple,
+    Tuple,
+    Dict,
+    Optional,
+    Callable,
+    Iterable,
+    Set,
+    Union,
+)
 
 from PIL import Image
 
@@ -21,19 +32,23 @@ Shape = Tuple[int, int]
 
 class RC(NamedTuple):
     """represent row/column coords"""
+
     r: int
     c: int
 
     def to(self, other, row_inc=1, col_inc=1):
         """range from self to other"""
-        yield from (RC(r, c)
-                    for r in range(self.r, other.r, row_inc)
-                    for c in range(self.c, other.c, col_inc))
+        yield from (
+            RC(r, c)
+            for r in range(self.r, other.r, row_inc)
+            for c in range(self.c, other.c, col_inc)
+        )
 
     def in_bounds(self, rc_ul, rc_lr) -> bool:
         """return True if self inside the bounds of [upper_left, lower_right)"""
-        return not (self[0] < rc_ul[0] or self[1] < rc_ul[1]
-                    or self[0] >= rc_lr[0] or self[1] >= rc_lr[1])
+        return not (
+            self[0] < rc_ul[0] or self[1] < rc_ul[1] or self[0] >= rc_lr[0] or self[1] >= rc_lr[1]
+        )
 
     @property
     def area(self):
@@ -66,23 +81,36 @@ class RC(NamedTuple):
     def __neg__(self):
         return RC(-self[0], -self[1])
 
+    def __mul__(self, other):
+        if isinstance(other, tuple):
+            return RC(self[0] * other[0], self[1] * other[1])
+        elif isinstance(other, int):
+            return RC(self[0] * other, self[1] * other)
+        return NotImplemented
+
+    def __rmul__(self, other):
+        return self * other
+
 
 class TileInfo(NamedTuple):
     idx: int
     origin: RC
 
 
-tile_map: Dict[RC, TileInfo] = {RC(1, 1): TileInfo(2, RC(0, 0)),
-                                RC(1, 0): TileInfo(1, RC(0, 0)),
-                                RC(0, 1): TileInfo(3, RC(0, 0)),
-                                RC(2, -1): TileInfo(0, RC(1, 1)),
-                                RC(0, 0): TileInfo(4, RC(1, 0))}
+tile_map: Dict[RC, TileInfo] = {
+    RC(1, 1): TileInfo(2, RC(0, 0)),
+    RC(1, 0): TileInfo(1, RC(0, 0)),
+    RC(0, 1): TileInfo(3, RC(0, 0)),
+    RC(2, -1): TileInfo(0, RC(1, 1)),
+    RC(0, 0): TileInfo(4, RC(1, 0)),
+}
 
 
 class DupesValids(NamedTuple):
     """
     used by ColorMatrix to help find bounding boxes for things
     """
+
     d: frozenset
     v: frozenset
 
@@ -137,23 +165,25 @@ class ColorMatrix(List[List[Color]]):
     @classmethod
     def from_filename(cls, fn) -> 'ColorMatrix':
         """read a png in using pillow and convert to ColorMatrix"""
-        return cls.from_image(Image.open(fn))
+        return cls.from_image(Image.open(fn))  # type: ignore
 
     @classmethod
     def from_bytes(cls, b: Union[bytes, BytesIO]):
         if isinstance(b, bytes):
             b = BytesIO(b)
-        return cls.from_image(Image.open(b))
+        return cls.from_image(Image.open(b))  # type: ignore
 
     @classmethod
     def from_image(cls, im: Image):
-        px = im.convert('RGB').load()
-        return ColorMatrix([RGBk(*px[c, r]).color
-                            for c in range(im.width)]
-                           for r in range(im.height))
+        px = im.convert('RGB').load()  # type: ignore
+        return ColorMatrix(
+            [RGBk(*px[c, r]).color for c in range(im.width)] for r in range(im.height)  # type: ignore
+        )
 
     @classmethod
-    def from_shape(cls, shape: Shape = default_shape, default: Color = default_color) -> 'ColorMatrix':
+    def from_shape(
+        cls, shape: Shape = default_shape, default: Color = default_color
+    ) -> 'ColorMatrix':
         """create a ColorMatrix with shape `shape` and colors set to `default`"""
         num_rows, num_cols = shape
         return cls([default] * num_cols for _ in range(num_rows))
@@ -190,11 +220,9 @@ class ColorMatrix(List[List[Color]]):
         return self.shape[1]
 
     @property
-    def by_coords(self) -> Tuple[RC, Color]:
+    def by_coords(self) -> Iterable[Tuple[RC, Color]]:
         """yield coordinates and their colors"""
-        yield from ((RC(r, c), color)
-                    for r, row in enumerate(self)
-                    for c, color in enumerate(row))
+        yield from ((RC(r, c), color) for r, row in enumerate(self) for c, color in enumerate(row))
 
     def copy(self) -> 'ColorMatrix':
         return ColorMatrix([c for c in row] for row in self)
@@ -210,10 +238,15 @@ class ColorMatrix(List[List[Color]]):
         row_info = self.duplicates(strip_color)
         col_info = self.T.duplicates(strip_color)
 
-        res = ([color for c, color in enumerate(row)
-                if col_info.first_valid <= c <= col_info.last_valid]
-               for r, row in enumerate(self)
-               if row_info.first_valid <= r <= row_info.last_valid)
+        res = (
+            [
+                color
+                for c, color in enumerate(row)
+                if col_info.first_valid <= c <= col_info.last_valid
+            ]
+            for r, row in enumerate(self)
+            if row_info.first_valid <= r <= row_info.last_valid
+        )
         return ColorMatrix(res)
 
     def duplicates(self, sentinel_color: Optional[Color] = None) -> DupesValids:
@@ -250,11 +283,15 @@ class ColorMatrix(List[List[Color]]):
 
         """
         row_info = self.duplicates(split_color)
-        row_wise = (self.get_range(RC(r_start, 0), RC(r_end + 1, self.width + 1), default_color)
-                    for r_start, r_end in row_info.by_group)
-        return [r.get_range(RC(0, c_start), RC(r.height + 1, c_end + 1), default_color)
-                for r in row_wise
-                for c_start, c_end in r.T.duplicates(split_color).by_group]
+        row_wise = (
+            self.get_range(RC(r_start, 0), RC(r_end + 1, self.width + 1), default_color)
+            for r_start, r_end in row_info.by_group
+        )
+        return [
+            r.get_range(RC(0, c_start), RC(r.height + 1, c_end + 1), default_color)
+            for r in row_wise
+            for c_start, c_end in r.T.duplicates(split_color).by_group
+        ]
 
     def get_range(self, rc0, rc1, default: Color = default_color) -> 'ColorMatrix':
         """create new ColorMatrix from existing existing CM from the box bounded by rc0, rc1"""
@@ -288,8 +325,9 @@ class ColorMatrix(List[List[Color]]):
 
         return [rc for rc, c in self.by_coords if c[s] in color]
 
-    def to_tiles(self, shape=default_shape, offset: RC = RC(0, 0), bg: Color = Color(0, 0, 0)) \
-            -> Dict[RC, 'ColorMatrix']:
+    def to_tiles(
+        self, shape=default_shape, offset: RC = RC(0, 0), bg: Color = Color(0, 0, 0)
+    ) -> Dict[RC, 'ColorMatrix']:
         """
         return dict of RC -> ColorMatrix, where this RC represents
         the tile's coordinates vis-a-vis the rest of the group
@@ -306,14 +344,16 @@ class ColorMatrix(List[List[Color]]):
             rc += offset
             tile, new_rc = divmod(rc, shape)
             res[tile][new_rc] = color
-        return {tile_idx: cm.rotate_from_origin(tile_map.get(tile_idx, SimpleNamespace(origin=RC(0, 0))).origin)
-                for tile_idx, cm in res.items()}
+
+        return {
+            tile_idx: cm.rotate_from_origin(
+                tile_map.get(tile_idx, SimpleNamespace(origin=RC(0, 0))).origin
+            )
+            for tile_idx, cm in res.items()
+        }
 
     def rotate_from_origin(self, origin: RC) -> 'ColorMatrix':
-        n_r = {RC(0, 0): 0,
-               RC(0, 1): 3,
-               RC(1, 1): 2,
-               RC(1, 0): 1}
+        n_r = {RC(0, 0): 0, RC(0, 1): 3, RC(1, 1): 2, RC(1, 0): 1}
         return self.rotate_clockwise(n_r[origin])
 
     def rotate_clockwise(self, n=1) -> 'ColorMatrix':
@@ -336,9 +376,11 @@ class ColorMatrix(List[List[Color]]):
     @property
     def color_str(self):
         res = [80 * '=', f'ColorMatrix: Shape{self.shape}']
-        # encode groups with (color, num_repeats) tuples for less overhead
+        # run length encode groups with (color, num_repeats) tuples for less overhead
         groups = (((c, sum(1 for _ in v)) for c, v in groupby(row)) for row in self)
-        res.extend(''.join(c.color_str('  ' * total, set_bg=True) for c, total in row) for row in groups)
+        res.extend(
+            ''.join(c.color_str('  ' * total, set_bg=True) for c, total in row) for row in groups
+        )
         res.append(80 * '=')
         res.append('')
         return '\n'.join(res)
@@ -352,7 +394,7 @@ class ColorMatrix(List[List[Color]]):
         d = sorted(Counter(self.flattened).items(), key=lambda kv: -kv[1])
         return '\n'.join(f'{str(c):>68}: {c.color_str(" " * count, set_bg=True)}' for c, count in d)
 
-    def cast(self, converter: Callable) -> 'ColorMatrix':
+    def cast(self, converter: Callable[[Color], Color]) -> 'ColorMatrix':
         """
         cast individual colors using the converter callable
         """
@@ -383,140 +425,10 @@ class ColorMatrix(List[List[Color]]):
 
 # utils
 
+
 def to_n_colors(*colors, n=64):
     return list(islice(cycle(colors), n))
 
 
-class ANode(NamedTuple):
-    """represent a node in A* algo"""
-    parent: Optional['ANode']
-    pos: RC
-    g: int = 0  # distance to start node
-    h: int = 0  # heuristic for distance to goal
-
-    @property
-    def f(self) -> float:
-        return self.g + self.h
-
-    @classmethod
-    def create(cls, parent: 'ANode', pos, *goals: RC):
-        g = cls.calc_g(parent)
-        h = cls.calc_h(pos, *goals)
-        return cls(parent, pos, g, h)
-
-    @staticmethod
-    def calc_g(parent: Optional['ANode']):
-        return (parent.g if parent else 0) + 1
-
-    @staticmethod
-    def calc_h(pos: RC, *goals: RC):
-        diffs = (g - pos for g in goals)
-        return min(rc.r ** 2 + rc.c ** 2 for rc in diffs)
-
-    def __eq__(self, other):
-        return self.pos == other.pos
-
-    def __hash__(self):
-        return hash(self.pos)
-
-
-def _get_path(node: ANode) -> List[RC]:
-    res = [node.pos]
-    p = node.parent
-    while p:
-        res.append(p.pos)
-        p = p.parent
-    res.reverse()
-    return res
-
-
-def _create_children(shape_ul: RC, shape_lr: RC, impassable: Set[RC], n: ANode, goals: Iterable[RC]) -> List[ANode]:
-    offsets = RC(1, 0), RC(0, 1), RC(-1, 0), RC(0, -1)
-    res = []
-
-    for o in offsets:
-        rc = n.pos + o
-        if rc in impassable:
-            continue
-
-        if not rc.in_bounds(shape_ul, shape_lr):
-            continue
-
-        res.append(ANode.create(n, rc, *goals))
-
-    return res
-
-
-class WrappedGoals(NamedTuple):
-    bounds: Tuple[RC, RC]
-    goals: Set[RC]
-    impassable: Set[RC]
-
-
-def _create_wrapped_goals(shape: RC, goal: RC, impassable: Set[RC]) -> WrappedGoals:
-    """set up maze for when an object is allowed to wrap around the screen"""
-    s = RC(*shape)
-    r_offsets = -s.r, 0, s.r
-    c_offsets = -s.c, 0, s.c
-    offsets = [RC(*rc) for rc in product(r_offsets, c_offsets)]
-    goals = {goal - rc for rc in offsets}
-    impassables = {impass - rc for impass in impassable for rc in offsets}
-    bounds = -shape, shape + shape
-
-    return WrappedGoals(bounds, goals, impassables)
-
-
-# TODO: write custom a_star that deals with moving snek
-@timer
-def a_star(maze: List[List[Any]], start: RC, end: RC, impassable: Set[RC] = frozenset(), allow_wrap=False):
-    """return a* path for maze"""
-    start_n = ANode(None, start)
-    shape_ul, shape_lr = RC(0, 0), RC(len(maze), len(maze[0]))
-
-    if allow_wrap:
-        (shape_ul, shape_lr), goals, impassable = _create_wrapped_goals(shape_lr, end, impassable)
-    else:
-        goals = {end, }
-
-    opened, closed = [start_n], set()
-
-    while opened:
-        cur_n, cur_i = opened[0], 0
-
-        for i, n in enumerate(opened):
-            if n.f < cur_n.f:
-                cur_n, cur_i = n, i
-
-        closed.add(opened.pop(cur_i))
-
-        # found the end
-        if cur_n.pos in goals:
-            return _get_path(cur_n)
-
-        children = _create_children(shape_ul, shape_lr, impassable, cur_n, goals)
-        for c in children:
-            if c in closed:
-                continue
-
-            with suppress(ValueError):
-                opened_idx = opened.index(c)
-                opened_c = opened[opened_idx]
-                if c.g > opened_c.g:
-                    continue
-                opened.pop(opened_idx)
-
-            opened.append(c)
-
-
-def play():
-    cm = ColorMatrix.from_shape((16, 16))
-    start = RC(1, 1)
-    end = RC(15, 15)
-    impassable = {RC(r, c)
-                  for r in range(2, 15)
-                  for c in range(14)}
-    print(a_star(cm, start, end, impassable, allow_wrap=True))
-
-
 if __name__ == '__main__':
-    play()
+    pass

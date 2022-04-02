@@ -116,3 +116,15 @@ class Themes(metaclass=ThemesMeta):
     xmas = Theme({Colors.XMAS_RED: 3, Colors.XMAS_GREEN: 3, Colors.XMAS_GOLD: 2})
     xmas_lighter = xmas + {Colors.DEFAULT: 3}
     st_paddys = Theme.from_colors(Colors.MARIO_GREEN, Colors.WARM_WHITE)
+    chill = Theme.from_colors(
+        Colors.PURPLE,
+        Colors.COPILOT_BLUE_GREY,
+        Colors.HANUKKAH_BLUE,
+        Colors.MARIO_RED,
+        Colors.PYTHON_LIGHT_BLUE,
+        Colors.PYTHON_DARK_BLUE,
+        Colors.SNES_DARK_GREY,
+        Colors.SNES_DARK_PURPLE,
+        Colors.STEELERS_BLUE,
+        Colors.YALE_BLUE,
+    )

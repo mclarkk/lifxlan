@@ -9,8 +9,16 @@ from typing import Callable, Tuple
 from lifxlan3.base_api import LightAPI
 from lifxlan3.colors import ColorPower, Color, Colors
 from .device import Device
-from lifxlan3.network.msgtypes import LightGet, LightGetInfrared, LightSetColor, LightSetInfrared, LightSetPower, LightSetWaveform, \
-    LightState, LightStateInfrared
+from lifxlan3.network.msgtypes import (
+    LightGet,
+    LightGetInfrared,
+    LightSetColor,
+    LightSetInfrared,
+    LightSetPower,
+    LightSetWaveform,
+    LightState,
+    LightStateInfrared,
+)
 from lifxlan3.settings import UNKNOWN, Waveform, global_settings
 from lifxlan3.utils import WaitPool, init_log
 
@@ -18,7 +26,9 @@ log = init_log(__name__)
 
 
 class Light(Device, LightAPI):
-    def __init__(self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False):
+    def __init__(
+        self, mac_addr, ip_addr, service=1, port=56700, source_id=os.getpid(), verbose=False
+    ):
         super(Light, self).__init__(mac_addr, ip_addr, service, port, source_id, verbose)
         self.color = None
         self.infrared_brightness = None
@@ -44,7 +54,7 @@ class Light(Device, LightAPI):
         return f'{self.label}|||{self.product_name}'
 
     @property
-    def _refresh_funcs(self) -> Tuple[Callable]:
+    def _refresh_funcs(self) -> Tuple[Callable, ...]:
         return super()._refresh_funcs + (self._refresh_light_state, self._refresh_infrared)
 
     @property
@@ -58,14 +68,28 @@ class Light(Device, LightAPI):
     @staticmethod
     def validate_pb(pb):
         """validate value for `preserve_brightness`"""
-        res = global_settings['preserve_brightness'] if pb is None else pb
-        return res
+        return global_settings['preserve_brightness'] if pb is None else pb
 
-    def set_waveform(self, waveform: Waveform, color: Color, period_msec, num_cycles,
-                     *, skew_ratio=.5, is_transient=True, rapid=False):
-        skew_ratio = int(skew_ratio * 2 ** 16 - 2 ** 15)
-        payload = dict(transient=is_transient, color=color, period=period_msec, cycles=num_cycles,
-                       skew_ratio=skew_ratio, waveform=waveform.value)
+    def set_waveform(
+        self,
+        waveform: Waveform,
+        color: Color,
+        period_msec,
+        num_cycles,
+        *,
+        skew_ratio=0.5,
+        is_transient=True,
+        rapid=False,
+    ):
+        skew_ratio = int(skew_ratio * (2**16 - 1) - 2**15)
+        payload = dict(
+            transient=is_transient,
+            color=color,
+            period=period_msec,
+            cycles=num_cycles,
+            skew_ratio=skew_ratio,
+            waveform=waveform.value,
+        )
         disp = {**payload, 'waveform': waveform}
         log.info(f'setting {self.label!r} waveform to {disp}')
         self._send_set_message(LightSetWaveform, payload, rapid=rapid)
@@ -84,15 +108,17 @@ class Light(Device, LightAPI):
             self.infrared_brightness = response.infrared_brightness
 
     def set_color(self, color: Color, duration=0, rapid=False, preserve_brightness: bool = None):
-        if color:
-            color = color.clamped
+        if not color:
+            return
 
-            if self.validate_pb(preserve_brightness):
-                color = color._replace(brightness=self.color.brightness)
+        color = color.clamped
 
-            log.info(f'setting {self.label!r} color to {color} over {duration} msecs')
-            self.color = color
-            self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
+        if self.validate_pb(preserve_brightness):
+            color = color._replace(brightness=self.color.brightness)
+
+        log.info(f'setting {self.label!r} color to {color} over {duration} msecs')
+        self.color = color
+        self._send_set_message(LightSetColor, dict(color=color, duration=duration), rapid=rapid)
 
     def turn_on(self, duration=0):
         self.set_power(1, duration)
@@ -103,11 +129,18 @@ class Light(Device, LightAPI):
     def set_power(self, power, duration=0, rapid=False):
         self._set_power(LightSetPower, power, rapid=rapid, duration=duration)
 
-    def set_color_power(self, cp: ColorPower, duration=0, rapid=False, preserve_brightness: bool = None):
+    def set_color_power(
+        self, cp: ColorPower, duration=0, rapid=False, preserve_brightness: bool = None
+    ):
         """set both color and power at the same time"""
         with self._wait_pool as wp:
-            wp.submit(self.set_color, cp.color, duration=duration, rapid=rapid,
-                      preserve_brightness=self.validate_pb(preserve_brightness))
+            wp.submit(
+                self.set_color,
+                cp.color,
+                duration=duration,
+                rapid=rapid,
+                preserve_brightness=self.validate_pb(preserve_brightness),
+            )
             if cp.power is not None:
                 wp.submit(self.set_power, cp.power, duration=duration, rapid=rapid)
 
@@ -173,7 +206,7 @@ class Light(Device, LightAPI):
     __repr__ = __str__
 
     def info_str(self):
-        indent = "  "
+        indent = '  '
         s = self.device_characteristics_str(indent)
         s += indent + f'Color (HSBK): {self.color}\n'
         s += indent + self.device_firmware_str(indent)

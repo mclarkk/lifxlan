@@ -3,7 +3,7 @@ import time
 from contextlib import suppress
 from functools import lru_cache
 from io import BytesIO
-from itertools import count
+from itertools import count, starmap
 from math import ceil
 from pathlib import Path
 from pprint import pprint
@@ -14,7 +14,15 @@ from typing import Optional, Dict, Union, Tuple
 from PIL import Image
 
 from lifxlan3 import TileChain, LifxLAN, Color, Colors, cycle, init_log, timer, Dir
-from lifxlan3.routines.tile.tile_utils import ColorMatrix, default_shape, tile_map, RC, default_color
+from lifxlan3.routines.tile.tile_utils import (
+    ColorMatrix,
+    default_shape,
+    tile_map,
+    RC,
+    default_color,
+)
+from lifxlan3.themes import Themes
+from lifxlan3.utils import OneOrMore, localtimer
 
 __author__ = 'acushner'
 
@@ -51,14 +59,20 @@ _color_replacements: Dict[str, Dict[Color, Color]] = dict(
     crono={Color(hue=54612, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
     ff4={Color(hue=32767, saturation=65535, brightness=65535, kelvin=3200): Colors.OFF},
     ff6={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
-    smb2_items={Color(hue=21845, saturation=65535, brightness=65535, kelvin=3200): Color.from_hex(0x3ec7fb)},
-    smk={Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF,
-         Color(hue=21845, saturation=52428, brightness=65535, kelvin=3200): Colors.OFF,
-         Color(hue=21845, saturation=53115, brightness=63736, kelvin=3200): Colors.OFF,
-         Color(hue=21250, saturation=51914, brightness=65535, kelvin=3200): Colors.OFF,
-         Color(hue=21845, saturation=48427, brightness=63993, kelvin=3200): Colors.OFF},
-    lttp={Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
-          Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
+    smb2_items={
+        Color(hue=21845, saturation=65535, brightness=65535, kelvin=3200): Color.from_hex(0x3EC7FB)
+    },
+    smk={
+        Color(hue=21845, saturation=48059, brightness=65535, kelvin=3200): Colors.OFF,
+        Color(hue=21845, saturation=52428, brightness=65535, kelvin=3200): Colors.OFF,
+        Color(hue=21845, saturation=53115, brightness=63736, kelvin=3200): Colors.OFF,
+        Color(hue=21250, saturation=51914, brightness=65535, kelvin=3200): Colors.OFF,
+        Color(hue=21845, saturation=48427, brightness=63993, kelvin=3200): Colors.OFF,
+    },
+    lttp={
+        Color(hue=32767, saturation=65535, brightness=16448, kelvin=3200): Colors.OFF,
+        Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF,
+    },
     maniac={Color(hue=32767, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
     zelda={Color(hue=35924, saturation=65535, brightness=32896, kelvin=3200): Colors.OFF},
 )
@@ -95,9 +109,16 @@ def _init_cm(cm_or_fn_or_bytes_or_image: CFBI) -> Tuple[ColorMatrix, Dict[Color,
     return im, color_map
 
 
-def animate(filename: CFBI,
-            *, center: bool = False, sleep_secs: float = .75, in_terminal=False, size=RC(16, 16), strip=True,
-            how_long_secs=30):
+def animate(
+    filename: CFBI,
+    *,
+    center: bool = False,
+    sleep_secs: float = 0.75,
+    in_terminal=False,
+    size=RC(16, 16),
+    strip=True,
+    how_long_secs=30,
+):
     """split color matrix and change images every `sleep_secs` seconds"""
     cm, color_map = _init_cm(filename)
     end_time = time.time() + how_long_secs
@@ -116,9 +137,18 @@ def animate(filename: CFBI,
             break
 
 
-def translate(filename: CFBI, *, sleep_secs: float = .5, in_terminal=False,
-              size=RC(16, 16), split=True, dir: Dir = Dir.right, n_iterations: int = None,
-              strip=False, pixels_per_step=1):
+def translate(
+    filename: CFBI,
+    *,
+    sleep_secs: float = 0.5,
+    in_terminal=False,
+    size=RC(16, 16),
+    split=True,
+    dir: Dir = Dir.right,
+    n_iterations: int = None,
+    strip=False,
+    pixels_per_step=1,
+):
     """move window over image
 
     `n_iterations` represents how many full iterations of the message itself"""
@@ -141,10 +171,26 @@ def translate(filename: CFBI, *, sleep_secs: float = .5, in_terminal=False,
         sleep(sleep_secs)
 
 
+def _set_terminal(cm: ColorMatrix, *, verbose=True):
+    print(cm.color_str)
+    if verbose:
+        print(cm.describe)
+        print(cm.resize().color_str)
+        print(cm.resize((4, 4)).color_str)
+
+
 @timer
-def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
-           *, in_terminal=False, with_mini=True, strip=True, verbose=True,
-           duration_msec=0):
+def set_cm(
+    cm: ColorMatrix,
+    offset=RC(0, 0),
+    size=RC(16, 16),
+    *,
+    in_terminal=False,
+    with_mini=True,
+    strip=True,
+    verbose=True,
+    duration_msec=0,
+):
     """set color matrix either in terminal or on lights"""
     if strip:
         cm = cm.strip()
@@ -152,12 +198,7 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
     cm = cm.get_range(RC(0, 0) + offset, size + offset)
 
     if in_terminal:
-        print(cm.color_str)
-        if verbose:
-            print(cm.describe)
-            print(cm.resize().color_str)
-            print(cm.resize((4, 4)).color_str)
-        return
+        return _set_terminal(cm, verbose=verbose)
 
     cm.set_max_brightness_pct(60)
     cm.replace({default_color: Color(1, 1, 100, 9000)})
@@ -176,15 +217,87 @@ def set_cm(cm: ColorMatrix, offset=RC(0, 0), size=RC(16, 16),
     tc.set_tilechain_colors(idx_colors_map, duration=duration_msec)
 
 
+def mirror(upper_left: ColorMatrix):
+    """take an 8x8 cm of the upper left tile and mirror it"""
+    n_row, n_col = upper_left.shape
+    n_row *= 2
+    n_col *= 2
+    res = ColorMatrix.from_shape((n_row, n_col))
+    n_row -= 1
+    n_col -= 1
+    for r, row in enumerate(upper_left):
+        for c, val in enumerate(row):
+            res[r, c] = val
+            res[r, n_col - c] = val
+            res[n_row - r, c] = val
+            res[n_row - r, n_col - c] = val
+    return res
+
+
+def squares(shape=RC(8, 8), colors: OneOrMore[Color] = Colors.COPILOT_BLUE_GREEN, *, fill=False):
+    """create squares radiating from the center on a 16x16 grid"""
+
+    for i in range(shape[0] - 1, -1, -1):
+        if isinstance(colors, Color):
+            colors = [colors]
+        _colors = cycle(colors)
+
+        with localtimer():
+            cm = ColorMatrix.from_shape(shape)
+            coords = set(RC(i, i).to(shape))
+            if not fill:
+                coords -= set(RC(i + 1, i + 1).to(shape))
+            coords = sorted(coords)
+            for rc in coords:
+                cm[rc] = next(_colors)
+        set_cm(
+            mirror(cm),
+            in_terminal=True,
+            with_mini=False,
+            verbose=False,
+            strip=False,
+            size=2 * shape,
+        )
+        time.sleep(1)
+
+
+def squares2(
+    shape=RC(8, 8),
+    colors: OneOrMore[Color] = Colors.COPILOT_BLUE_GREEN,
+    *,
+    fill=False,
+):
+    """create squares radiating from the center on a 16x16 grid"""
+
+    for i in range(shape[0] - 1, -1, -1):
+        if isinstance(colors, Color):
+            colors = [colors]
+
+        with localtimer():
+            cm = ColorMatrix.from_shape(shape)
+            coords = set(RC(i, i).to(shape))
+            if not fill:
+                coords -= set(RC(i + 1, i + 1).to(shape))
+            coords = sorted(coords)
+            for rc in coords:
+                cm[rc] = colors[(rc.r + rc.c) % len(colors)]
+        set_cm(
+            mirror(cm),
+            in_terminal=True,
+            with_mini=False,
+            verbose=False,
+            strip=False,
+            size=2 * shape,
+        )
+        time.sleep(1)
+
+
 def _cmp_colors(idx_colors_map):
-    from itertools import starmap
     tc = get_tile_chain()
     lights = {idx: list(starmap(Color, tc.get_tile_colors(idx).colors)) for idx in idx_colors_map}
 
-    here_there = {k: set(idx_colors_map[k]) - set(lights[k])
-                  for k in idx_colors_map}
-    there_here = {k: set(lights[k]) - set(idx_colors_map[k])
-                  for k in idx_colors_map}
+    here_there = {k: set(idx_colors_map[k]) - set(lights[k]) for k in idx_colors_map}
+    there_here = {k: set(lights[k]) - set(idx_colors_map[k]) for k in idx_colors_map}
 
     print('here - there')
     pprint(here_there)
@@ -196,6 +309,7 @@ def _cmp_colors(idx_colors_map):
 
 # ======================================================================================================================
 # IMAGES
+
 
 class Images:
     images = None
@@ -223,19 +337,22 @@ Images._init_images()
 
 # ======================================================================================================================
 
+
 def for_talk():
-    return animate('text.png', sleep_secs=.5, strip=False)
+    return animate('text.png', sleep_secs=0.5, strip=False)
     return id_tiles(rotate=False)
-    return animate('m_small.png', sleep_secs=.75)
-    return animate('ff4_tellah.png', sleep_secs=.75)
+    return animate('m_small.png', sleep_secs=0.75)
+    return animate('ff4_tellah.png', sleep_secs=0.75)
 
 
 def __main():
+    # return squares2(colors=[Colors.BLUE, Colors.CYAN, Colors.RED, Colors.PURPLE], fill=True)
+    return squares2(colors=list(Themes.easter), fill=False)
     return for_talk()
     # return id_tiles(rotate=False)
     # return animate('./imgs/m_small.png', sleep_secs=.75)
-    return animate('ff4_tellah.png', sleep_secs=.75)
-    return translate('ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=4)
+    return animate('ff4_tellah.png', sleep_secs=0.75)
+    return translate('ff4_tellah.png', split=False, dir=Dir.left, sleep_secs=0.1, n_iterations=4)
     return animate('mm_walk.png', sleep_secs=4, in_terminal=False)
     return animate('maniac_bernard.png')
 

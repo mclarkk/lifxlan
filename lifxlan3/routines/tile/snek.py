@@ -4,17 +4,21 @@ from contextlib import suppress
 from itertools import cycle, chain
 from random import randint, choice, sample, randrange
 from threading import Thread
-from typing import NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable
+from typing import List, NamedTuple, Deque, Dict, Set, Callable, Optional, Iterable, TypeVar, Union
 
 from lifxlan3 import Color, deque, Dir, Colors, Themes
 from lifxlan3.routines import parse_keyboard_inputs, dir_map, ColorTheme, colors_to_theme
 from lifxlan3.routines.tile.core import set_cm, translate, RC, ColorMatrix
-from lifxlan3.routines.tile.tile_utils import to_n_colors, a_star
+from lifxlan3.routines.tile.tile_utils import mirror, to_n_colors
+from lifxlan3.routines.tile.a_star import a_star
+from lifxlan3.utils import localtimer
 
-dir_rc_map: Dict[Dir, RC] = {Dir.right: RC(0, 1),
-                             Dir.left: RC(0, -1),
-                             Dir.up: RC(-1, 0),
-                             Dir.down: RC(1, 0)}
+dir_rc_map: Dict[Dir, RC] = {
+    Dir.right: RC(0, 1),
+    Dir.left: RC(0, -1),
+    Dir.up: RC(-1, 0),
+    Dir.down: RC(1, 0),
+}
 
 rc_dir_map: Dict[RC, Dir] = {v: k for k, v in dir_rc_map.items()}
 
@@ -42,6 +46,7 @@ class SnekSucceeds(Exception):
 
 class Snek:
     """classic game of Snake on your LIFX tile lights"""
+
     def __init__(self, snek_color: Color, board_shape: RC, allow_wrap=True):
         self.colors = _colors(snek_color)
         self.board_shape = board_shape
@@ -61,7 +66,7 @@ class Snek:
 
     def grow(self, amount=1):
         """increase snek size by `amount`"""
-        self.sneque = deque(self.sneque, maxlen=self.sneque.maxlen + amount)
+        self.sneque = deque(self.sneque, maxlen=self.sneque.maxlen + amount)  # type: ignore
 
     def move(self, dir: Dir):
         """move snek in `dir` direction"""
@@ -73,7 +78,7 @@ class Snek:
 
     def _validate_pos(self, pos: RC) -> RC:
         """check if snek ran into self or wall; return pos"""
-        if pos in self and not pos == self.sneque[0].pos:
+        if pos in self and pos != self.sneque[0].pos:
             raise SnekDead('snek ran into self :(')
 
         if self.allow_wrap:
@@ -109,14 +114,17 @@ class Callbacks(NamedTuple):
 class SnekGame:
     """play snek on your tile lights"""
 
-    def __init__(self, snek_color: Color = Colors.GREEN,
-                 background_color: ColorTheme = Colors.OFF,
-                 food_color: ColorTheme = Colors.YALE_BLUE,
-                 *,
-                 snek_growth_amount=2,
-                 shape=RC(16, 16),
-                 tick_rate_secs=2.0,
-                 callbacks: Callbacks = Callbacks()):
+    def __init__(
+        self,
+        snek_color: Color = Colors.GREEN,
+        background_color: ColorTheme = Colors.OFF,
+        food_color: ColorTheme = Colors.YALE_BLUE,
+        *,
+        snek_growth_amount=2,
+        shape=RC(16, 16),
+        tick_rate_secs=2.0,
+        callbacks: Callbacks = Callbacks(),
+    ):
         self.board = self._init_board(background_color, shape)
         self._board_positions = set(RC(0, 0).to(shape))
         self.snek = Snek(snek_color, shape)
@@ -126,8 +134,8 @@ class SnekGame:
         self.snek_growth_amount = snek_growth_amount
 
         self._set_food(init=True)
-        self._dir: Dir = None
-        self._prev_dir: Dir = None
+        self._dir: Optional[Dir] = None
+        self._prev_dir: Optional[Dir] = None
 
     @staticmethod
     def _init_board(background_color, shape):
@@ -185,7 +193,7 @@ class SnekGame:
         def f():
             for dir in parse_keyboard_inputs(dir_map, separate_process=True):
                 if not self._prev_dir or dir != -self._prev_dir:
-                    self._dir = dir
+                    self._dir = dir  # type: ignore
 
         Thread(target=f, daemon=True).start()
 
@@ -239,6 +247,7 @@ class AutoSnekGame(SnekGame):
 # callbacks
 # ======================================================================================================================
 
+
 def terminal_tick(game: SnekGame):
     os.system('clear')
     # print(game.cm.color_str)
@@ -252,9 +261,11 @@ def lights_tick(game: SnekGame):
 
 def lights_intro(game: SnekGame):
     # return
-    translate('snek.png', split=False, dir=Dir.left, sleep_secs=.1, n_iterations=1, in_terminal=True)
+    translate(
+        'snek.png', split=False, dir=Dir.left, sleep_secs=0.1, n_iterations=1, in_terminal=True
+    )
 
-    time.sleep(.3)
+    time.sleep(0.3)
 
 
 def on_death(game: SnekGame):
@@ -284,8 +295,12 @@ def propagate(cm: ColorMatrix, base: Color, explosion: Color):
     return cm
 
 
-def explode(base_color: Color = Colors.STEELERS_RED,
-            explosion_color: Color = Colors.COLD_WHITE, in_terminal=False):
+def explode(
+    base_color: Color = Colors.STEELERS_RED,
+    explosion_color: Color = Colors.COLD_WHITE,
+    in_terminal=False,
+    sleep_secs=0.1,
+):
     colors = to_n_colors(base_color.r_brightness(20000), n=256)
     cm = ColorMatrix.from_colors(colors, RC(16, 16))
     start, end = RC(7, 7), RC(9, 9)
@@ -298,7 +313,7 @@ def explode(base_color: Color = Colors.STEELERS_RED,
         for _ in range(10):
             set_cm(cm, strip=False, in_terminal=in_terminal)
             propagate(cm, base_color, explosion_color)
-            time.sleep(.1)
+            time.sleep(sleep_secs)
 
     if in_terminal:
         return
@@ -309,7 +324,7 @@ def explode(base_color: Color = Colors.STEELERS_RED,
         for rc in s.to(e):
             cm[rc] = explosion_color
         set_cm(cm, strip=False, in_terminal=in_terminal)
-        time.sleep(.1)
+        time.sleep(0.1)
 
     # fade to black
     colors = to_n_colors(Colors.OFF, n=256)
@@ -318,74 +333,105 @@ def explode(base_color: Color = Colors.STEELERS_RED,
 
 
 def for_talk():
-    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                     callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
-                     snek_color=Colors.GREEN,
-                     # snek_color=Themes.rainbow,
-                     background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
-                     food_color=Colors.YALE_BLUE)
+    g = AutoSnekGame(
+        shape=RC(16, 16),
+        tick_rate_secs=0.05,
+        callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+        snek_color=Colors.GREEN,
+        # snek_color=Themes.rainbow,
+        background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+        food_color=Colors.YALE_BLUE,
+    )
 
     g.run()
 
 
 def run_as_ambiance():
     background = Colors.SNES_DARK_GREY._replace(brightness=6554)
-    color_options = list(Colors) + list(Themes)
+    color_options = list(Colors) + list(Themes)  # type: ignore
 
-    tick_rate_secs = randrange(80) / 100.0 + .5
+    tick_rate_secs = randrange(80) / 100.0 + 0.5
     food_c, snek_c = (o[1] for o in sample(color_options, 2))
     with suppress(SnekDead, SnekSucceeds):
-        g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=tick_rate_secs,
-                         callbacks=Callbacks(lights_tick, on_death, on_success),
-                         food_color=food_c,
-                         snek_color=snek_c,
-                         background_color=background,
-                         snek_growth_amount=randrange(1, 7))
+        g = AutoSnekGame(
+            shape=RC(16, 16),
+            tick_rate_secs=tick_rate_secs,
+            callbacks=Callbacks(lights_tick, on_death, on_success),
+            food_color=food_c,
+            snek_color=snek_c,
+            background_color=background,
+            snek_growth_amount=randrange(1, 7),
+        )
         g.run()
 
 
 def autoplay(in_terminal=False):
     if in_terminal:
-        g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                         callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                         background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                         food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+        g = AutoSnekGame(
+            shape=RC(16, 16),
+            tick_rate_secs=0.05,
+            callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+            background_color=Colors.SNES_LIGHT_GREY,
+            snek_color=Colors.COPILOT_BLUE_GREEN,
+            food_color=Colors.SNES_LIGHT_PURPLE,
+            snek_growth_amount=2,
+        )
     else:
-        g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                         callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
-                         snek_color=Colors.GREEN,
-                         # snek_color=Themes.july_4th,
-                         background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
-                         food_color=Colors.YALE_BLUE)
+        g = AutoSnekGame(
+            shape=RC(16, 16),
+            tick_rate_secs=0.05,
+            snek_color=Colors.GREEN,
+            # snek_color=Themes.july_4th,
+            background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+            food_color=Colors.YALE_BLUE,
+        )
     g.run()
 
 
 def play(in_terminal=False):
     if in_terminal:
-        g = SnekGame(shape=RC(16, 16), tick_rate_secs=.2,
-                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+        g = SnekGame(
+            shape=RC(16, 16),
+            tick_rate_secs=0.2,
+            callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+            background_color=Colors.SNES_LIGHT_GREY,
+            snek_color=Colors.COPILOT_BLUE_GREEN,
+            food_color=Colors.SNES_LIGHT_PURPLE,
+            snek_growth_amount=2,
+        )
     else:
-        g = SnekGame(shape=RC(16, 16), tick_rate_secs=.2,
-                     callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
-                     snek_color=Colors.GREEN,
-                     # snek_color=Themes.july_4th,
-                     background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
-                     food_color=Colors.YALE_BLUE)
+        g = SnekGame(
+            shape=RC(16, 16),
+            tick_rate_secs=0.2,
+            callbacks=Callbacks(lights_tick, on_death, on_success, lights_intro),
+            snek_color=Colors.GREEN,
+            # snek_color=Themes.july_4th,
+            background_color=Colors.SNES_DARK_GREY._replace(brightness=6554),
+            food_color=Colors.YALE_BLUE,
+        )
     g.run()
 
 
+
+
+
 def __main():
+    # return explode(in_terminal=True, sleep_secs=1)
+    # return _mirror_play()
     while True:
         with suppress(SnekDead, SnekSucceeds):
             run_as_ambiance()
     # return for_talk()
     # return play()
-    g = AutoSnekGame(shape=RC(16, 16), tick_rate_secs=.05,
-                     callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
-                     background_color=Colors.SNES_LIGHT_GREY, snek_color=Colors.COPILOT_BLUE_GREEN,
-                     food_color=Colors.SNES_LIGHT_PURPLE, snek_growth_amount=2)
+    g = AutoSnekGame(
+        shape=RC(16, 16),
+        tick_rate_secs=0.05,
+        callbacks=Callbacks(terminal_tick, terminal_on_death, on_success),
+        background_color=Colors.SNES_LIGHT_GREY,
+        snek_color=Colors.COPILOT_BLUE_GREEN,
+        food_color=Colors.SNES_LIGHT_PURPLE,
+        snek_growth_amount=2,
+    )
     # g = SnekGame(shape=RC(16, 16), tick_rate_secs=.05,
     #              callbacks=Callbacks(lights_cb, on_death, on_success, lights_intro),
     #              background_color=Colors.OFF, snek_color=Colors.GREEN)

@@ -8,7 +8,10 @@ from functools import wraps
 from itertools import cycle
 from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket
 from threading import local
-from typing import Optional, List, Any, Union, Iterable
+from typing import Optional, List, Any, TypeVar, Union, Iterable
+
+T = TypeVar('T')
+OneOrMore = Union[T, List[T]]
 
 
 def init_log(name, level=logging.INFO):
@@ -51,6 +54,7 @@ class WaitPool:
     allow jobs to be submitted to either an existing pool or a dynamically-created one,
     wait for it to complete, and have access to the futures outside the `with` block
     """
+
     threads_per_pool = 8
 
     def __init__(self, pool: Optional[Union[int, ThreadPoolExecutor]] = None):
@@ -131,9 +135,11 @@ def init_socket(timeout):
         sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         sock.settimeout(timeout)
         try:
-            sock.bind(("", 0))  # allow OS to assign next available source port
+            sock.bind(('', 0))  # allow OS to assign next available source port
         except Exception as err:
-            raise ConnectionError(f'WorkflowException: error {str(err)} while trying to open socket')
+            raise ConnectionError(
+                f'WorkflowException: error {str(err)} while trying to open socket'
+            )
         yield sock
     finally:
         sock.close()
@@ -151,3 +157,11 @@ def even_split(array: Iterable, n_splits: int) -> List[List]:
     for v, r in zip(array, cycle(res)):
         r.append(v)
     return res
+
+
+class classproperty:
+    def __init__(self, f) -> None:
+        self.f = f
+
+    def __get__(self, instance, cls):
+        return self.f(cls)

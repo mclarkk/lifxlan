@@ -33,6 +33,10 @@ def init_grid(group: Group):
     m_strip = GridLight('master strip')
     m_floor = GridLight('master floor')
 
+    gl = GridLight('guest')
+    gf1 = GridLight('guest floor 1')
+    gf2 = GridLight('guest floor 2')
+
     _diagram = \
         """
            buffet
@@ -90,6 +94,11 @@ def init_grid(group: Group):
     m2[Dir.right] = m_strip
     m_strip[Dir.right] = m_floor
     m_floor[Dir.right] = m1
+
+    gf1[Dir.right] = gf2
+    gf2[Dir.right] = gl
+    gl[Dir.right] = gf1
+
     if group:
         enlighten_grid(group)
 

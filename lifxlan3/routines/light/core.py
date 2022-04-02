@@ -9,10 +9,14 @@ from lifxlan3 import LifxLAN, Group, Colors, Themes, Waveform, Color
 from lifxlan3.routines import ColorTheme, colors_to_theme, preserve_brightness
 
 
-def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
-            max_brightness_pct=60,
-            colors: Optional[ColorTheme] = None,
-            duration_mins: Optional[Union[int, float]] = 20):
+def breathe(
+    lifx: Group,
+    breath_time_secs=8,
+    min_brightness_pct=30,
+    max_brightness_pct=60,
+    colors: Optional[ColorTheme] = None,
+    duration_mins: Union[int, float] = 20,
+):
     """whatever lights you pass in will breathe"""
     theme = colors_to_theme(colors)
     half_period_ms = int(breath_time_secs * 1000.0)
@@ -26,7 +30,7 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
         lifx.set_brightness(max_brightness, duration=2000)
         if theme:
             lifx.set_theme(theme)
-        print("Breathing...")
+        print('Breathing...')
         try:
             start_time = time()
             while True:
@@ -37,11 +41,11 @@ def breathe(lifx: Group, breath_time_secs=8, min_brightness_pct=30,
                 if time() - start_time > duration_secs:
                     raise KeyboardInterrupt
         except KeyboardInterrupt:
-            print("Restoring original color and power to all lights...")
+            print('Restoring original color and power to all lights...')
 
 
 @preserve_brightness
-def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
+def blink_power(lifx: Group, blink_time_secs=0.5, how_long_secs=8):
     """toggle power on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
     with lifx.reset_to_orig():
@@ -52,7 +56,9 @@ def blink_power(lifx: Group, blink_time_secs=.5, how_long_secs=8):
 
 
 @preserve_brightness
-def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_secs=.5, how_long_secs=8):
+def blink_color(
+    lifx: Group, colors: Optional[ColorTheme] = None, blink_time_secs=0.5, how_long_secs=8
+):
     """change colors on lights every `blink_time_secs`"""
     num_cycles = math.ceil(how_long_secs / blink_time_secs)
     theme = colors_to_theme(colors) or (Colors.COPILOT_BLUE, Colors.COPILOT_DARK_BLUE)
@@ -62,10 +68,18 @@ def blink_color(lifx: Group, colors: Optional[ColorTheme] = None, blink_time_sec
             sleep(blink_time_secs)
 
 
-def rainbow(lifx: Group, colors: Optional[ColorTheme] = Themes.rainbow,
-            duration_secs=0.5, smooth=False, num_repeats=1):
+@preserve_brightness
+def rainbow(
+    lifx: Group,
+    colors: Optional[ColorTheme] = Themes.rainbow,
+    duration_secs=0.5,
+    smooth=False,
+    num_repeats=1,
+):
     """similar to blink_color"""
     theme = colors_to_theme(colors)
+    if not theme:
+        return
     transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = duration_secs < 1
     with lifx.reset_to_orig():
@@ -76,11 +90,14 @@ def rainbow(lifx: Group, colors: Optional[ColorTheme] = Themes.rainbow,
 
 
 @preserve_brightness
-def cycle_themes(lifx: Group, *themes: ColorTheme,
-                 rotate_secs: Optional[int] = 60,
-                 duration_mins: Optional[int] = 20,
-                 transition_secs=5,
-                 all_lights=True):
+def cycle_themes(
+    lifx: Group,
+    *themes: ColorTheme,
+    rotate_secs: Optional[int] = 60,
+    duration_mins: Optional[int] = 20,
+    transition_secs=5,
+    all_lights=True
+):
     """
     set lights to theme every `rotate_secs`.
 
@@ -103,11 +120,21 @@ def cycle_themes(lifx: Group, *themes: ColorTheme,
 
 # ======================================================================================================================
 # testing
-def _set_waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Color,
-                   *, period_msec=4000, num_cycles=4, skew_ratio=.5, reduce_sleep_msecs=0):
-    lifx.turn_on()
-    lifx.set_color(start_color)
-    lifx.set_waveform(waveform, end_color, period_msec, num_cycles, skew_ratio=skew_ratio)
+def _set_waveforms(
+    group: Group,
+    waveform: Waveform,
+    start_color: Color,
+    end_color: Color,
+    *,
+    period_msec=4000,
+    num_cycles=4,
+    skew_ratio=0.5,
+    reduce_sleep_msecs=0
+):
+    """https://lan.developer.lifx.com/docs/waveforms"""
+    group.turn_on()
+    group.set_color(start_color)
+    group.set_waveform(waveform, end_color, period_msec, num_cycles, skew_ratio=skew_ratio)
     sleep((period_msec * num_cycles - reduce_sleep_msecs) / 1000)
 
 
@@ -119,24 +146,52 @@ def fireworks(lifx: Group):
         sleep(1)
         for pers in (500, 250, 125, 60, 30):
             num_cycles = 1000 // pers
-            _set_waveforms(lifx, Waveform.pulse, start_color, Colors.SNES_DARK_PURPLE, period_msec=pers,
-                           num_cycles=num_cycles, reduce_sleep_msecs=100)
+            _set_waveforms(
+                lifx,
+                Waveform.pulse,
+                start_color,
+                Colors.SNES_DARK_PURPLE,
+                period_msec=pers,
+                num_cycles=num_cycles,
+                reduce_sleep_msecs=100,
+            )
 
 
-def waveforms(lifx: Group, waveform: Waveform, start_color: Color, end_color: Color,
-              *, period_msec=4000, num_cycles=4, skew_ratio=.5):
+def waveforms(
+    lifx: Group,
+    waveform: Waveform,
+    start_color: Color,
+    end_color: Color,
+    *,
+    period_msec=4000,
+    num_cycles=4,
+    skew_ratio=0.5
+):
     """test out waveforms"""
     with lifx.reset_to_orig():
-        _set_waveforms(lifx, waveform, start_color, end_color, period_msec=period_msec, num_cycles=num_cycles,
-                       skew_ratio=skew_ratio)
+        _set_waveforms(
+            lifx,
+            waveform,
+            start_color,
+            end_color,
+            period_msec=period_msec,
+            num_cycles=num_cycles,
+            skew_ratio=skew_ratio,
+        )
 
 
 # ======================================================================================================================
 
+
 def __main():
     lifx = LifxLAN()
     group = lifx['guest'] + lifx['guest_floor']
-    cycle_themes(group, Themes.xmas, rotate_secs=3, duration_mins=1, transition_secs=1)
+    for wf in Waveform:
+        print(80 * '=')
+        print(wf.name)
+        print(80 * '=')
+        waveforms(group, wf, Colors.COPILOT_DARK_BLUE, Colors.MARIO_RED)
+    # cycle_themes(group, Themes.xmas, rotate_secs=3, duration_mins=1, transition_secs=1)
     return
     # lifx = lifx['living_room'] + lifx['kitchen']
     # lifx.set_color(Colors.DEFAULT)

@@ -23,8 +23,14 @@ def _delay(f: Callable, delay_secs: float):
 
 
 @preserve_brightness
-def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[ColorTheme] = None,
-                  *, tail_delay_secs: float = 0, head_delay_secs: float = 0):
+def point_control(
+    group: Group,
+    point_color: ColorTheme,
+    base_theme: Optional[ColorTheme] = None,
+    *,
+    tail_delay_secs: float = 0,
+    head_delay_secs: float = 0
+):
     """
     move a single point around a group of lights
 
@@ -59,12 +65,20 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
             while True:
                 p = threads[grid_light]
 
-                set_f = partial(grid_light.light.set_color, next(point_colors), duration=(int(head_delay_secs * 1000)))
+                set_f = partial(
+                    grid_light.light.set_color,
+                    next(point_colors),
+                    duration=(int(head_delay_secs * 1000)),
+                )
                 p.submit(_delay, set_f, head_delay_secs)
 
                 next_light = next(lights)
 
-                reset_f = partial(grid_light.light.reset, orig_settings[grid_light.name], int(tail_delay_secs * 1000))
+                reset_f = partial(
+                    grid_light.light.reset,
+                    orig_settings[grid_light.name],
+                    int(tail_delay_secs * 1000),
+                )
                 p.submit(reset_f)
 
                 grid_light = next_light
@@ -80,8 +94,16 @@ def point_control(group: Group, point_color: ColorTheme, base_theme: Optional[Co
 
 def __main():
     lifx = LifxLAN()
-    point_control(lifx['living_room'] + lifx['buffet'] + lifx['floor'] + lifx['dining_room'] + lifx['kitchen'],
-                  Colors.SNES_DARK_PURPLE, Colors.CYAN, tail_delay_secs=2)
+    point_control(
+        lifx['living_room']
+        + lifx['buffet']
+        + lifx['floor']
+        + lifx['dining_room']
+        + lifx['kitchen'],
+        Colors.SNES_DARK_PURPLE,
+        Colors.CYAN,
+        tail_delay_secs=2,
+    )
 
 
 if __name__ == '__main__':

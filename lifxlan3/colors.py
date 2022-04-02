@@ -38,11 +38,16 @@ class RGBk(NamedTuple):
 
     @staticmethod
     def _add_components(v1, v2):
-        return int(((v1 ** 2 + v2 ** 2) / 2) ** .5)
+        return int(((v1**2 + v2**2) / 2) ** 0.5)
 
     def __add__(self, other) -> 'RGBk':
         add = self._add_components
-        return RGBk(add(self.r, other.r), add(self.g, other.g), add(self.b, other.b), (self.k + other.k) // 2)
+        return RGBk(
+            add(self.r, other.r),
+            add(self.g, other.g),
+            add(self.b, other.b),
+            (self.k + other.k) // 2,
+        )
 
 
 def _replace(func):
@@ -62,7 +67,6 @@ class Color(NamedTuple):
     @_replace
     def r_hue(self, val):
         """replace hue"""
-        pass
 
     @_replace
     def r_saturation(self, val):
@@ -76,7 +80,7 @@ class Color(NamedTuple):
     def r_kelvin(self, val):
         """replace kelvin"""
 
-    _mult = 2 ** 16
+    _mult = 2**16
     _max_complements = 1024
 
     # ==================================================================================================================
@@ -87,7 +91,7 @@ class Color(NamedTuple):
     def from_hex(cls, h, kelvin=DEFAULT_KELVIN) -> 'Color':
         nums = []
         for _ in range(3):
-            nums.append(h & 0xff)
+            nums.append(h & 0xFF)
             h >>= 8
         nums.reverse()
         return cls.from_rgb(RGBk(*nums, kelvin))
@@ -160,7 +164,10 @@ class Color(NamedTuple):
             res.append(self.offset_hue(n_deg))
         else:
             from warnings import warn
-            warn(f'exceeded max number of complements: {self._max_complements}, something may have gone wrong')
+
+            warn(
+                f'exceeded max number of complements: {self._max_complements}, something may have gone wrong'
+            )
 
         return res
 
@@ -189,9 +196,7 @@ class ColorsMeta(type):
     """make `Colors` more accessible"""
 
     def __iter__(cls):
-        return ((name, val)
-                for name, val in vars(cls).items()
-                if isinstance(val, Color))
+        return ((name, val) for name, val in vars(cls).items() if isinstance(val, Color))
 
     def __getitem__(cls, item):
         return cls.__dict__[item]
@@ -221,54 +226,55 @@ class Colors(metaclass=ColorsMeta):
     CYAN = Color(29814, 65535, 65535, 3500)
     BLUE = Color(43634, 65535, 65535, 3500)
     PURPLE = Color(50486, 65535, 65535, 3500)
-    MAGENTA = Color.from_hex(0xff00ff)
+    MAGENTA = Color.from_hex(0xFF00FF)
     PINK = Color(58275, 65535, 47142, 3500)
 
     WHITE = Color(58275, 0, 65535, 5500)
     COLD_WHITE = Color(58275, 0, 65535, 9000)
     WARM_WHITE = Color(58275, 0, 65535, 3200)
     GOLD = Color(58275, 0, 65535, 2500)
-    BROWN = Color.from_hex(0xa0522d)
+    BROWN = Color.from_hex(0xA0522D)
 
-    COPILOT_BLUE = Color.from_hex(0x00b4e3)
-    COPILOT_BLUE_GREEN = Color.from_hex(0x00827d)
-    COPILOT_BLUE_GREY = Color.from_hex(0x386e8f)
+    COPILOT_BLUE = Color.from_hex(0x00B4E3)
+    COPILOT_BLUE_GREEN = Color.from_hex(0x00827D)
+    COPILOT_BLUE_GREY = Color.from_hex(0x386E8F)
     COPILOT_DARK_BLUE = Color.from_hex(0x193849)
 
-    HANUKKAH_BLUE = Color.from_hex(0x09239b)
+    HANUKKAH_BLUE = Color.from_hex(0x09239B)
 
-    MARIO_BLUE = Color.from_hex(0x049cd8)
-    MARIO_YELLOW = Color.from_hex(0xfbd000)
-    MARIO_RED = Color.from_hex(0xe52521)
-    MARIO_GREEN = Color.from_hex(0x43b047)
+    MARIO_BLUE = Color.from_hex(0x049CD8)
+    MARIO_YELLOW = Color.from_hex(0xFBD000)
+    MARIO_RED = Color.from_hex(0xE52521)
+    MARIO_GREEN = Color.from_hex(0x43B047)
 
-    PYTHON_LIGHT_BLUE = Color.from_hex(0x4b8bbe)
+    PYTHON_LIGHT_BLUE = Color.from_hex(0x4B8BBE)
     PYTHON_DARK_BLUE = Color.from_hex(0x306998)
-    PYTHON_LIGHT_YELLOW = Color.from_hex(0xffe873)
-    PYTHON_DARK_YELLOW = Color.from_hex(0xffd43b)
+    PYTHON_LIGHT_YELLOW = Color.from_hex(0xFFE873)
+    PYTHON_DARK_YELLOW = Color.from_hex(0xFFD43B)
     PYTHON_GREY = Color.from_hex(0x646464)
 
-    SNES_BLACK = Color.from_hex(0x211a21)
-    SNES_DARK_GREY = Color.from_hex(0x908a99)
-    SNES_DARK_PURPLE = Color.from_hex(0x4f43ae)
-    SNES_LIGHT_GREY = Color.from_hex(0xcec9cc)
-    SNES_LIGHT_PURPLE = Color.from_hex(0xb5b6e4)
+    SNES_BLACK = Color.from_hex(0x211A21)
+    SNES_DARK_GREY = Color.from_hex(0x908A99)
+    SNES_DARK_PURPLE = Color.from_hex(0x4F43AE)
+    SNES_LIGHT_GREY = Color.from_hex(0xCEC9CC)
+    SNES_LIGHT_PURPLE = Color.from_hex(0xB5B6E4)
 
     STEELERS_BLACK = Color.from_hex(0x101820)
-    STEELERS_BLUE = Color.from_hex(0x00539b)
-    STEELERS_GOLD = Color.from_hex(0xffb612)
-    STEELERS_RED = Color.from_hex(0xc60c30)
-    STEELERS_SILVER = Color.from_hex(0xa5acaf)
+    STEELERS_BLUE = Color.from_hex(0x00539B)
+    STEELERS_GOLD = Color.from_hex(0xFFB612)
+    STEELERS_RED = Color.from_hex(0xC60C30)
+    STEELERS_SILVER = Color.from_hex(0xA5ACAF)
 
-    XMAS_GOLD = Color.from_hex(0xe5d08f)
-    XMAS_GREEN = Color.from_hex(0x18802b)
-    XMAS_RED = Color.from_hex(0xd42426)
+    XMAS_GOLD = Color.from_hex(0xE5D08F)
+    XMAS_GREEN = Color.from_hex(0x18802B)
+    XMAS_RED = Color.from_hex(0xD42426)
 
-    YALE_BLUE = Color.from_hex(0xf4d92)
+    YALE_BLUE = Color.from_hex(0xF4D92)
 
 
 class LifxColors(metaclass=ColorsMeta):
     """colors available via voice from lifx"""
+
     WarmWhite = Color(hue=54612, saturation=0, brightness=32767, kelvin=2500)
     SoftWhite = Color(hue=54612, saturation=0, brightness=32767, kelvin=2700)
     White = Color(hue=54612, saturation=0, brightness=32767, kelvin=4000)

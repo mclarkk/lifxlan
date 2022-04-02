@@ -5,3 +5,4 @@ arrow
 click
 sty
 Pillow
+git+https://github.com/sweettuse/black.git
