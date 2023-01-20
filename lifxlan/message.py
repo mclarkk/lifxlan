@@ -15,7 +15,7 @@ class Message(object):
     def __init__(self, msg_type, target_addr, source_id, seq_num, ack_requested=False, response_requested=False):
 
         # Frame
-        self.frame_format = ["16", "2, 1, 1, 12", "32"]
+        self.frame_format = ["uint:16", "uint:2, uint:1, uint:1, uint:12", "uint:32"]
         self.size = None                                                # 16 bits/uint16
         self.origin = 0                                                 # 2 bits/uint8, must be zero
         self.tagged = 1 if target_addr == BROADCAST_MAC else 0          # 1 bit/bool, also must be one if getservice
@@ -24,7 +24,7 @@ class Message(object):
         self.source_id = source_id                                      # 32 bits/uint32, unique ID set by client. If zero, broadcast reply requested. If non-zero, unicast reply requested.
 
         # Frame Address
-        self.frame_addr_format = ["64", "48", "6, 1, 1", "8"]
+        self.frame_addr_format = ["uint:64", "uint:48", "uint:6, uint:1, uint:1", "uint:8"]
         self.target_addr = target_addr                                  # 64 bits/uint64, either single MAC address or all zeroes for broadcast.
         self.reserved = 0                                               # 48 bits/uint8 x 6, all zero
         self.reserved = 0                                               # 6 bits, all zero
@@ -33,7 +33,7 @@ class Message(object):
         self.seq_num = seq_num                                          # 8 bits/uint8, wraparound
 
         # Protocol Header
-        self.protocol_header_format = ["64", "16", "16"]
+        self.protocol_header_format = ["uint:64", "uint:16", "uint:16"]
         self.reserved = 0                                               # 64 bits/uint64, all zero
         self.message_type = msg_type                                    # 16 bits/uint16
         self.reserved = 0                                               # 16 bits/uint16, all zero
