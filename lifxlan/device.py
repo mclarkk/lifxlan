@@ -30,7 +30,7 @@ from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLa
     GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
     StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
 from .message import BROADCAST_MAC
-from .products import features_map, product_map, light_products
+from .products import features_map, product_map, light_products, switch_products
 from .unpack import unpack_lifx_message
 
 DEFAULT_TIMEOUT = 1 #second
@@ -92,6 +92,7 @@ class Device(object):
         self.location = None
         self.group = None
         self.power_level = None
+        self.level = None # for relay
         self.host_firmware_build_timestamp = None
         self.host_firmware_version = None
         self.wifi_firmware_build_timestamp = None
@@ -379,6 +380,12 @@ class Device(object):
         time, uptime, downtime = self.get_info_tuple()
         return downtime
 
+    # Support for Lifx Product ID 70, 71 and 89
+    def is_switch(self):
+        if self.product == None:
+            self.vendor, self.product, self.version = self.get_version_tuple()
+        return self.product in switch_products
+
     def is_light(self):
         if self.product == None:
             self.vendor, self.product, self.version = self.get_version_tuple()
@@ -503,6 +510,7 @@ class Device(object):
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
     def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
         # Need to put error checking here for aguments
+        
         if type(response_type) != type([]):
             response_type = [response_type]
         success = False
@@ -533,6 +541,7 @@ class Device(object):
                     data, (ip_addr, port) = sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
+                        print (type(response))
                         print("RECV: " + str(response))
                     if type(response) in response_type:
                         if response.source_id == self.source_id and (response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
