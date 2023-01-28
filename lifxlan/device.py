@@ -500,7 +500,8 @@ class Device(object):
             if self.verbose:
                 print("SEND: " + str(msg))
             sent_msg_count += 1
-            sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
+            if sent_msg_count < num_repeats:
+                sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
         self.close_socket(socket_id)
 
     # Usually used for Set messages
