@@ -6,10 +6,6 @@ import re
 import http.client
 import sys
 
-hev = [90, 99]
-relays = [70, 71, 89]
-buttons = [70, 71, 89]
-
 def main():
     conn = http.client.HTTPSConnection("raw.githubusercontent.com")
     conn.request("GET", "/LIFX/products/master/products.json")
@@ -41,17 +37,27 @@ def main():
     print("")
     print("# Identifies which products are lights.")
 
-    products = []
+    lght_products = []
+    sw_products = []
+    btn_products = []
+    hev_products = []
     for product in mapdata:
-        if product['pid'] not in relays:
-            products.append(product['pid'])
+        if 'relays' in product['features'] and product['features']['relays']:
+            sw_products.append(product['pid'])
+        if 'buttons' in product['features'] and product['features']['buttons']:
+            btn_products.append(product['pid'])
+        if 'hev' in product['features'] and product['features']['hev']:
+            hev_products.append(product['pid'])
+        if 'relays' not in product['features'] and 'buttons' not in product['features']:
+            lght_products.append(product['pid'])
 
-    lightproducts = ', '.join(map(str, products))
+    lightproducts = ', '.join(map(str, lght_products))
     print(f"light_products = [{lightproducts}]")
     print("")
 
+    swproducts = ', '.join(map(str, sw_products))
     print("# Identifies which products are switches.")
-    print(f"switch_products = {relays}")
+    print(f"switch_products = [{swproducts}]")
     print("")
 
 
@@ -74,9 +80,9 @@ def main():
         if 'temperature_range' in product['features']:
             print(f"                     \"min_kelvin\": {product['features']['temperature_range'][0]},")
             print(f"                     \"max_kelvin\": {product['features']['temperature_range'][1]},")
-        print(f"                     \"hev\": {product['pid'] in hev},")
-        print(f"                     \"relays\": {product['pid'] in relays},")
-        print(f"                     \"buttons\": {product['pid'] in buttons}}},")
+        print(f"                     \"hev\": {'hev' in product['features']},")
+        print(f"                     \"relays\": {'relays' in product['features']},")
+        print(f"                     \"buttons\": {'buttons' in product['features']}}},")
     print("""               None: {\t\t\t\t\t\t# Default answer for unknown product
                     "color": False,
                     "temperature": False,
