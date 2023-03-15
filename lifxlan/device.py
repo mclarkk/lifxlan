@@ -591,6 +591,14 @@ class Device(object):
         if sock != None:
             sock.close()
 
+    def __repr__(self):
+        return '<{cls}: {label!r} ({group!r} @ {location!r})>'.format(
+            cls=self.__class__.__name__,
+            label=self.get_label(),
+            group=self.get_group_label(),
+            location=self.get_location_label())
+
+
 ################################################################################
 #                                                                              #
 #                             Formatting Functions                             #
