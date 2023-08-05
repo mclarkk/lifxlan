@@ -1,0 +1,25 @@
+[project]
+name = "lifxlan"
+version = "1.2.8"
+description = "API for local communication with LIFX devices over a LAN."
+authors = [
+    {name = "Meghan Clark", email = "mclarkk@berkeley.edu"},
+]
+dependencies = [
+    "bitstring",
+    "ifaddr",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "MIT"}
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "http://github.com/mclarkk/lifxlan"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
