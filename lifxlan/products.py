@@ -71,6 +71,8 @@ product_map = {
                118: "LIFX Z Intl",
                119: "LIFX Beam US",
                120: "LIFX Beam Intl",
+               121: "LIFX Downlight Intl",
+               122: "LIFX Downlight US",
                123: "LIFX Color US",
                124: "LIFX Color Intl",
                125: "LIFX White to Warm US",
@@ -91,7 +93,7 @@ product_map = {
               }
 
 # Identifies which products are lights.
-light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 93, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111, 112, 113, 114, 117, 118, 119, 120, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
+light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 93, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111, 112, 113, 114, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
 
 # Identifies which products are switches.
 switch_products = [70, 71, 89, 115, 116]
@@ -932,6 +934,30 @@ features_map = {
                      "temperature": True,
                      "infrared": False,
                      "multizone": True,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                121: {						# LIFX Downlight Intl
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                122: {						# LIFX Downlight US
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
                      "chain": False,
                      "matrix": False,
                      "min_kelvin": 1500,
