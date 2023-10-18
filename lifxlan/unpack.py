@@ -23,7 +23,9 @@ def unpack_lifx_message(packed_message):
     addressable = (flags >> 12) & 1
     protocol = flags & 4095
     source_id = struct.unpack("<I", header_str[4:8])[0]
-    target_addr = ":".join([('%02x' % b) for b in struct.unpack("<" + ("B"*6), header_str[8:14])])
+    target_addr = ":".join(
+        [("%02x" % b) for b in struct.unpack("<" + ("B" * 6), header_str[8:14])]
+    )
     response_flags = struct.unpack("<B", header_str[22:23])[0]
     ack_requested = response_flags & 2
     response_requested = response_flags & 1
@@ -32,16 +34,22 @@ def unpack_lifx_message(packed_message):
 
     message = None
     if message_type == MSG_IDS[GetService]:
-        message = GetService(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetService(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateService]:
         service = struct.unpack("<B", payload_str[0:1])[0]
         port = struct.unpack("<I", payload_str[1:5])[0]
         payload = {"service": service, "port": port}
-        message = StateService(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateService(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetHostInfo]:
-        message = GetHostInfo(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetHostInfo(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateHostInfo]:
         signal = struct.unpack("<f", payload_str[0:4])[0]
@@ -49,20 +57,28 @@ def unpack_lifx_message(packed_message):
         rx = struct.unpack("<I", payload_str[8:12])[0]
         reserved1 = struct.unpack("<h", payload_str[12:14])[0]
         payload = {"signal": signal, "tx": tx, "rx": rx, "reserved1": reserved1}
-        message = StateHostInfo(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateHostInfo(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetHostFirmware]:
-        message = GetHostFirmware(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetHostFirmware(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateHostFirmware]:
         build = struct.unpack("<Q", payload_str[0:8])[0]
         reserved1 = struct.unpack("<Q", payload_str[8:16])[0]
         version = struct.unpack("<I", payload_str[16:20])[0]
         payload = {"build": build, "reserved1": reserved1, "version": version}
-        message = StateHostFirmware(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateHostFirmware(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetWifiInfo]:
-        message = GetWifiInfo(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetWifiInfo(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateWifiInfo]:
         signal = struct.unpack("<f", payload_str[0:4])[0]
@@ -70,202 +86,331 @@ def unpack_lifx_message(packed_message):
         rx = struct.unpack("<I", payload_str[8:12])[0]
         reserved1 = struct.unpack("<h", payload_str[12:14])[0]
         payload = {"signal": signal, "tx": tx, "rx": rx, "reserved1": reserved1}
-        message = StateWifiInfo(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateWifiInfo(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetWifiFirmware]:
-        message = GetWifiFirmware(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetWifiFirmware(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateWifiFirmware]:
         build = struct.unpack("<Q", payload_str[0:8])[0]
         reserved1 = struct.unpack("<Q", payload_str[8:16])[0]
         version = struct.unpack("<I", payload_str[16:20])[0]
         payload = {"build": build, "reserved1": reserved1, "version": version}
-        message = StateWifiFirmware(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateWifiFirmware(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetPower]:
-        message = GetPower(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetPower(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateRPower]:
         relay_index = struct.unpack("<c", payload_str[0:1])[0]
-        relay_index = ord(relay_index) #8bit
+        relay_index = ord(relay_index)  # 8bit
         level = struct.unpack("<H", payload_str[1:3])[0]
         payload = {"relay_index": relay_index, "level": level}
-        message = StateRPower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateRPower(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[SetPower]:
         power_level = struct.unpack("<H", payload_str[0:2])[0]
         payload = {"power_level": power_level}
-        message = SetPower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = SetPower(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StatePower]:
         power_level = struct.unpack("<H", payload_str[0:2])[0]
         payload = {"power_level": power_level}
-        message = StatePower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StatePower(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetLabel]:
-        message = GetLabel(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetLabel(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[SetLabel]:
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("<" + ("b"*32), payload_str[0:32])])).replace(b'\x00', b'')
-        label = label.decode('utf-8')
+        label = binascii.unhexlify(
+            "".join(
+                [
+                    "%2.2x" % (b & 0x000000FF)
+                    for b in struct.unpack("<" + ("b" * 32), payload_str[0:32])
+                ]
+            )
+        ).replace(b"\x00", b"")
+        label = label.decode("utf-8")
         payload = {"label": label}
-        message = SetLabel(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = SetLabel(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateLabel]:
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("<" + ("b"*32), payload_str[0:32])])).replace(b'\x00', b'')
-        label = label.decode('utf-8')
+        label = binascii.unhexlify(
+            "".join(
+                [
+                    "%2.2x" % (b & 0x000000FF)
+                    for b in struct.unpack("<" + ("b" * 32), payload_str[0:32])
+                ]
+            )
+        ).replace(b"\x00", b"")
+        label = label.decode("utf-8")
         payload = {"label": label}
-        message = StateLabel(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateLabel(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetLocation]:
-        message = GetLocation(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetLocation(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateLocation]:
-        location = [b for b in struct.unpack("<" + ("B"*16), payload_str[0:16])]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("<" + ("b"*32), payload_str[16:48])])).replace(b'\x00', b'')
-        label = label.decode('utf-8')
+        location = [b for b in struct.unpack("<" + ("B" * 16), payload_str[0:16])]
+        label = binascii.unhexlify(
+            "".join(
+                [
+                    "%2.2x" % (b & 0x000000FF)
+                    for b in struct.unpack("<" + ("b" * 32), payload_str[16:48])
+                ]
+            )
+        ).replace(b"\x00", b"")
+        label = label.decode("utf-8")
         updated_at = struct.unpack("<Q", payload_str[48:56])[0]
         payload = {"location": location, "label": label, "updated_at": updated_at}
-        message = StateLocation(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateLocation(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetGroup]:
-        message = GetGroup(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetGroup(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateGroup]:
-        group = [b for b in struct.unpack("<" + ("B"*16), payload_str[0:16])]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("<" + ("b"*32), payload_str[16:48])])).replace(b'\x00', b'')
-        label = label.decode('utf-8')
+        group = [b for b in struct.unpack("<" + ("B" * 16), payload_str[0:16])]
+        label = binascii.unhexlify(
+            "".join(
+                [
+                    "%2.2x" % (b & 0x000000FF)
+                    for b in struct.unpack("<" + ("b" * 32), payload_str[16:48])
+                ]
+            )
+        ).replace(b"\x00", b"")
+        label = label.decode("utf-8")
         updated_at = struct.unpack("<Q", payload_str[48:56])[0]
         payload = {"group": group, "label": label, "updated_at": updated_at}
-        message = StateGroup(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateGroup(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetVersion]:
-        message = GetVersion(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetVersion(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateVersion]:
         vendor = struct.unpack("<I", payload_str[0:4])[0]
         product = struct.unpack("<I", payload_str[4:8])[0]
         version = struct.unpack("<I", payload_str[8:12])[0]
         payload = {"vendor": vendor, "product": product, "version": version}
-        message = StateVersion(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateVersion(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[GetInfo]:
-        message = GetInfo(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = GetInfo(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[StateInfo]:
         time = struct.unpack("<Q", payload_str[0:8])[0]
         uptime = struct.unpack("<Q", payload_str[8:16])[0]
         downtime = struct.unpack("<Q", payload_str[16:24])[0]
         payload = {"time": time, "uptime": uptime, "downtime": downtime}
-        message = StateInfo(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = StateInfo(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[Acknowledgement]:
-        message = Acknowledgement(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = Acknowledgement(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[EchoRequest]:
         byte_array_len = len(payload_str)
-        byte_array = [b for b in struct.unpack("<" + ("B"*byte_array_len), payload_str[0:byte_array_len])]
+        byte_array = [
+            b
+            for b in struct.unpack(
+                "<" + ("B" * byte_array_len), payload_str[0:byte_array_len]
+            )
+        ]
         payload = {"byte_array": byte_array}
-        message = EchoRequest(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = EchoRequest(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[EchoResponse]:
         byte_array_len = len(payload_str)
-        byte_array = [b for b in struct.unpack("<" + ("B"*byte_array_len), payload_str[0:byte_array_len])]
+        byte_array = [
+            b
+            for b in struct.unpack(
+                "<" + ("B" * byte_array_len), payload_str[0:byte_array_len]
+            )
+        ]
         payload = {"byte_array": byte_array}
-        message = EchoResponse(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = EchoResponse(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightGet]:
-        message = LightGet(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = LightGet(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightSetColor]:
         reserved = struct.unpack("<B", payload_str[0:1])[0]
-        color = struct.unpack("<" + ("H"*4), payload_str[1:9])
+        color = struct.unpack("<" + ("H" * 4), payload_str[1:9])
         duration = struct.unpack("<I", payload_str[9:13])[0]
         payload = {"color": color, "duration": duration}
-        message = LightSetColor(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = LightSetColor(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightState]:
-        color = struct.unpack("<" + ("H"*4), payload_str[0:8])
+        color = struct.unpack("<" + ("H" * 4), payload_str[0:8])
         reserved1 = struct.unpack("<H", payload_str[8:10])[0]
         power_level = struct.unpack("<H", payload_str[10:12])[0]
-        label = binascii.unhexlify("".join(["%2.2x" % (b & 0x000000ff) for b in struct.unpack("<" + ("b"*32), payload_str[12:44])])).replace(b'\x00', b'')
-        label = label.decode('utf-8')
+        label = binascii.unhexlify(
+            "".join(
+                [
+                    "%2.2x" % (b & 0x000000FF)
+                    for b in struct.unpack("<" + ("b" * 32), payload_str[12:44])
+                ]
+            )
+        ).replace(b"\x00", b"")
+        label = label.decode("utf-8")
         reserved2 = struct.unpack("<Q", payload_str[44:52])[0]
-        payload = {"color": color, "reserved1": reserved1, "power_level": power_level, "label": label, "reserved2": reserved2}
-        message = LightState(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "color": color,
+            "reserved1": reserved1,
+            "power_level": power_level,
+            "label": label,
+            "reserved2": reserved2,
+        }
+        message = LightState(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightGetPower]:
-        message = LightGetPower(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = LightGetPower(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightSetPower]:
         power_level = struct.unpack("<H", payload_str[0:2])[0]
         duration = struct.unpack("<I", payload_str[2:6])[0]
         payload = {"power_level": power_level, "duration": duration}
-        message = LightSetPower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = LightSetPower(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightStatePower]:
         power_level = struct.unpack("<H", payload_str[0:2])[0]
         payload = {"power_level": power_level}
-        message = LightStatePower(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = LightStatePower(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightGetInfrared]:  # 120
-        message = LightGetInfrared(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+        message = LightGetInfrared(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightStateInfrared]:  # 121
         infrared_brightness = struct.unpack("<H", payload_str[0:2])[0]
         payload = {"infrared_brightness": infrared_brightness}
-        message = LightStateInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = LightStateInfrared(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     elif message_type == MSG_IDS[LightSetInfrared]:  # 122
         infrared_brightness = struct.unpack("<H", payload_str[0:2])[0]
         payload = {"infrared_brightness": infrared_brightness}
-        message = LightSetInfrared(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = LightSetInfrared(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[MultiZoneSetColorZones]: #501
+    elif message_type == MSG_IDS[MultiZoneSetColorZones]:  # 501
         start_index = struct.unpack("<c", payload_str[0:1])[0]
-        start_index = ord(start_index) # 8 bit
+        start_index = ord(start_index)  # 8 bit
         end_index = struct.unpack("<c", payload_str[1:2])[0]
-        end_index = ord(end_index) #8 bit
+        end_index = ord(end_index)  # 8 bit
         color = struct.unpack("<" + ("H" * 4), payload_str[2:10])
         duration = struct.unpack("<I", payload_str[10:14])[0]
         apply = struct.unpack("<c", payload_str[14:15])[0]
-        apply = ord(apply) #8 bit
-        payload = {"start_index": start_index, "end_index": end_index, "color": color, "duration": duration, "apply": apply}
-        message = MultiZoneSetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        apply = ord(apply)  # 8 bit
+        payload = {
+            "start_index": start_index,
+            "end_index": end_index,
+            "color": color,
+            "duration": duration,
+            "apply": apply,
+        }
+        message = MultiZoneSetColorZones(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[MultiZoneGetColorZones]: #502
+    elif message_type == MSG_IDS[MultiZoneGetColorZones]:  # 502
         start_index = struct.unpack("<c", payload_str[0:1])[0]
-        start_index = ord(start_index) # 8 bit
+        start_index = ord(start_index)  # 8 bit
         end_index = struct.unpack("<c", payload_str[1:2])[0]
-        end_index = ord(end_index) #8 bit
+        end_index = ord(end_index)  # 8 bit
         payload = {"start_index": start_index, "end_index": end_index}
-        message = MultiZoneGetColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultiZoneGetColorZones(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[MultiZoneStateZone]: #503
+    elif message_type == MSG_IDS[MultiZoneStateZone]:  # 503
         count = struct.unpack("<c", payload_str[0:1])[0]
-        count = ord(count) # 8 bit
+        count = ord(count)  # 8 bit
         index = struct.unpack("<c", payload_str[1:2])[0]
-        index = ord(index) #8 bit
+        index = ord(index)  # 8 bit
         color = struct.unpack("<" + ("H" * 4), payload_str[2:10])
         payload = {"count": count, "index": index, "color": color}
-        message = MultiZoneStateZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultiZoneStateZone(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[MultiZoneStateMultiZone]: #506
+    elif message_type == MSG_IDS[MultiZoneStateMultiZone]:  # 506
         count = struct.unpack("<c", payload_str[0:1])[0]
-        count = ord(count) # 8 bit
+        count = ord(count)  # 8 bit
         index = struct.unpack("<c", payload_str[1:2])[0]
-        index = ord(index) #8 bit
+        index = ord(index)  # 8 bit
         colors = []
         for i in range(8):
-            color = struct.unpack("<" + ("H" * 4), payload_str[2+(i*8):10+(i*8)])
+            color = struct.unpack(
+                "<" + ("H" * 4), payload_str[2 + (i * 8) : 10 + (i * 8)]
+            )
             colors.append(color)
         payload = {"count": count, "index": index, "color": colors}
-        message = MultiZoneStateMultiZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = MultiZoneStateMultiZone(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[GetMultiZoneEffect]: #507
-        message = GetMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+    elif message_type == MSG_IDS[GetMultiZoneEffect]:  # 507
+        message = GetMultiZoneEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[SetMultiZoneEffect]: #508
+    elif message_type == MSG_IDS[SetMultiZoneEffect]:  # 508
         instanceid = struct.unpack("<I", payload_str[0:4])[0]
         effect_type = struct.unpack("<B", payload_str[4:5])[0]
         reserved1 = struct.unpack("<H", payload_str[5:7])[0]
@@ -275,13 +420,23 @@ def unpack_lifx_message(packed_message):
         reserved3 = struct.unpack("<I", payload_str[23:27])[0]
         parameters = []
         for i in range(8):
-            parameter = struct.unpack("<I", payload_str[27+(i*4):31+(i*4)])[0]
+            parameter = struct.unpack("<I", payload_str[27 + (i * 4) : 31 + (i * 4)])[0]
             parameters.append(parameter)
-        payload = {"instanceid": instanceid, "type": effect_type, "reserved1": reserved1, "speed": speed,
-                   "duration": duration, "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters}
-        message = SetMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "instanceid": instanceid,
+            "type": effect_type,
+            "reserved1": reserved1,
+            "speed": speed,
+            "duration": duration,
+            "reserved2": reserved2,
+            "reserved3": reserved3,
+            "parameters": parameters,
+        }
+        message = SetMultiZoneEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[StateMultiZoneEffect]: #509
+    elif message_type == MSG_IDS[StateMultiZoneEffect]:  # 509
         instanceid = struct.unpack("<I", payload_str[0:4])[0]
         effect_type = struct.unpack("<B", payload_str[4:5])[0]
         reserved1 = struct.unpack("<H", payload_str[5:7])[0]
@@ -291,61 +446,125 @@ def unpack_lifx_message(packed_message):
         reserved3 = struct.unpack("<I", payload_str[23:27])[0]
         parameters = []
         for i in range(8):
-            parameter = struct.unpack("<I", payload_str[27+(i*4):31+(i*4)])[0]
+            parameter = struct.unpack("<I", payload_str[27 + (i * 4) : 31 + (i * 4)])[0]
             parameters.append(parameter)
-        payload = {"instanceid": instanceid, "type": effect_type, "reserved1": reserved1, "speed": speed,
-                   "duration": duration, "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters}
-        message = StateMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "instanceid": instanceid,
+            "type": effect_type,
+            "reserved1": reserved1,
+            "speed": speed,
+            "duration": duration,
+            "reserved2": reserved2,
+            "reserved3": reserved3,
+            "parameters": parameters,
+        }
+        message = StateMultiZoneEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[GetDeviceChain]: #701
-        message = GetDeviceChain(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+    elif message_type == MSG_IDS[GetDeviceChain]:  # 701
+        message = GetDeviceChain(
+            target_addr, source_id, seq_num, {}, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[StateDeviceChain]: #702
+    elif message_type == MSG_IDS[StateDeviceChain]:  # 702
         start_index = struct.unpack("<B", payload_str[0:1])[0]
         tile_devices = []
         tilesize_bytes = 55
         for i in range(16):
-            offset = (i * tilesize_bytes)
-            tile = {"reserved1": struct.unpack("<h", payload_str[1+offset:3+offset])[0],
-                    "reserved2": struct.unpack("<h", payload_str[3+offset:5+offset])[0],
-                    "reserved3": struct.unpack("<h", payload_str[5+offset:7+offset])[0],
-                    "reserved4": struct.unpack("<h", payload_str[7+offset:9+offset])[0],
-                    "user_x": struct.unpack("<f", payload_str[9+offset:13+offset])[0],
-                    "user_y": struct.unpack("<f", payload_str[13+offset:17+offset])[0],
-                    "width": struct.unpack("<B", payload_str[17+offset:18+offset])[0],
-                    "height": struct.unpack("<B", payload_str[18+offset:19+offset])[0],
-                    "reserved5": struct.unpack("<B", payload_str[19+offset:20+offset])[0],
-                    "device_version_vendor": struct.unpack("<I", payload_str[20+offset:24+offset])[0],
-                    "device_version_product": struct.unpack("<I", payload_str[24+offset:28+offset])[0],
-                    "device_version_version": struct.unpack("<I", payload_str[28+offset:32+offset])[0],
-                    "firmware_build": struct.unpack("<Q", payload_str[32+offset:40+offset])[0],
-                    "reserved6": struct.unpack("<Q", payload_str[40+offset:48+offset])[0],
-                    "firmware_version": struct.unpack("<I", payload_str[48+offset:52+offset])[0],
-                    "reserved7": struct.unpack("<I", payload_str[52+offset:56+offset])[0]}
+            offset = i * tilesize_bytes
+            tile = {
+                "reserved1": struct.unpack("<h", payload_str[1 + offset : 3 + offset])[
+                    0
+                ],
+                "reserved2": struct.unpack("<h", payload_str[3 + offset : 5 + offset])[
+                    0
+                ],
+                "reserved3": struct.unpack("<h", payload_str[5 + offset : 7 + offset])[
+                    0
+                ],
+                "reserved4": struct.unpack("<h", payload_str[7 + offset : 9 + offset])[
+                    0
+                ],
+                "user_x": struct.unpack("<f", payload_str[9 + offset : 13 + offset])[0],
+                "user_y": struct.unpack("<f", payload_str[13 + offset : 17 + offset])[
+                    0
+                ],
+                "width": struct.unpack("<B", payload_str[17 + offset : 18 + offset])[0],
+                "height": struct.unpack("<B", payload_str[18 + offset : 19 + offset])[
+                    0
+                ],
+                "reserved5": struct.unpack(
+                    "<B", payload_str[19 + offset : 20 + offset]
+                )[0],
+                "device_version_vendor": struct.unpack(
+                    "<I", payload_str[20 + offset : 24 + offset]
+                )[0],
+                "device_version_product": struct.unpack(
+                    "<I", payload_str[24 + offset : 28 + offset]
+                )[0],
+                "device_version_version": struct.unpack(
+                    "<I", payload_str[28 + offset : 32 + offset]
+                )[0],
+                "firmware_build": struct.unpack(
+                    "<Q", payload_str[32 + offset : 40 + offset]
+                )[0],
+                "reserved6": struct.unpack(
+                    "<Q", payload_str[40 + offset : 48 + offset]
+                )[0],
+                "firmware_version": struct.unpack(
+                    "<I", payload_str[48 + offset : 52 + offset]
+                )[0],
+                "reserved7": struct.unpack(
+                    "<I", payload_str[52 + offset : 56 + offset]
+                )[0],
+            }
             tile_devices.append(tile)
         total_count = struct.unpack("<B", payload_str[881:882])[0]
-        payload = {"start_index": start_index, "total_count": total_count, "tile_devices": tile_devices}
-        message = StateDeviceChain(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "start_index": start_index,
+            "total_count": total_count,
+            "tile_devices": tile_devices,
+        }
+        message = StateDeviceChain(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[SetUserPosition]: #703
+    elif message_type == MSG_IDS[SetUserPosition]:  # 703
         tile_index = struct.unpack("<B", payload_str[0:1])[0]
         reserved = struct.unpack("<H", payload_str[1:3])[0]
         user_x = struct.unpack("<f", payload_str[3:7])[0]
         user_y = struct.unpack("<f", payload_str[7:11])[0]
-        payload = {"tile_index": tile_index, "reserved": reserved, "user_x": user_x, "user_y": user_y}
-        message = SetUserPosition(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "tile_index": tile_index,
+            "reserved": reserved,
+            "user_x": user_x,
+            "user_y": user_y,
+        }
+        message = SetUserPosition(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[GetTileState64]: #707
+    elif message_type == MSG_IDS[GetTileState64]:  # 707
         tile_index = struct.unpack("<B", payload_str[0:1])[0]
         length = struct.unpack("<B", payload_str[1:2])[0]
         reserved = struct.unpack("<B", payload_str[2:3])[0]
         x = struct.unpack("<B", payload_str[3:4])[0]
         y = struct.unpack("<B", payload_str[4:5])[0]
         width = struct.unpack("<B", payload_str[5:6])[0]
-        payload = {"tile_index": tile_index, "length": length, "reserved": reserved, "x": x, "y": y, "width": width}
-        message = GetTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "tile_index": tile_index,
+            "length": length,
+            "reserved": reserved,
+            "x": x,
+            "y": y,
+            "width": width,
+        }
+        message = GetTileState64(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[StateTileState64]: #711
+    elif message_type == MSG_IDS[StateTileState64]:  # 711
         tile_index = struct.unpack("<B", payload_str[0:1])[0]
         reserved = struct.unpack("<B", payload_str[1:2])[0]
         x = struct.unpack("<B", payload_str[2:3])[0]
@@ -353,12 +572,23 @@ def unpack_lifx_message(packed_message):
         width = struct.unpack("<B", payload_str[4:5])[0]
         colors = []
         for i in range(64):
-            color = struct.unpack("<" + ("H" * 4), payload_str[5+(i*8):13+(i*8)])
+            color = struct.unpack(
+                "<" + ("H" * 4), payload_str[5 + (i * 8) : 13 + (i * 8)]
+            )
             colors.append(color)
-        payload = {"tile_index": tile_index, "reserved": reserved, "x": x, "y": y, "width": width, "colors": colors}
-        message = StateTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "tile_index": tile_index,
+            "reserved": reserved,
+            "x": x,
+            "y": y,
+            "width": width,
+            "colors": colors,
+        }
+        message = StateTileState64(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[SetTileState64]: #715
+    elif message_type == MSG_IDS[SetTileState64]:  # 715
         tile_index = struct.unpack("<B", payload_str[0:1])[0]
         length = struct.unpack("<B", payload_str[1:2])[0]
         reserved = struct.unpack("<B", payload_str[2:3])[0]
@@ -368,15 +598,30 @@ def unpack_lifx_message(packed_message):
         duration = struct.unpack("<I", payload_str[6:10])[0]
         colors = []
         for i in range(64):
-            color = struct.unpack("<" + ("H" * 4), payload_str[10+(i*8):18+(i*8)])
+            color = struct.unpack(
+                "<" + ("H" * 4), payload_str[10 + (i * 8) : 18 + (i * 8)]
+            )
             colors.append(color)
-        payload = {"tile_index": tile_index, "length": length, "reserved": reserved, "x": x, "y": y, "width": width, "duration": duration, "colors": colors}
-        message = SetTileState64(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "tile_index": tile_index,
+            "length": length,
+            "reserved": reserved,
+            "x": x,
+            "y": y,
+            "width": width,
+            "duration": duration,
+            "colors": colors,
+        }
+        message = SetTileState64(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[GetTileEffect]: #718
-        message = GetTileEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+    elif message_type == MSG_IDS[GetTileEffect]:  # 718
+        message = GetTileEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[SetTileEffect]: #719
+    elif message_type == MSG_IDS[SetTileEffect]:  # 719
         reserved1 = struct.unpack("<B", payload_str[0:1])[0]
         reserved2 = struct.unpack("<B", payload_str[1:2])[0]
         instanceid = struct.unpack("<I", payload_str[2:6])[0]
@@ -387,18 +632,33 @@ def unpack_lifx_message(packed_message):
         reserved4 = struct.unpack("<I", payload_str[23:27])[0]
         parameters = []
         for i in range(8):
-            parameter = struct.unpack("<I", payload_str[27+(i*4):31+(i*4)])[0]
+            parameter = struct.unpack("<I", payload_str[27 + (i * 4) : 31 + (i * 4)])[0]
             parameters.append(parameter)
         palette_count = struct.unpack("<B", payload_str[59:60])[0]
         palette = []
         for i in range(palette_count):
-            color = struct.unpack("<" + ("H" * 4), payload_str[60+(i*8):68+(i*8)])
+            color = struct.unpack(
+                "<" + ("H" * 4), payload_str[60 + (i * 8) : 68 + (i * 8)]
+            )
             palette.append(color)
-        payload = {"reserved1": reserved1, "reserved2": reserved2, "instanceid": instanceid, "type": effect_type, "speed": speed, "duration": duration,
-                   "reserved3": reserved3, "reserved4": reserved4, "parameters": parameters, "palette_count": palette_count, "palette": palette}
-        message = SetTileEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "reserved1": reserved1,
+            "reserved2": reserved2,
+            "instanceid": instanceid,
+            "type": effect_type,
+            "speed": speed,
+            "duration": duration,
+            "reserved3": reserved3,
+            "reserved4": reserved4,
+            "parameters": parameters,
+            "palette_count": palette_count,
+            "palette": palette,
+        }
+        message = SetTileEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
-    elif message_type == MSG_IDS[StateTileEffect]: #720
+    elif message_type == MSG_IDS[StateTileEffect]:  # 720
         reserved1 = struct.unpack("<B", payload_str[0:1])[0]
         instanceid = struct.unpack("<I", payload_str[1:5])[0]
         effect_type = struct.unpack("<B", payload_str[5:6])[0]
@@ -408,19 +668,102 @@ def unpack_lifx_message(packed_message):
         reserved3 = struct.unpack("<I", payload_str[22:26])[0]
         parameters = []
         for i in range(8):
-            parameter = struct.unpack("<I", payload_str[26+(i*4):30+(i*4)])[0]
+            parameter = struct.unpack("<I", payload_str[26 + (i * 4) : 30 + (i * 4)])[0]
             parameters.append(parameter)
         palette_count = struct.unpack("<B", payload_str[58:59])[0]
         palette = []
         for i in range(palette_count):
-            color = struct.unpack("<" + ("H" * 4), payload_str[59+(i*8):67+(i*8)])
+            color = struct.unpack(
+                "<" + ("H" * 4), payload_str[59 + (i * 8) : 67 + (i * 8)]
+            )
             palette.append(color)
-        payload = {"reserved1": reserved1, "instanceid": instanceid, "type": effect_type, "speed": speed, "duration": duration,
-                   "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters, "palette_count": palette_count, "palette": palette}
-        message = StateTileEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        payload = {
+            "reserved1": reserved1,
+            "instanceid": instanceid,
+            "type": effect_type,
+            "speed": speed,
+            "duration": duration,
+            "reserved2": reserved2,
+            "reserved3": reserved3,
+            "parameters": parameters,
+            "palette_count": palette_count,
+            "palette": palette,
+        }
+        message = StateTileEffect(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
+
+    elif message_type == MSG_IDS[ButtonState]:  # 907
+        x = 0
+        count = struct.unpack("<B", payload_str[x : x + 1])[0]
+        x += 1
+        index = struct.unpack("<B", payload_str[x : x + 1])[0]
+        x += 1
+        buttons_count = struct.unpack("<B", payload_str[x : x + 1])[0]
+        x += 1
+        max_buttons = 8
+        buttons = []
+        for i in range(max_buttons):  # Buttons
+            actions_count = struct.unpack("<B", payload_str[x : x + 1])[0]
+            x += 1
+            max_actions = 5
+            actions = []
+            for j in range(max_actions):  # ButtonActions
+                gesture = struct.unpack("<H", payload_str[x : x + 2])[0]
+                x += 2
+                target_type = struct.unpack("<H", payload_str[x : x + 2])[0]
+                x += 2
+                match target_type:
+                    case 2:  # Relays
+                        relays_count = struct.unpack("<B", payload_str[x : x + 1])[0]
+                        x += 1
+                        relays = list(struct.unpack("<15B", payload_str[x : x + 15]))
+                        x += 15
+                        target = {"relays_count": relays_count, "relays": relays}
+                    case 3:  # Device
+                        serial = list(struct.unpack("<6B", payload_str[x : x + 6]))
+                        x += 6
+                        reserved = struct.unpack("<10B", payload_str[x : x + 10])
+                        x += 10
+                        target = {"serial": serial, "reserved": reserved}
+                    case 7:  # Device Relays
+                        serial = list(struct.unpack("<6B", payload_str[x : x + 6]))
+                        x += 6
+                        relays_count = struct.unpack("<B", payload_str[x : x + 1])[0]
+                        x += 1
+                        relays = list(struct.unpack("<9B", payload_str[x : x + 9]))
+                        x += 9
+                        target = {
+                            "serial": serial,
+                            "relays_count": relays_count,
+                            "relays": relays,
+                        }
+                    case _:  # Location / Group / Scene / other
+                        target = list(struct.unpack("<16B", payload_str[x : x + 16]))
+                        x += 16
+                actions.append(
+                    {"gesture": gesture, "target_type": target_type, "target": target}
+                )
+            buttons.append({"actions_count": actions_count, "actions": actions})
+        payload = {
+            "count": count,
+            "index": index,
+            "buttons_count": buttons_count,
+            "buttons": buttons,
+        }
+        message = ButtonState(
+            target_addr, source_id, seq_num, payload, ack_requested, response_requested
+        )
 
     else:
-        message = Message(message_type, target_addr, source_id, seq_num, ack_requested, response_requested)
+        message = Message(
+            message_type,
+            target_addr,
+            source_id,
+            seq_num,
+            ack_requested,
+            response_requested,
+        )
 
     message.size = size
     message.origin = origin
