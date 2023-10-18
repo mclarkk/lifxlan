@@ -14,30 +14,32 @@ def main():
 
         duration_ms = 5
         DIM_BLUE = BLUE
-        DIM_BLUE[2] = DIM_BLUE[2]/3
-        palette = {0: YELLOW,
-                   1: BLUE#DIM_BLUE
-                    }
+        DIM_BLUE[2] = DIM_BLUE[2] / 3
+        palette = {0: YELLOW, 1: BLUE}  # DIM_BLUE
 
         num_frames = 2
-        invader_matrix = \
-               [[[1, 1, 1, 0, 0, 1, 1, 1],
-                 [1, 1, 0, 0, 0, 0, 1, 1],
-                 [1, 0, 0, 0, 0, 0, 0, 1],
-                 [0, 0, 1, 0, 0, 1, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [1, 0, 1, 0, 0, 1, 0, 1],
-                 [0, 1, 1, 1, 1, 1, 1, 0],
-                 [1, 0, 1, 1, 1, 1, 0, 1]],
-
-                [[1, 1, 1, 0, 0, 1, 1, 1],
-                 [1, 1, 0, 0, 0, 0, 1, 1],
-                 [1, 0, 0, 0, 0, 0, 0, 1],
-                 [0, 0, 1, 0, 0, 1, 0, 0],
-                 [0, 0, 0, 0, 0, 0, 0, 0],
-                 [1, 1, 0, 1, 1, 0, 1, 1],
-                 [1, 0, 1, 0, 0, 1, 0, 1],
-                 [0, 1, 0, 1, 1, 0, 1, 0]]]
+        invader_matrix = [
+            [
+                [1, 1, 1, 0, 0, 1, 1, 1],
+                [1, 1, 0, 0, 0, 0, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 1, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 0, 1, 0, 0, 1, 0, 1],
+                [0, 1, 1, 1, 1, 1, 1, 0],
+                [1, 0, 1, 1, 1, 1, 0, 1],
+            ],
+            [
+                [1, 1, 1, 0, 0, 1, 1, 1],
+                [1, 1, 0, 0, 0, 0, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 1, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 0, 1, 1, 0, 1, 1],
+                [1, 0, 1, 0, 0, 1, 0, 1],
+                [0, 1, 0, 1, 1, 0, 1, 0],
+            ],
+        ]
 
         try:
             while True:
@@ -45,15 +47,15 @@ def main():
                     sprite = []
                     for x in range(8):
                         for y in range(8):
-                                sprite.append(palette[invader_matrix[frame][x][y]])
+                            sprite.append(palette[invader_matrix[frame][x][y]])
                     for index in range(num_tiles):
                         t.set_tile_colors(index, sprite, duration_ms, rapid=True)
                     sleep(1)
         except KeyboardInterrupt:
-                t.set_tilechain_colors(original_colors)
-                print("Done.")
+            t.set_tilechain_colors(original_colors)
+            print("Done.")
     else:
-            print("No TileChain lights found.")
+        print("No TileChain lights found.")
 
 
 def get_random_color():

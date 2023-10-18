@@ -3,22 +3,35 @@
 
 import sys
 
-from lifxlan import BLUE, COLD_WHITE, CYAN, GOLD, GREEN, LifxLAN, \
-    ORANGE, PINK, PURPLE, RED, WARM_WHITE, WHITE, YELLOW
+from lifxlan import (
+    BLUE,
+    COLD_WHITE,
+    CYAN,
+    GOLD,
+    GREEN,
+    LifxLAN,
+    ORANGE,
+    PINK,
+    PURPLE,
+    RED,
+    WARM_WHITE,
+    WHITE,
+    YELLOW,
+)
 
 colors = {
-    "red": RED, 
-    "orange": ORANGE, 
-    "yellow": YELLOW, 
-    "green": GREEN, 
-    "cyan": CYAN, 
-    "blue": BLUE, 
-    "purple": PURPLE, 
-    "pink": PINK, 
-    "white": WHITE, 
-    "cold_white": COLD_WHITE, 
-    "warm_white": WARM_WHITE, 
-    "gold": GOLD
+    "red": RED,
+    "orange": ORANGE,
+    "yellow": YELLOW,
+    "green": GREEN,
+    "cyan": CYAN,
+    "blue": BLUE,
+    "purple": PURPLE,
+    "pink": PINK,
+    "white": WHITE,
+    "cold_white": COLD_WHITE,
+    "warm_white": WARM_WHITE,
+    "gold": GOLD,
 }
 error_message = """Usage:
 
@@ -29,7 +42,9 @@ The four numbers are HSBK values: Hue (0-65535), Saturation (0-65535), Brightnes
 See get_colors_all.py to read the current HSBK values from your lights.
 
 The available predefined colors are:
-""" + ", ".join(colors.keys())
+""" + ", ".join(
+    colors.keys()
+)
 
 lifxlan = LifxLAN()
 
@@ -42,7 +57,7 @@ if len(sys.argv) == 2:
         color = colors[sys.argv[1].lower()]
 elif len(sys.argv) == 5:
     color = []
-    for (i, value) in enumerate(sys.argv[1:]):
+    for i, value in enumerate(sys.argv[1:]):
         try:
             value = int(value)
         except:
@@ -64,4 +79,3 @@ else:
 
 print(color)
 lifxlan.set_color_all_lights(color, rapid=True)
-

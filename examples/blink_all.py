@@ -9,7 +9,9 @@ from lifxlan import BLUE, GREEN, LifxLAN
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
+        print(
+            "\nDiscovery will go much faster if you provide the number of lights on your LAN:"
+        )
         print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
@@ -57,13 +59,14 @@ def main():
         light.set_power(original_powers[light])
 
 
-def toggle_all_lights_power(lan, interval=0.5, num_cycles=3): #TEST
+def toggle_all_lights_power(lan, interval=0.5, num_cycles=3):  # TEST
     rapid = True if interval < 1 else False
     for i in range(num_cycles):
         lan.set_power_all_lights("on", rapid=rapid)
         sleep(interval)
         lan.set_power_all_lights("off", rapid=rapid)
         sleep(interval)
+
 
 def toggle_all_lights_color(lan, interval=0.5, num_cycles=3):
     rapid = True if interval < 1 else False
@@ -73,5 +76,6 @@ def toggle_all_lights_color(lan, interval=0.5, num_cycles=3):
         lan.set_color_all_lights(GREEN, rapid=rapid)
         sleep(interval)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

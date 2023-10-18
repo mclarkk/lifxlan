@@ -8,7 +8,9 @@ from lifxlan import LifxLAN
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
+        print(
+            "\nDiscovery will go much faster if you provide the number of lights on your LAN:"
+        )
         print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
@@ -25,9 +27,10 @@ def main():
     print("\nFound {} light(s):\n".format(len(devices)))
     for d in devices:
         try:
-        	print(d)
+            print(d)
         except:
             pass
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

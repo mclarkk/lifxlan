@@ -30,20 +30,22 @@ def main():
 
                 if len(dots) > max_dots:
                     old_dot = dots.pop(0)
-                    matrix[int(old_dot[0])][int(old_dot[1])] = background_colors[int(old_dot[0])][int(old_dot[1])]
+                    matrix[int(old_dot[0])][int(old_dot[1])] = background_colors[
+                        int(old_dot[0])
+                    ][int(old_dot[1])]
 
                 matrix[int(dot[0])][int(dot[1])] = get_random_saturated_color()
-                #Catch exceptions when the computer sleeps so we can resume when we wake
+                # Catch exceptions when the computer sleeps so we can resume when we wake
                 try:
                     tile_chain.project_matrix(matrix, duration_ms, rapid=True)
                 except:
                     pass
                 sleep(dot_rate)
         except KeyboardInterrupt:
-                tile_chain.set_tilechain_colors(original_colors)
-                print("Done.")
+            tile_chain.set_tilechain_colors(original_colors)
+            print("Done.")
     else:
-            print("No TileChain lights found.")
+        print("No TileChain lights found.")
 
 
 def get_random_saturated_color():

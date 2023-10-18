@@ -10,7 +10,9 @@ from lifxlan import LifxLAN
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
+        print(
+            "\nDiscovery will go much faster if you provide the number of lights on your LAN:"
+        )
         print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
@@ -28,7 +30,7 @@ def main():
 
     half_period_ms = 2500
     duration_mins = 20
-    duration_secs = duration_mins*60
+    duration_secs = duration_mins * 60
     print("Breathing...")
     try:
         start_time = time()
@@ -38,11 +40,11 @@ def main():
                 dim = list(copy(color))
                 dim[2] = 1900
                 bulb.set_color(dim, half_period_ms, rapid=True)
-            sleep(half_period_ms/1000.0)
+            sleep(half_period_ms / 1000.0)
             for bulb in original_colors:
                 color = original_colors[bulb]
                 bulb.set_color(color, half_period_ms, rapid=True)
-            sleep(half_period_ms/1000.0)
+            sleep(half_period_ms / 1000.0)
             if time() - start_time > duration_secs:
                 raise KeyboardInterrupt
     except KeyboardInterrupt:
@@ -56,5 +58,6 @@ def main():
             power = original_powers[light]
             light.set_power(power)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

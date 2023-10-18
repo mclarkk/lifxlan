@@ -10,7 +10,9 @@ from lifxlan import LifxLAN
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
+        print(
+            "\nDiscovery will go much faster if you provide the number of lights on your LAN:"
+        )
         print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
@@ -20,7 +22,7 @@ def main():
     # lifx = LifxLAN() works just as well. Knowing the number of bulbs in advance
     # simply makes initial bulb discovery faster.
     print("Discovering lights...")
-    lifx = LifxLAN(num_lights,False)
+    lifx = LifxLAN(num_lights, False)
 
     # get devices
     multizone_lights = lifx.get_multizone_lights()
@@ -32,9 +34,9 @@ def main():
         original_zones = all_zones
         dim_zones = []
         bright_zones = []
-        for [h,s,v,k] in all_zones:
-            dim_zones.append((h,s,20000,k))
-            bright_zones.append((h,s,65535,k))
+        for [h, s, v, k] in all_zones:
+            dim_zones.append((h, s, 20000, k))
+            bright_zones.append((h, s, 65535, k))
 
         try:
             print("Breathing...")
@@ -48,5 +50,6 @@ def main():
     else:
         print("No lights with MultiZone capability detected.")
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

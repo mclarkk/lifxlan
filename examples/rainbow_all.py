@@ -9,7 +9,9 @@ from lifxlan import BLUE, CYAN, GREEN, LifxLAN, ORANGE, PINK, PURPLE, RED, YELLO
 def main():
     num_lights = None
     if len(sys.argv) != 2:
-        print("\nDiscovery will go much faster if you provide the number of lights on your LAN:")
+        print(
+            "\nDiscovery will go much faster if you provide the number of lights on your LAN:"
+        )
         print("  python {} <number of lights on LAN>\n".format(sys.argv[0]))
     else:
         num_lights = int(sys.argv[1])
@@ -44,13 +46,15 @@ def main():
     for light in original_powers:
         light.set_power(original_powers[light])
 
+
 def rainbow(lan, duration_secs=0.5, smooth=False):
     colors = [RED, ORANGE, YELLOW, GREEN, CYAN, BLUE, PURPLE, PINK]
-    transition_time_ms = duration_secs*1000 if smooth else 0
+    transition_time_ms = duration_secs * 1000 if smooth else 0
     rapid = True if duration_secs < 1 else False
     for color in colors:
         lan.set_color_all_lights(color, transition_time_ms, rapid)
         sleep(duration_secs)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

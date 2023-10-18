@@ -13,12 +13,13 @@
 # Temperature 2500-9000 K, 3500 is default.
 # Output: (Hue, Saturation, Brightness, Temperature)
 
-def RGBtoHSBK (RGB, temperature = 3500):
+
+def RGBtoHSBK(RGB, temperature=3500):
     cmax = max(RGB)
     cmin = min(RGB)
     cdel = cmax - cmin
 
-    brightness = int((cmax/255) * 65535)
+    brightness = int((cmax / 255) * 65535)
 
     if cdel != 0:
         saturation = int(((cdel) / cmax) * 65535)
@@ -39,7 +40,7 @@ def RGBtoHSBK (RGB, temperature = 3500):
         if hue < 0:
             hue = hue + 1
 
-        hue = int(hue*65535)
+        hue = int(hue * 65535)
     else:
         saturation = 0
         hue = 0

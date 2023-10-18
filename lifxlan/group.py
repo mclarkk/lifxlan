@@ -1,10 +1,10 @@
-#import thread
+# import thread
 from threading import Thread
 from time import sleep
 import sys
 
-class Group(object):
 
+class Group(object):
     def __init__(self, devices=[], verbose=False):
         self.devices = devices
         self.verbose = verbose
@@ -32,7 +32,7 @@ class Group(object):
     def set_power(self, power, duration=0, rapid=False):
         threads = []
         for d in self.devices:
-            t = Thread(target = self.set_power_helper, args = (d, power, duration, rapid))
+            t = Thread(target=self.set_power_helper, args=(d, power, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -40,9 +40,11 @@ class Group(object):
 
     def set_power_helper(self, device, power, duration, rapid):
         if device.is_light():
-            device.set_power(power, duration, rapid) # Light::set_power(power, [duration], [rapid])
+            device.set_power(
+                power, duration, rapid
+            )  # Light::set_power(power, [duration], [rapid])
         else:
-            device.set_power(power, rapid) # Device::set_power(power, [rapid])
+            device.set_power(power, rapid)  # Device::set_power(power, [rapid])
 
     def set_color(self, color, duration=0, rapid=False):
         # pre-calculate which devices you'll operate on
@@ -54,7 +56,7 @@ class Group(object):
         # multi-threaded color change
         threads = []
         for d in color_supporting_devices:
-            t = Thread(target = d.set_color, args = (color, duration, rapid))
+            t = Thread(target=d.set_color, args=(color, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -80,10 +82,10 @@ class Group(object):
             colors.append(d.get_color())
         # "simultaneous" change
         threads = []
-        for (i, d) in enumerate(color_supporting_devices):
+        for i, d in enumerate(color_supporting_devices):
             _, saturation, brightness, kelvin = colors[i]
             color = [hue, saturation, brightness, kelvin]
-            t = Thread(target = d.set_color, args = (color, duration, rapid))
+            t = Thread(target=d.set_color, args=(color, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -101,10 +103,10 @@ class Group(object):
             colors.append(d.get_color())
         # "simultaneous" change
         threads = []
-        for (i, d) in enumerate(color_supporting_devices):
+        for i, d in enumerate(color_supporting_devices):
             hue, saturation, _, kelvin = colors[i]
             color = [hue, saturation, brightness, kelvin]
-            t = Thread(target = d.set_color, args = (color, duration, rapid))
+            t = Thread(target=d.set_color, args=(color, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -122,10 +124,10 @@ class Group(object):
             colors.append(d.get_color())
         # "simultaneous" change
         threads = []
-        for (i, d) in enumerate(color_supporting_devices):
+        for i, d in enumerate(color_supporting_devices):
             hue, _, brightness, kelvin = colors[i]
             color = [hue, saturation, brightness, kelvin]
-            t = Thread(target = d.set_color, args = (color, duration, rapid))
+            t = Thread(target=d.set_color, args=(color, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -143,10 +145,10 @@ class Group(object):
             colors.append(d.get_color())
         # "simultaneous" change
         threads = []
-        for (i, d) in enumerate(color_supporting_devices):
+        for i, d in enumerate(color_supporting_devices):
             hue, saturation, brightness, _ = colors[i]
             color = [hue, saturation, brightness, kelvin]
-            t = Thread(target = d.set_color, args = (color, duration, rapid))
+            t = Thread(target=d.set_color, args=(color, duration, rapid))
             threads.append(t)
             t.start()
         for t in threads:
@@ -161,7 +163,7 @@ class Group(object):
         # "simultaneous" change
         threads = []
         for d in infrared_supporting_devices:
-            t = Thread(target = d.set_infrared, args = (infrared_brightness))
+            t = Thread(target=d.set_infrared, args=(infrared_brightness))
             threads.append(t)
             t.start()
         for t in threads:
@@ -176,7 +178,10 @@ class Group(object):
         # "simultaneous" change
         threads = []
         for d in multizone_devices:
-            t = Thread(target = d.set_zone_color, args = (start, end, color, duration, rapid, apply))
+            t = Thread(
+                target=d.set_zone_color,
+                args=(start, end, color, duration, rapid, apply),
+            )
             threads.append(t)
             t.start()
         for t in threads:
@@ -191,7 +196,7 @@ class Group(object):
         # "simultaneous" change
         threads = []
         for d in multizone_devices:
-            t = Thread(target = d.set_zone_colors, args = (colors, duration, rapid, apply))
+            t = Thread(target=d.set_zone_colors, args=(colors, duration, rapid, apply))
             threads.append(t)
             t.start()
         for t in threads:

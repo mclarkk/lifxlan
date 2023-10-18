@@ -6,7 +6,15 @@
 # you might see some things.
 
 
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout
+from socket import (
+    AF_INET,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    SO_BROADCAST,
+    SO_REUSEADDR,
+    socket,
+    timeout,
+)
 
 from lifxlan import UDP_BROADCAST_IP_ADDRS, UDP_BROADCAST_PORT, unpack_lifx_message
 
@@ -18,18 +26,18 @@ class Sniffer(object):
         self.sniff()
 
     def sniff(self):
-            self.initialize_socket()
-            try:
-                while(True):
-                    try:
-                        data = self.sock.recv(1024)
-                        request = unpack_lifx_message(data)
-                        print("\nRECV:"),
-                        print(request)
-                    except timeout:
-                        pass
-            except KeyboardInterrupt:
-                self.sock.close()
+        self.initialize_socket()
+        try:
+            while True:
+                try:
+                    data = self.sock.recv(1024)
+                    request = unpack_lifx_message(data)
+                    print("\nRECV:"),
+                    print(request)
+                except timeout:
+                    pass
+        except KeyboardInterrupt:
+            self.sock.close()
 
     def send(self, msg):
         if self.sock == None:
@@ -47,6 +55,7 @@ class Sniffer(object):
         self.sock.settimeout(0.5)
         port = UDP_BROADCAST_PORT
         self.sock.bind(("", port))
+
 
 if __name__ == "__main__":
     Sniffer()
