@@ -19,24 +19,57 @@
 # per device, and also to capture in real time when a service is down (port = 0).
 
 from datetime import datetime
-from socket import AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR, socket, timeout, gethostbyname_ex, gethostname
+from socket import (
+    AF_INET,
+    SOCK_DGRAM,
+    SOL_SOCKET,
+    SO_BROADCAST,
+    SO_REUSEADDR,
+    socket,
+    timeout,
+    gethostbyname_ex,
+    gethostname,
+)
 from time import sleep, time
 import ifaddr
 import platform
 import struct
 
 from .errors import WorkflowException
-from .msgtypes import Acknowledgement, GetGroup, GetHostFirmware, GetInfo, GetLabel, GetLocation, GetPower, GetVersion, \
-    GetWifiFirmware, GetWifiInfo, SERVICE_IDS, SetLabel, SetPower, StateGroup, StateHostFirmware, StateInfo, StateLabel, \
-    StateLocation, StatePower, StateVersion, StateWifiFirmware, StateWifiInfo, str_map
+from .msgtypes import (
+    Acknowledgement,
+    GetGroup,
+    GetHostFirmware,
+    GetInfo,
+    GetLabel,
+    GetLocation,
+    GetPower,
+    GetVersion,
+    GetWifiFirmware,
+    GetWifiInfo,
+    SERVICE_IDS,
+    SetLabel,
+    SetPower,
+    StateGroup,
+    StateHostFirmware,
+    StateInfo,
+    StateLabel,
+    StateLocation,
+    StatePower,
+    StateVersion,
+    StateWifiFirmware,
+    StateWifiInfo,
+    str_map,
+)
 from .message import BROADCAST_MAC
 from .products import features_map, product_map, light_products, switch_products
 from .unpack import unpack_lifx_message
 
-DEFAULT_TIMEOUT = 1 #second
+DEFAULT_TIMEOUT = 1  # second
 DEFAULT_ATTEMPTS = 1
 
-VERBOSE = False
+VERBOSE = True
+
 
 def get_broadcast_addrs():
     broadcast_addrs = []
@@ -48,28 +81,26 @@ def get_broadcast_addrs():
             ip = addr.ip
             prefix = addr.network_prefix
 
-            if ip == '127.0.0.1':
+            if ip == "127.0.0.1":
                 continue
 
             numeric = struct.unpack(
-                '>I',
-                struct.pack('BBBB', *[int(x, 10) for x in ip.split('.')])
+                ">I", struct.pack("BBBB", *[int(x, 10) for x in ip.split(".")])
             )[0]
-            mask = ~int('1' * prefix + '0' * (32 - prefix), 2) & 0xffffffff
+            mask = ~int("1" * prefix + "0" * (32 - prefix), 2) & 0xFFFFFFFF
 
-            broadcast = '.'.join(
-                str(x) for x in struct.unpack(
-                    'BBBB',
-                    struct.pack('>I', numeric | mask)
-                )
+            broadcast = ".".join(
+                str(x) for x in struct.unpack("BBBB", struct.pack(">I", numeric | mask))
             )
 
             broadcast_addrs.append(broadcast)
 
     return broadcast_addrs
 
+
 UDP_BROADCAST_IP_ADDRS = get_broadcast_addrs()
 UDP_BROADCAST_PORT = 56700
+
 
 class Device(object):
     # mac_addr is a string, with the ":" and everything.
@@ -81,7 +112,7 @@ class Device(object):
         self.port = port
         self.service = service
         self.source_id = source_id
-        self.ip_addr = ip_addr # IP addresses can change, though...
+        self.ip_addr = ip_addr  # IP addresses can change, though...
 
         # The following attributes can be set by calling refresh(), but that
         # takes time so it is not done by default during initialization.
@@ -92,7 +123,7 @@ class Device(object):
         self.location = None
         self.group = None
         self.power_level = None
-        self.level = None # for relay
+        self.level = None  # for relay
         self.host_firmware_build_timestamp = None
         self.host_firmware_version = None
         self.wifi_firmware_build_timestamp = None
@@ -120,7 +151,6 @@ class Device(object):
         self.socket_counter = 0
         self.socket_table = {}
 
-
     ############################################################################
     #                                                                          #
     #                            Device API Methods                            #
@@ -133,8 +163,14 @@ class Device(object):
         self.location = self.get_location()
         self.group = self.get_group()
         self.power_level = self.get_power()
-        self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
+        (
+            self.host_firmware_build_timestamp,
+            self.host_firmware_version,
+        ) = self.get_host_firmware_tuple()
+        (
+            self.wifi_firmware_build_timestamp,
+            self.wifi_firmware_version,
+        ) = self.get_wifi_firmware_tuple()
         self.vendor, self.product, self.version = self.get_version_tuple()
         self.product_name = self.get_product_name()
         self.product_features = self.get_product_features()
@@ -157,9 +193,9 @@ class Device(object):
     def get_label(self):
         try:
             response = self.req_with_resp(GetLabel, StateLabel)
-            self.label = response.label.encode('utf-8')
-            if type(self.label).__name__ == 'bytes': # Python 3
-                self.label = self.label.decode('utf-8')
+            self.label = response.label.encode("utf-8")
+            if type(self.label).__name__ == "bytes":  # Python 3
+                self.label = self.label.decode("utf-8")
         except:
             raise
         return self.label
@@ -167,9 +203,9 @@ class Device(object):
     def get_location(self):
         try:
             response = self.req_with_resp(GetLocation, StateLocation)
-            self.location = response.label.encode('utf-8')
-            if type(self.location).__name__ == 'bytes': # Python 3
-                self.location = self.location.decode('utf-8')
+            self.location = response.label.encode("utf-8")
+            if type(self.location).__name__ == "bytes":  # Python 3
+                self.location = self.location.decode("utf-8")
         except:
             raise
         return self.location
@@ -177,9 +213,9 @@ class Device(object):
     def get_group(self):
         try:
             response = self.req_with_resp(GetGroup, StateGroup)
-            self.group = response.label.encode('utf-8')
-            if type(self.group).__name__ == 'bytes': # Python 3
-                self.group = self.group.decode('utf-8')
+            self.group = response.label.encode("utf-8")
+            if type(self.group).__name__ == "bytes":  # Python 3
+                self.group = self.group.decode("utf-8")
         except:
             raise
         return self.group
@@ -215,17 +251,25 @@ class Device(object):
         try:
             response = self.req_with_resp(GetHostFirmware, StateHostFirmware)
             build = response.build
-            version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
+            version = float(
+                str(str(response.version >> 16) + "." + str(response.version & 0xFF))
+            )
         except:
             raise
         return build, version
 
     def get_host_firmware_build_timestamp(self):
-        self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
+        (
+            self.host_firmware_build_timestamp,
+            self.host_firmware_version,
+        ) = self.get_host_firmware_tuple()
         return self.host_firmware_build_timestamp
 
     def get_host_firmware_version(self):
-        self.host_firmware_build_timestamp, self.host_firmware_version = self.get_host_firmware_tuple()
+        (
+            self.host_firmware_build_timestamp,
+            self.host_firmware_version,
+        ) = self.get_host_firmware_tuple()
         return self.host_firmware_version
 
     def get_wifi_info_tuple(self):
@@ -259,17 +303,25 @@ class Device(object):
         try:
             response = self.req_with_resp(GetWifiFirmware, StateWifiFirmware)
             build = response.build
-            version = float(str(str(response.version >> 16) + "." + str(response.version & 0xff)))
+            version = float(
+                str(str(response.version >> 16) + "." + str(response.version & 0xFF))
+            )
         except:
             raise
         return build, version
 
     def get_wifi_firmware_build_timestamp(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
+        (
+            self.wifi_firmware_build_timestamp,
+            self.wifi_firmware_version,
+        ) = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_build_timestamp
 
     def get_wifi_firmware_version(self):
-        self.wifi_firmware_build_timestamp, self.wifi_firmware_version = self.get_wifi_firmware_tuple()
+        (
+            self.wifi_firmware_build_timestamp,
+            self.wifi_firmware_version,
+        ) = self.get_wifi_firmware_tuple()
         return self.wifi_firmware_version
 
     def get_version_tuple(self):
@@ -394,27 +446,27 @@ class Device(object):
     def supports_color(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
-        return self.product_features['color']
+        return self.product_features["color"]
 
     def supports_temperature(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
-        return self.product_features['temperature']
+        return self.product_features["temperature"]
 
     def supports_multizone(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
-        return self.product_features['multizone']
+        return self.product_features["multizone"]
 
     def supports_infrared(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
-        return self.product_features['infrared']
+        return self.product_features["infrared"]
 
     def supports_chain(self):
         if self.product_features == None:
             self.product_features = self.get_product_features()
-        return self.product_features['chain']
+        return self.product_features["chain"]
 
     ############################################################################
     #                                                                          #
@@ -435,30 +487,50 @@ class Device(object):
 
     def device_firmware_str(self, indent):
         host_build_ns = self.host_firmware_build_timestamp
-        host_build_s = datetime.utcfromtimestamp(host_build_ns/1000000000) if host_build_ns != None else None
+        host_build_s = (
+            datetime.utcfromtimestamp(host_build_ns / 1000000000)
+            if host_build_ns != None
+            else None
+        )
         wifi_build_ns = self.wifi_firmware_build_timestamp
-        wifi_build_s = datetime.utcfromtimestamp(wifi_build_ns/1000000000) if wifi_build_ns != None else None
-        s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(host_build_ns, host_build_s)
-        s += indent + "Host Firmware Build Version: {}\n".format(self.host_firmware_version)
-        s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(wifi_build_ns, wifi_build_s)
-        s += indent + "Wifi Firmware Build Version: {}\n".format(self.wifi_firmware_version)
+        wifi_build_s = (
+            datetime.utcfromtimestamp(wifi_build_ns / 1000000000)
+            if wifi_build_ns != None
+            else None
+        )
+        s = "Host Firmware Build Timestamp: {} ({} UTC)\n".format(
+            host_build_ns, host_build_s
+        )
+        s += indent + "Host Firmware Build Version: {}\n".format(
+            self.host_firmware_version
+        )
+        s += indent + "Wifi Firmware Build Timestamp: {} ({} UTC)\n".format(
+            wifi_build_ns, wifi_build_s
+        )
+        s += indent + "Wifi Firmware Build Version: {}\n".format(
+            self.wifi_firmware_version
+        )
         return s
 
     def device_product_str(self, indent):
         s = "Vendor: {}\n".format(self.vendor)
-        s += indent + "Product: {} ({})\n".format(self.product, self.product_name)  #### FIX
+        s += indent + "Product: {} ({})\n".format(
+            self.product, self.product_name
+        )  #### FIX
         s += indent + "Version: {}\n".format(self.version)
         s += indent + "Features: {}\n".format(self.product_features)
         return s
 
     def device_time_str(self, indent):
         time, uptime, downtime = self.get_info_tuple()
-        time_s = datetime.utcfromtimestamp(time/1000000000) if time != None else None
+        time_s = datetime.utcfromtimestamp(time / 1000000000) if time != None else None
         uptime_s = round(nanosec_to_hours(uptime), 2) if uptime != None else None
         downtime_s = round(nanosec_to_hours(downtime), 2) if downtime != None else None
         s = "Current Time: {} ({} UTC)\n".format(time, time_s)
         s += indent + "Uptime (ns): {} ({} hours)\n".format(uptime, uptime_s)
-        s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(downtime, downtime_s)
+        s += indent + "Last Downtime Duration +/-5s (ns): {} ({} hours)\n".format(
+            downtime, downtime_s
+        )
         return s
 
     def device_radio_str(self, indent):
@@ -485,13 +557,26 @@ class Device(object):
     ############################################################################
 
     # Don't wait for Acks or Responses, just send the same message repeatedly as fast as possible
-    def fire_and_forget(self, msg_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, num_repeats=DEFAULT_ATTEMPTS):
+    def fire_and_forget(
+        self,
+        msg_type,
+        payload={},
+        timeout_secs=DEFAULT_TIMEOUT,
+        num_repeats=DEFAULT_ATTEMPTS,
+    ):
         socket_id = self.initialize_socket(timeout_secs)
         sock = self.socket_table[socket_id]
-        msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=False)
+        msg = msg_type(
+            self.mac_addr,
+            self.source_id,
+            seq_num=0,
+            payload=payload,
+            ack_requested=False,
+            response_requested=False,
+        )
         sent_msg_count = 0
         sleep_interval = 0.05 if num_repeats > 20 else 0
-        while(sent_msg_count < num_repeats):
+        while sent_msg_count < num_repeats:
             if self.ip_addr:
                 sock.sendto(msg.packed_message, (self.ip_addr, self.port))
             else:
@@ -501,17 +586,34 @@ class Device(object):
                 print("SEND: " + str(msg))
             sent_msg_count += 1
             if sent_msg_count < num_repeats:
-                sleep(sleep_interval) # Max num of messages device can handle is 20 per second.
+                sleep(
+                    sleep_interval
+                )  # Max num of messages device can handle is 20 per second.
         self.close_socket(socket_id)
 
     # Usually used for Set messages
-    def req_with_ack(self, msg_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
-        self.req_with_resp(msg_type, Acknowledgement, payload, timeout_secs, max_attempts)
+    def req_with_ack(
+        self,
+        msg_type,
+        payload,
+        timeout_secs=DEFAULT_TIMEOUT,
+        max_attempts=DEFAULT_ATTEMPTS,
+    ):
+        self.req_with_resp(
+            msg_type, Acknowledgement, payload, timeout_secs, max_attempts
+        )
 
     # Usually used for Get messages, or for state confirmation after Set (hence the optional payload)
-    def req_with_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+    def req_with_resp(
+        self,
+        msg_type,
+        response_type,
+        payload={},
+        timeout_secs=DEFAULT_TIMEOUT,
+        max_attempts=DEFAULT_ATTEMPTS,
+    ):
         # Need to put error checking here for aguments
-        
+
         if type(response_type) != type([]):
             response_type = [response_type]
         success = False
@@ -519,9 +621,23 @@ class Device(object):
         socket_id = self.initialize_socket(timeout_secs)
         sock = self.socket_table[socket_id]
         if len(response_type) == 1 and Acknowledgement in response_type:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=True, response_requested=False)
+            msg = msg_type(
+                self.mac_addr,
+                self.source_id,
+                seq_num=0,
+                payload=payload,
+                ack_requested=True,
+                response_requested=False,
+            )
         else:
-            msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
+            msg = msg_type(
+                self.mac_addr,
+                self.source_id,
+                seq_num=0,
+                payload=payload,
+                ack_requested=False,
+                response_requested=True,
+            )
         response_seen = False
         attempts = 0
         while not response_seen and attempts < max_attempts:
@@ -542,10 +658,13 @@ class Device(object):
                     data, (ip_addr, port) = sock.recvfrom(1024)
                     response = unpack_lifx_message(data)
                     if self.verbose:
-                        print (type(response))
+                        print(type(response))
                         print("RECV: " + str(response))
                     if type(response) in response_type:
-                        if response.source_id == self.source_id and (response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
+                        if response.source_id == self.source_id and (
+                            response.target_addr == self.mac_addr
+                            or response.target_addr == BROADCAST_MAC
+                        ):
                             response_seen = True
                             device_response = response
                             self.ip_addr = ip_addr
@@ -557,13 +676,27 @@ class Device(object):
             attempts += 1
         if not success:
             self.close_socket(socket_id)
-            raise WorkflowException("WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(str(response_type), str(self.mac_addr), str(self.label), str(msg_type)))
+            raise WorkflowException(
+                "WorkflowException: Did not receive {} from {} (Name: {}) in response to {}".format(
+                    str(response_type),
+                    str(self.mac_addr),
+                    str(self.label),
+                    str(msg_type),
+                )
+            )
         else:
             self.close_socket(socket_id)
         return device_response
 
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
-    def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+    def req_with_ack_resp(
+        self,
+        msg_type,
+        response_type,
+        payload,
+        timeout_secs=DEFAULT_TIMEOUT,
+        max_attempts=DEFAULT_ATTEMPTS,
+    ):
         pass
 
     ############################################################################
@@ -584,7 +717,11 @@ class Device(object):
             self.socket_counter += 1
             return socket_id
         except Exception as err:
-            raise WorkflowException("WorkflowException: error {} while trying to open socket".format(str(err)))
+            raise WorkflowException(
+                "WorkflowException: error {} while trying to open socket".format(
+                    str(err)
+                )
+            )
 
     def close_socket(self, socket_id):
         sock = self.socket_table.pop(socket_id, None)
@@ -592,11 +729,12 @@ class Device(object):
             sock.close()
 
     def __repr__(self):
-        return '<{cls}: {label!r} ({group!r} @ {location!r})>'.format(
+        return "<{cls}: {label!r} ({group!r} @ {location!r})>".format(
             cls=self.__class__.__name__,
             label=self.get_label(),
             group=self.get_group_label(),
-            location=self.get_location_label())
+            location=self.get_location_label(),
+        )
 
 
 ################################################################################
@@ -605,5 +743,6 @@ class Device(object):
 #                                                                              #
 ################################################################################
 
+
 def nanosec_to_hours(ns):
-    return ns/(1000000000.0*60*60)
+    return ns / (1000000000.0 * 60 * 60)
