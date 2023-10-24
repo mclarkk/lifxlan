@@ -1,10 +1,11 @@
 """ Example of using the LIFX LAN library to control LIFX devices via MQTT """
 import argparse
 import json
+import signal
+import sys
 import threading
 from pathlib import Path
 
-import daemon
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import MQTTMessage
 
@@ -12,6 +13,13 @@ from lifxlan import Device as LifxDevice
 from lifxlan import LifxLAN
 
 DEFAULT_TOPIC_STRUCTURE = "lifx/{serial}/{type}{index}/{suffix}"
+
+
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 # Function to allow the user to define the order of fields in the topic
@@ -33,9 +41,6 @@ def available_topic(topic_structure: str, type: str, serial: str, index: str):
 
 def set_topic(topic_structure: str, type: str, serial: str, index: str):
     return build_topic(topic_structure, type, serial, index, "set")
-
-
-homeassistant_topic_structure = "homeassistant/{type}/{device_serial}/{index}/{suffix}"
 
 
 class MQTTLifxDevice:
@@ -147,16 +152,39 @@ def _wizard_handler(args):
     """
 
     print("MQTT LIFX connector wizard\n")
+    if _config_file().exists():
+        config = json.loads(_config_file().read_text())
+        mqtt_config = config["mqtt"]
+    else:
+        mqtt_config = {
+            "broker": "127.0.0.1",
+            "port": 1883,
+            "username": "",
+            "password": "",
+            "interval": 5.0,
+            "topic_structure": DEFAULT_TOPIC_STRUCTURE,
+        }
+        config = {"mqtt": mqtt_config, "switches": []}
 
     print("MQTT parameters:")
-    mqtt_config = {
-        "broker": input("\tMQTT broker address [127.0.0.1]: ") or "127.0.0.1",
-        "port": int(input("\tMQTT broker port [1883]: ") or 1883),
-        "username": input("\tMQTT username: "),
-        "password": input("\tMQTT password: "),
-        "interval": float(input("\tRefresh interval [5]s: ") or 5.0),
-        "topic_structure": input(f"\tTopic structure [{DEFAULT_TOPIC_STRUCTURE}]: ")
-        or DEFAULT_TOPIC_STRUCTURE,
+    config["mqtt"] = {
+        "broker": input(f"\tMQTT broker address [{mqtt_config['broker']}]: ")
+        or mqtt_config["broker"],
+        "port": int(
+            input(f"\tMQTT broker port [{mqtt_config['port']}]: ")
+            or mqtt_config["port"]
+        ),
+        "username": input(f"\tMQTT username [{mqtt_config['username']}]: ")
+        or mqtt_config["username"],
+        "password": input("\tMQTT password [*]: ") or mqtt_config["password"],
+        "interval": float(
+            input(f"\tRefresh interval [{mqtt_config['interval']}]s: ")
+            or mqtt_config["interval"]
+        ),
+        "topic_structure": input(
+            f"\tTopic structure [{mqtt_config['topic_structure']}]: "
+        )
+        or mqtt_config["topic_structure"],
     }
 
     print("\nLIFX switches:")
@@ -164,37 +192,55 @@ def _wizard_handler(args):
     switches = lifx.get_switches()
     for switch in switches:
         switch.refresh()
-        print(f"\t{switch.label} (mac: {switch.mac_addr})")
-        switch.relays = []
+        switch.serial = switch.mac_addr.replace(":", "")
+        print(f"\t{switch.label} ({switch.serial})")
+        switch.config = next(
+            (s for s in config["switches"] if s["serial"] == switch.serial),
+            {
+                "name": switch.label,
+                "serial": switch.serial,
+                "relays": [],
+            },
+        )
         _, _, _, buttons = switch.get_buttons()
         for button in buttons:
             for action in button["actions"]:
                 if action["target_type"] == "Relays":
                     for relay_index in action["relays"]:
                         print(f"\t\tRelay {relay_index}")
+                        i = next(
+                            (
+                                index
+                                for (index, r) in enumerate(switch.config["relays"])
+                                if r["relay"] == relay_index
+                            ),
+                            None,
+                        )
+                        if i is None:
+                            prev_name = ""
+                            prev_type = "light"
+                        else:
+                            prev_name = switch.config["relays"][i]["name"]
+                            prev_type = switch.config["relays"][i]["type"]
+
                         relay = {
                             "relay": relay_index,
-                            "name": input("\t\t\tDevice name: "),
-                            "type": input("\t\t\tDevice type [light]: ").lower()
-                            or "light",
+                            "name": input(f"\t\t\tDevice name [{prev_name}]: ")
+                            or prev_name,
+                            "type": input(f"\t\t\tDevice type [{prev_type}]: ").lower()
+                            or prev_type,
                         }
-                        switch.relays.append(relay)
+                        if i is None:
+                            switch.config["relays"].append(relay)
+                        else:
+                            switch.config["relays"][i] = relay
 
-    config = {"mqtt": mqtt_config, "switches": []}
+    config["switches"] = []
     for switch in switches:
-        switch_config = {
-            "name": switch.label,
-            "serial": switch.mac_addr.replace(":", ""),
-            "relays": [],
-        }
-        for relay in switch.relays:
-            relay_config = {
-                "relay": relay["relay"],
-                "name": relay["name"],
-                "type": relay["type"],
-            }
-            switch_config["relays"].append(relay_config)
-        config["switches"].append(switch_config)
+        switch.config["relays"] = sorted(
+            switch.config["relays"], key=lambda r: r["relay"]
+        )
+        config["switches"].append(switch.config)
 
     config_str = json.dumps(config, indent=4)
     print(config_str)
@@ -291,21 +337,6 @@ def _run_handler(args):
     client.loop_forever()
 
 
-def _start_handler(args):
-    """Start the MQTT LIFX connector as a daemon"""
-    pass
-
-
-def _stop_handler(args):
-    """Stop the MQTT LIFX connector daemon"""
-    pass
-
-
-def _status_handler(args):
-    """Print status of the daemon"""
-    pass
-
-
 def _command_line_handler():
     """Parse command line arguments and execute the appropriate action."""
 
@@ -324,10 +355,6 @@ def _command_line_handler():
     command_options = {
         "wizard": "Run the wizard to generate a config file",
         "run": "Run the MQTT LIFX connector in the foreground",
-        "start": "Start the MQTT LIFX connector as a daemon",
-        "stop": "Stop the MQTT LIFX connector daemon",
-        "restart": "Restart the MQTT LIFX connector daemon",
-        "status": "Show the status of the MQTT LIFX connector",
     }
 
     parser.add_argument(
@@ -357,16 +384,6 @@ def _command_line_handler():
             _wizard_handler(args)
         case "run":
             _run_handler(args)
-        case "start":
-            _start_handler(args)
-        case "stop":
-            _stop_handler(args)
-        case "restart":
-            _stop_handler(args)
-            _start_handler(args)
-        case "status":
-            _status_handler(args)
-        case _:
             print(f"Unknown command {args.command[0]}")
             parser.print_help()
 
