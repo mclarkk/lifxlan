@@ -287,4 +287,8 @@ The files that deal with LIFX packet construction and representation are:
 - **msgtypes.py** - Provides subclasses for each LIFX message type, along with their payload constructors.
 - **unpack.py** - Creates a LIFX message object from a string of binary data (crucial for receiving messages).
 
+#### Onboarding a LIFX Device:
+
+Onboarding a light is not a part of the LIFX LAN protocol. However, if you want to use a Python script to onboard a LIFX device instead of using the app, [here is a resource](https://github.com/tserong/lifx-hacks/blob/master/onboard.py) shared by one of our users. I make no guarantees as to its correctness or safety.
+
 Happy hacking!
