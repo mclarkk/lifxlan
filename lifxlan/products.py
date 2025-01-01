@@ -115,10 +115,14 @@ product_map = {
                186: "LIFX Candle Colour Intl",
                187: "LIFX Candle Color US",
                188: "LIFX Candle Colour Intl",
+               201: "LIFX Ceiling 13x26" US",
+               202: "LIFX Ceiling 13x26" Intl",
                203: "LIFX String US",
                204: "LIFX String Intl",
                205: "LIFX Indoor Neon US",
                206: "LIFX Indoor Neon Intl",
+               213: "LIFX Permanent Outdoor US",
+               214: "LIFX Permanent Outdoor Intl",
                215: "LIFX Candle Color US",
                216: "LIFX Candle Colour Intl",
                217: "LIFX Tube US",
@@ -127,7 +131,7 @@ product_map = {
               }
 
 # Identifies which products are lights.
-light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 93, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111, 112, 113, 114, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 141, 142, 143, 144, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 173, 174, 175, 176, 177, 181, 182, 185, 186, 187, 188, 203, 204, 205, 206, 215, 216, 217, 218]
+light_products = [1, 3, 10, 11, 15, 18, 19, 20, 22, 27, 28, 29, 30, 31, 32, 36, 37, 38, 39, 40, 43, 44, 45, 46, 49, 50, 51, 52, 53, 55, 57, 59, 60, 61, 62, 63, 64, 65, 66, 68, 81, 82, 85, 87, 88, 90, 91, 92, 93, 94, 96, 97, 98, 99, 100, 101, 109, 110, 111, 112, 113, 114, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 141, 142, 143, 144, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 173, 174, 175, 176, 177, 181, 182, 185, 186, 187, 188, 201, 202, 203, 204, 205, 206, 213, 214, 215, 216, 217, 218]
 
 # Identifies which products are switches.
 switch_products = [70, 71, 89, 115, 116]
@@ -1503,6 +1507,30 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
+                201: {						# LIFX Ceiling 13x26" US
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": True,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                202: {						# LIFX Ceiling 13x26" Intl
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": False,
+                     "chain": False,
+                     "matrix": True,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
                 203: {						# LIFX String US
                      "color": True,
                      "temperature": True,
@@ -1540,6 +1568,30 @@ features_map = {
                      "relays": False,
                      "buttons": False},
                 206: {						# LIFX Indoor Neon Intl
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": True,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                213: {						# LIFX Permanent Outdoor US
+                     "color": True,
+                     "temperature": True,
+                     "infrared": False,
+                     "multizone": True,
+                     "chain": False,
+                     "matrix": False,
+                     "min_kelvin": 1500,
+                     "max_kelvin": 9000,
+                     "hev": False,
+                     "relays": False,
+                     "buttons": False},
+                214: {						# LIFX Permanent Outdoor Intl
                      "color": True,
                      "temperature": True,
                      "infrared": False,
