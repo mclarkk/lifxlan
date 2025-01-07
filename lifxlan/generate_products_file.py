@@ -30,7 +30,8 @@ def main():
     num_products = len(mapdata)
 
     for product in mapdata:
-        print(f"               {product['pid']}: \"{product['name']}\",")
+        product_name = product['name'].replace("\"","")
+        print(f"               {product['pid']}: \"{product_name}\",")
     print(f"               None: \"Unknown product\"")
 
     print("              }")
@@ -70,7 +71,9 @@ def main():
         else:
             temp = False
 
-        print(f"                {product['pid']}: {{\t\t\t\t\t\t# {product['name']}")
+        product_name = product['name'].replace("\"","")
+
+        print(f"                {product['pid']}: {{\t\t\t\t\t\t# {product_name}")
         print(f"                     \"color\": {product['features']['color']},")
         print(f"                     \"temperature\": {temp},")
         print(f"                     \"infrared\": {product['features']['infrared']},")

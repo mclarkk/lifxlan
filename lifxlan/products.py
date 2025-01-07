@@ -1507,7 +1507,7 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                201: {						# LIFX Ceiling 13x26" US
+                201: {						# LIFX Ceiling 13x26 US
                      "color": True,
                      "temperature": True,
                      "infrared": False,
@@ -1519,7 +1519,7 @@ features_map = {
                      "hev": False,
                      "relays": False,
                      "buttons": False},
-                202: {						# LIFX Ceiling 13x26" Intl
+                202: {						# LIFX Ceiling 13x26 Intl
                      "color": True,
                      "temperature": True,
                      "infrared": False,
