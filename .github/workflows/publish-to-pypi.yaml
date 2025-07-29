@@ -27,10 +27,10 @@ jobs:
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
     - name: Create a release
-       uses: softprops/action-gh-release@v2
-       if: github.ref_type == 'tag'
-       with:
-         files: dist/*
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        files: dist/*
 
   publish-to-pypi:
     name: >-
