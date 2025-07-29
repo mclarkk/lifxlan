@@ -511,7 +511,6 @@ class MultiZoneStateZone(Message): #503
         payload = count + index + color
         return payload
 
-
 class MultiZoneSetColorZones(Message):
     def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
         self.start_index = payload["start_index"]
@@ -618,7 +617,60 @@ class StateMultiZoneEffect(Message):
         for parameter in self.parameters:
             payload += little_endian(bitstring.pack("uint:32", parameter))
         return payload
+    
+class MultiZoneSetExtendedColorZones(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.duration = payload["duration"]
+        self.apply = payload["apply"]
+        self.index = payload["index"]
+        self.count = payload["count"]
+        self.colors = payload["colors"]
+        super(MultiZoneSetExtendedColorZones, self).__init__(MSG_IDS[MultiZoneSetExtendedColorZones], target_addr, source_id, seq_num, ack_requested, response_requested)
 
+    def get_payload(self): # TODO
+        self.payload_fields.append(("Start Index", self.index))
+        self.payload_fields.append(("Colors Count", self.count))
+        self.payload_fields.append(("Colors", self.colors))
+        self.payload_fields.append(("Duration", self.duration))
+        self.payload_fields.append(("Apply", self.apply))
+
+        duration = little_endian(bitstring.pack("uint:32", self.duration))
+        apply = little_endian(bitstring.pack("uint:8", self.apply))
+        zone_index = little_endian(bitstring.pack("uint:16", self.index))
+        colors_count = little_endian(bitstring.pack("uint:8", self.count))
+        duration = little_endian(bitstring.pack("uint:32", self.duration))
+        apply = little_endian(bitstring.pack("uint:8", self.apply))
+        payload = duration + apply + zone_index + colors_count
+        for color in self.colors: ## Test if color padding is needed to make array length 82
+            payload += b"".join(little_endian(bitstring.pack("uint:16", field)) for field in color)
+
+        return payload
+    
+class MultiZoneGetExtendedColorZones(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        super(MultiZoneGetExtendedColorZones, self).__init__(MSG_IDS[MultiZoneGetExtendedColorZones], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+class MultiZoneStateExtendedColorZones(Message):
+    def __init__(self, target_addr, source_id, seq_num, payload, ack_requested=False, response_requested=False):
+        self.count = payload["count"]
+        self.index = payload["index"]
+        self.cCount = payload["cCount"]
+        self.colors = payload["colors"]
+        super(MultiZoneStateExtendedColorZones, self).__init__(MSG_IDS[MultiZoneStateExtendedColorZones], target_addr, source_id, seq_num, ack_requested, response_requested)
+
+    def get_payload(self):
+        self.payload_fields.append(("Zones Count", self.count))
+        self.payload_fields.append(("Index", self.index))
+        self.payload_fields.append(("Colors Count", self.cCount))
+        self.payload_fields.append(("Colors (HSBK)", self.colors))
+        count = little_endian(bitstring.pack("uint:16", self.count))
+        index = little_endian(bitstring.pack("uint:16", self.index))
+        cCount = little_endian(bitstring.pack("uint:8", self.cCount))
+        payload = count + index + cCount
+        for color in self.colors:
+            payload += b"".join(little_endian(bitstring.pack("uint:16", field)) for field in color)
+        return payload
+    
 ##### TILE MESSAGES #####
 
 class GetDeviceChain(Message):
@@ -947,6 +999,9 @@ MSG_IDS = {     GetService: 2,
                 GetMultiZoneEffect: 507,
                 SetMultiZoneEffect: 508,
                 StateMultiZoneEffect: 509,
+                MultiZoneSetExtendedColorZones: 510,
+                MultiZoneGetExtendedColorZones: 511,
+                MultiZoneStateExtendedColorZones: 512,
                 GetDeviceChain: 701,
                 StateDeviceChain: 702,
                 SetUserPosition: 703,

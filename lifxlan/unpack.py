@@ -263,7 +263,7 @@ def unpack_lifx_message(packed_message):
         message = MultiZoneStateMultiZone(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[GetMultiZoneEffect]: #507
-        message = GetMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+        message = GetMultiZoneEffect(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[SetMultiZoneEffect]: #508
         instanceid = struct.unpack("<I", payload_str[0:4])[0]
@@ -296,6 +296,32 @@ def unpack_lifx_message(packed_message):
         payload = {"instanceid": instanceid, "type": effect_type, "reserved1": reserved1, "speed": speed,
                    "duration": duration, "reserved2": reserved2, "reserved3": reserved3, "parameters": parameters}
         message = StateMultiZoneEffect(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[MultiZoneSetExtendedColorZones]: #510
+        duration = struct.unpack("<I", payload_str[0:4])[0]
+        apply = struct.unpack("<B", payload_str[4:5])[0] # Enum.MultiZoneExtendedApplicationRequest
+        index = struct.unpack("<H", payload_str[5:7])[0]
+        count = struct.unpack("<B", payload_str[7:8])[0]
+        colors = []
+        for i in range(count):
+            color = struct.unpack("<" + ("H" * 4), payload_str[8+(i*8):16+(i*8)])
+            colors.append(color)
+        payload = {"duration": duration, "apply": apply, "index": index, "count": count, "colors": colors}
+        message = MultiZoneSetExtendedColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[MultiZoneGetExtendedColorZones]: #511
+        message = MultiZoneGetExtendedColorZones(target_addr, source_id, seq_num, {}, ack_requested, response_requested)
+
+    elif message_type == MSG_IDS[MultiZoneStateExtendedColorZones]: #512
+        count = struct.unpack("<H", payload_str[0:2])[0]
+        index = struct.unpack("<H", payload_str[2:4])[0]
+        cCount = struct.unpack("<B", payload_str[4:5])[0]
+        colors = []
+        for i in range(cCount):
+            color = struct.unpack("<" + ("H" * 4), payload_str[5+(i*8):13+(i*8)])
+            colors.append(color)
+        payload = {"count": count, "index": index, "colors": colors, "cCount": cCount}
+        message = MultiZoneStateExtendedColorZones(target_addr, source_id, seq_num, payload, ack_requested, response_requested)
 
     elif message_type == MSG_IDS[GetDeviceChain]: #701
         message = GetDeviceChain(target_addr, source_id, seq_num, {}, ack_requested, response_requested)

@@ -189,6 +189,8 @@ Lights with MultiZone capability, such as the LIFX Z, have all the same methods 
 get_color_zones([start], [end])                                    # returns a list of [H,S,V,K] colors, one for each zone. Length of the list is the number of zones.
 set_zone_color(start, end, color, [duration], [rapid], [apply])    # indices are inclusive and zero-indexed
 set_zone_colors(colors, [duration], [rapid])                       # colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. This makes it possible to restore the original colors easily after a display.
+extended_set_zone_color(colors, [start], [duration], [rapid], [apply])  #  colors is a list of [H,S,V,K] colors, which will get applied to the zones in order. start is the first index (or offset) in which these colors will be applied. Alternatively you can use blanks with brightness 0.
+extended_get_color_zones([start], [end])                           # returns a list of [H,S,V,K] colors, one for each zone. 
 get_multizone_effect()                                             # returns current firmware effect status
 set_multizone_effect([effect_type], [speed], [duration], [instanceid], [parameters], [rapid]) # starts the firmware effect sequence
 ```

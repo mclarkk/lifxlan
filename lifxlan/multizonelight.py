@@ -5,8 +5,9 @@ import math
 import random
 
 from .device import WorkflowException
+from .errors import InvalidParameterException
 from .light import Light
-from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone, GetMultiZoneEffect, SetMultiZoneEffect, StateMultiZoneEffect
+from .msgtypes import MultiZoneGetColorZones, MultiZoneSetColorZones, MultiZoneStateMultiZone, MultiZoneStateZone, GetMultiZoneEffect, SetMultiZoneEffect, StateMultiZoneEffect, MultiZoneGetExtendedColorZones, MultiZoneSetExtendedColorZones, MultiZoneStateExtendedColorZones
 
 
 class MultiZoneLight(Light):
@@ -71,6 +72,49 @@ class MultiZoneLight(Light):
             if i == len(colors)-1:
                 apply = 1
             self.set_zone_color(i, i+1, color, duration, rapid, apply)
+
+    # Uses new protocol for extended color zones, 0-indexed, end is exclusive.
+    def extended_get_color_zones(self, start=None, end=None):
+        responses = self.req_with_multiple_resp(MultiZoneGetExtendedColorZones, [MultiZoneStateExtendedColorZones])
+        colors = []
+
+        if (start != None and end == None) or (start == None and end != None):
+            raise ValueError("In the function extended_get_color_zones, start and end indices must both be provided, or neither provided.")
+        elif start is not None and end is not None:
+            if end < start:
+                raise ValueError("In the function extended_get_color_zones, end must be greater than start (provided start = {}, end = {}).".format(start, end))
+
+        for response in responses:
+            for i in range(response.index, response.index + response.cCount):
+                if (start is None and end is None) or (i >= start and i < end):
+                    if i < response.count:
+                        colors.append(response.colors[i - response.index])
+                    else:
+                        raise WorkflowException("extended_get_color_zones response exceeds total count: segment index={}, color count={}, zone count={}".format(response.index, response.cCount, response.count))
+                        break
+
+        return colors   
+
+    def extended_set_zone_color(self, colors, index=0, duration=0, rapid=False, apply=1):
+        if not isinstance(colors, list):
+            colors = [colors]
+        if all((isinstance(color, tuple) or isinstance(color, list)) and len(color) == 4 for color in colors):
+            requests = int(math.ceil(len(colors)/82.0))
+            try:
+                for i in range(requests):
+                    start_index = i * 82
+                    applyFlag = 1 if (i == requests - 1) and (apply == 1) else 0
+                    segment_colors = colors[start_index:start_index + 82]
+
+                    if rapid:
+                        self.fire_and_forget(MultiZoneSetExtendedColorZones,
+                                             {"index": start_index + index, "colors": segment_colors,
+                                              "duration": duration, "count" : len(segment_colors), "apply": applyFlag}, num_repeats=1)
+                    else:
+                        self.req_with_ack(MultiZoneSetExtendedColorZones, {"index": start_index + index, "colors": segment_colors,
+                                                                           "duration": duration, "apply": applyFlag, "count": len(segment_colors)})
+            except WorkflowException as e:
+                raise
 
     def get_multizone_effect(self):
         response = self.req_with_resp(GetMultiZoneEffect, StateMultiZoneEffect)
