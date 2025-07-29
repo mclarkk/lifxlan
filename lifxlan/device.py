@@ -562,6 +562,83 @@ class Device(object):
             self.close_socket(socket_id)
         return device_response
 
+    # For requests that expect multiple response packets (like GetExtendedColorZones)
+    def req_with_multiple_resp(self, msg_type, response_type, payload={}, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
+        if type(response_type) != type([]):
+            response_type = [response_type]
+        
+        all_responses = []
+        success = False
+        socket_id = self.initialize_socket(timeout_secs)
+        sock = self.socket_table[socket_id]
+        msg = msg_type(self.mac_addr, self.source_id, seq_num=0, payload=payload, ack_requested=False, response_requested=True)
+        
+        attempts = 0
+        while attempts < max_attempts:
+            sent = False
+            start_time = time()
+            responses_this_attempt = []
+            
+            # Keep collecting responses until timeout or we have all expected responses
+            while True:
+                if not sent:
+                    if self.ip_addr:
+                        sock.sendto(msg.packed_message, (self.ip_addr, self.port))
+                    else:
+                        for ip_addr in UDP_BROADCAST_IP_ADDRS:
+                            sock.sendto(msg.packed_message, (ip_addr, self.port))
+                    sent = True
+                    if self.verbose:
+                        print("SEND: " + str(msg))
+                
+                try:
+                    data, (ip_addr, port) = sock.recvfrom(1024)
+                    response = unpack_lifx_message(data)
+                    
+                    if self.verbose:
+                        print(type(response))
+                        print("RECV: " + str(response))
+                    
+                    if type(response) in response_type:
+                        if response.source_id == self.source_id and (response.target_addr == self.mac_addr or response.target_addr == BROADCAST_MAC):
+                            responses_this_attempt.append(response)
+                            self.ip_addr = ip_addr
+                            
+                            # Check if we have all expected responses
+                            # if len(responses_this_attempt) >= expected_responses:
+                            #     success = True
+                            #     all_responses = responses_this_attempt
+                            #     break
+                            
+                            # For ExtendedColorZones, check if this is the last packet
+                            if hasattr(response, 'index') and hasattr(response, 'count') and hasattr(response, 'cCount'):
+                                # If index + cCount >= count, this should be the last packet
+                                if response.index + response.cCount >= response.count:
+                                    success = True
+                                    all_responses = responses_this_attempt
+                                    break
+                            else:
+                                raise WorkflowException("WorkflowException: Response type {} does not have expected attributes for req_with_multiple_resp".format(type(response)))
+
+                except timeout:
+                    pass
+                
+                elapsed_time = time() - start_time
+                if elapsed_time > timeout_secs:
+                    break
+            
+            if success:
+                break
+            attempts += 1
+        
+        if not success:
+            self.close_socket(socket_id)
+            raise WorkflowException("WorkflowException: Did not receive complete {} response from {} (Name: {}) in response to {}".format(str(response_type), str(self.mac_addr), str(self.label), str(msg_type)))
+        else:
+            self.close_socket(socket_id)
+        
+        return all_responses
+
     # Not currently implemented, although the LIFX LAN protocol supports this kind of workflow natively
     def req_with_ack_resp(self, msg_type, response_type, payload, timeout_secs=DEFAULT_TIMEOUT, max_attempts=DEFAULT_ATTEMPTS):
         pass
